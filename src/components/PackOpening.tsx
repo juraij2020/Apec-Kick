@@ -64,7 +64,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   const [stage, setStage] = useState<OpeningStage>('idle');
   const [pulledCards, setPulledCards] = useState<SoccerCard[]>([]);
   const [walkoutCard, setWalkoutCard] = useState<SoccerCard | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'All' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
 
   // Pack Creation Modal State
   const [showCreatePackModal, setShowCreatePackModal] = useState<boolean>(false);
@@ -73,15 +73,15 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   const [newPackCost, setNewPackCost] = useState<number>(3500);
   const [newPackCardCount, setNewPackCardCount] = useState<number>(4);
   const [newPackMinRating, setNewPackMinRating] = useState<number>(75);
-  const [newPackProgram, setNewPackProgram] = useState<'International Moments' | 'Hall of Fame' | 'Program One' | 'Base Cards' | 'Futmas' | 'All'>('International Moments');
-  const [newPackTheme, setNewPackTheme] = useState<PackTheme>('intl_moments');
+  const [newPackProgram, setNewPackProgram] = useState<'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Program One' | 'Base Cards' | 'Futmas' | 'All'>('Street Kings');
+  const [newPackTheme, setNewPackTheme] = useState<PackTheme>('street_kings');
   const [newPackGuaranteedWalkout, setNewPackGuaranteedWalkout] = useState<boolean>(true);
 
   // Trigger confetti burst
   const triggerConfetti = (colorTier: 'gold' | 'custom' | 'icon') => {
     const colors =
       colorTier === 'custom'
-        ? ['#10b981', '#06b6d4', '#6366f1', '#f59e0b']
+        ? ['#10b981', '#06b6d4', '#ec4899', '#f59e0b']
         : colorTier === 'icon'
         ? ['#f59e0b', '#d946ef', '#ffffff', '#38bdf8']
         : ['#fbbf24', '#f59e0b', '#d97706', '#ffffff'];
@@ -116,7 +116,12 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
     // Filter candidate pool by program if specified
     let candidatePool: SoccerCard[] = [];
-    if (pack.programFilter?.startsWith('International Moments') || ['intl_moments', 'argentina', 'brazil', 'belgium'].includes(pack.theme)) {
+    if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
+      const skPool = allCardsPool.filter(
+        (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
+      );
+      candidatePool = skPool.length > 0 ? skPool : allCardsPool;
+    } else if (pack.programFilter?.startsWith('International Moments') || ['intl_moments', 'argentina', 'brazil', 'belgium'].includes(pack.theme)) {
       let intlPool = allCardsPool.filter(
         (c) => c.program === 'International Moments' || c.rarity === 'international_moments'
       );
@@ -279,6 +284,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
   // Filter packs according to selected category
   const filteredPacks = allAvailablePacks.filter((p) => {
+    if (activeFilter === 'Street Kings') {
+      return p.programFilter === 'Street Kings' || p.theme === 'street_kings';
+    }
     if (activeFilter === 'International Moments') {
       return p.programFilter?.includes('International Moments') || ['intl_moments', 'argentina', 'brazil', 'belgium'].includes(p.theme);
     }
@@ -337,9 +345,50 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             </div>
           </div>
 
+          {/* Street Kings Event Hero Showcase Banner */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-cyan-400/80 bg-gradient-to-r from-slate-950 via-[#071324] to-slate-950 p-6 shadow-[0_0_35px_rgba(6,182,212,0.35)] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-xs font-black uppercase tracking-wider">
+                <span>⚡</span>
+                <span>Street Kings Event Live</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase">
+                Haneen Mustafa <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-yellow-300 to-pink-500">92 CM Masterclass</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+                The pride of <strong>THARAVAADEES</strong> in the <strong>TKM League</strong> headlines the Street Kings promo! Featuring 96 Passing, 95 Dribbling, Incisive Pass+ and live odds across packs, market & dedicated SBCs.
+              </p>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
+                <span className="text-[11px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded">
+                  🇮🇳 India
+                </span>
+                <span className="text-[11px] font-mono bg-slate-900 text-yellow-300 border border-yellow-500/40 px-2 py-0.5 rounded">
+                  Club: THARAVAADEES
+                </span>
+                <span className="text-[11px] font-mono bg-slate-900 text-pink-300 border border-pink-500/40 px-2 py-0.5 rounded">
+                  League: TKM
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const vaultPack = PACKS.find((p) => p.id === 'pack-street-kings-vault');
+                  if (vaultPack) handleOpenPack(vaultPack);
+                }}
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-pink-500 to-amber-400 hover:from-cyan-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                <span>Open Street Kings Vault</span>
+              </button>
+            </div>
+          </div>
+
           {/* Filter Categories */}
           <div className="flex flex-wrap items-center gap-2">
-            {(['All', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
+            {(['All', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -352,6 +401,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                     : 'bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
+                {cat === 'Street Kings' && <span className="text-cyan-400">⚡</span>}
                 {cat === 'International Moments' && <span>🌍</span>}
                 {cat === 'Futmas' && <span className="text-cyan-400">❄️</span>}
                 {cat === 'Hall of Fame' && <span className="text-yellow-400">👑</span>}
@@ -375,7 +425,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                 <div
                   key={pack.id}
                   className={`group relative rounded-3xl p-5 border transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xl ${
-                    pack.theme === 'argentina'
+                    pack.theme === 'street_kings'
+                      ? 'bg-gradient-to-b from-cyan-950/70 via-slate-900 to-black border-cyan-400/70 hover:border-pink-500 shadow-cyan-950/40'
+                      : pack.theme === 'argentina'
                       ? 'bg-gradient-to-b from-sky-950/70 via-slate-900 to-black border-sky-400/60 hover:border-sky-300 shadow-sky-950/30'
                       : pack.theme === 'brazil'
                       ? 'bg-gradient-to-b from-emerald-950/70 via-slate-900 to-black border-emerald-400/60 hover:border-emerald-300 shadow-emerald-950/30'
@@ -683,8 +735,13 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/20 via-transparent to-transparent pointer-events-none" />
             <div className="absolute -top-24 w-96 h-96 bg-amber-400/20 blur-3xl rounded-full pointer-events-none animate-flare" />
 
-            {/* International Moments, Hall of Fame, Futmas & Program One Walkout Announcement */}
-            {(walkoutCard.program === 'International Moments' || walkoutCard.rarity === 'international_moments') ? (
+            {/* Street Kings, International Moments, Hall of Fame, Futmas & Program One Walkout Announcement */}
+            {(walkoutCard.program === 'Street Kings' || walkoutCard.rarity === 'street_kings') ? (
+              <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-950 via-slate-900 to-pink-950 border-2 border-cyan-400 text-cyan-200 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_40px_rgba(6,182,212,0.8)] animate-pulse">
+                <Zap className="w-5 h-5 text-yellow-400 animate-bounce" />
+                <span>⚡ STREET KINGS MASTERCLASS WALKOUT! ⚡</span>
+              </div>
+            ) : (walkoutCard.program === 'International Moments' || walkoutCard.rarity === 'international_moments') ? (
               <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-amber-950 via-slate-900 to-amber-950 border-2 border-amber-400 text-yellow-300 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_40px_rgba(251,191,36,0.8)] animate-pulse">
                 <Trophy className="w-5 h-5 text-amber-400 animate-bounce" />
                 <span>🌍 INTERNATIONAL MOMENTS LEGEND WALKOUT! 🌍</span>

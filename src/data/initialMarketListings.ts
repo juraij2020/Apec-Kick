@@ -1,10 +1,12 @@
 import { TransferListing, SoccerCard } from '../types/card';
 import { INTERNATIONAL_MOMENTS_CARDS } from './internationalMoments';
 import { HALL_OF_FAME_CARDS, BASE_SOCCER_CARDS, FUTMAS_CARDS } from './defaultCards';
+import { STREET_KINGS_CARDS } from './streetKings';
 
 // Helper to find a card by ID or fallback
 function findCard(id: string): SoccerCard | undefined {
   return (
+    STREET_KINGS_CARDS.find((c) => c.id === id) ||
     INTERNATIONAL_MOMENTS_CARDS.find((c) => c.id === id) ||
     HALL_OF_FAME_CARDS.find((c) => c.id === id) ||
     FUTMAS_CARDS.find((c) => c.id === id) ||
@@ -23,6 +25,25 @@ export function generateInitialListings(): TransferListing[] {
     expiresInMins: number;
     bids: number;
   }[] = [
+    // Street Kings Headline Star
+    {
+      cardId: 'sk-haneen-mustafa-92',
+      seller: 'Tharavaadees_Ultra',
+      startBid: 220000,
+      currentBid: 265000,
+      buyNow: 310000,
+      expiresInMins: 11,
+      bids: 8,
+    },
+    {
+      cardId: 'sk-rashed-cam-90',
+      seller: 'TKMCageMaster',
+      startBid: 130000,
+      currentBid: 155000,
+      buyNow: 190000,
+      expiresInMins: 24,
+      bids: 5,
+    },
     // International Moments
     {
       cardId: 'intl-ronaldinho',

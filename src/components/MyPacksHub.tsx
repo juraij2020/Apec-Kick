@@ -93,7 +93,12 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
 
     // Filter candidate pool by program if specified
     let candidatePool: SoccerCard[] = [];
-    if (pack.programFilter?.startsWith('International Moments') || ['intl_moments', 'argentina', 'brazil', 'belgium'].includes(pack.theme)) {
+    if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
+      const skPool = allCardsPool.filter(
+        (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
+      );
+      candidatePool = skPool.length > 0 ? skPool : allCardsPool;
+    } else if (pack.programFilter?.startsWith('International Moments') || ['intl_moments', 'argentina', 'brazil', 'belgium'].includes(pack.theme)) {
       let intlPool = allCardsPool.filter(
         (c) => c.program === 'International Moments' || c.rarity === 'international_moments'
       );

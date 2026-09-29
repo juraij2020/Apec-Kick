@@ -2,6 +2,59 @@ import { SBCChallenge, SoccerCard } from '../types/card';
 
 export const INITIAL_SBCS: SBCChallenge[] = [
   {
+    id: 'sbc-street-kings-haneen',
+    title: 'Street Kings: The Pride of Tharavaadees ⚡',
+    category: 'Street Kings',
+    description: 'Assemble a high-chemistry 11-player squad (Min. 81 Team Rating, Min. 2 Midfielders) to unlock the exclusive untradeable 92 OVR Haneen Mustafa Street Kings item + Street Kings Underground Vault Pack + 25,000 Coins!',
+    rewardPackId: 'pack-street-kings-vault',
+    rewardPackName: 'Street Kings Underground Vault ⚡',
+    rewardCoins: 25000,
+    completed: false,
+    slots: [
+      { position: 'LW', label: 'Left Winger' },
+      { position: 'ST', label: 'Striker' },
+      { position: 'RW', label: 'Right Winger' },
+      { position: 'CAM', label: 'Central Playmaker' },
+      { position: 'CM', label: 'Box-to-Box Midfielder' },
+      { position: 'CDM', label: 'Defensive Anchor' },
+      { position: 'LB', label: 'Left Back' },
+      { position: 'CB', label: 'Center Back' },
+      { position: 'CB', label: 'Center Back' },
+      { position: 'RB', label: 'Right Back' },
+      { position: 'GK', label: 'Goalkeeper' },
+    ],
+    requirements: [
+      {
+        id: 'req-sk-rating',
+        description: 'Min. Team Rating: 81',
+        check: (cards) => {
+          if (cards.length === 0) return false;
+          const avg = cards.reduce((acc, c) => acc + c.rating, 0) / cards.length;
+          return avg >= 81;
+        },
+        progress: (cards) => {
+          const avg = cards.length ? Math.round(cards.reduce((acc, c) => acc + c.rating, 0) / cards.length) : 0;
+          return { current: avg, target: 81, met: avg >= 81 };
+        },
+      },
+      {
+        id: 'req-sk-midfielder',
+        description: 'Min. 2 Midfielders (CM/CAM/CDM)',
+        check: (cards) => cards.filter((c) => ['CM', 'CAM', 'CDM'].includes(c.position)).length >= 2,
+        progress: (cards) => {
+          const count = cards.filter((c) => ['CM', 'CAM', 'CDM'].includes(c.position)).length;
+          return { current: count, target: 2, met: count >= 2 };
+        },
+      },
+      {
+        id: 'req-sk-full-squad',
+        description: 'Full 11-Player Starting XI',
+        check: (cards) => cards.length === 11,
+        progress: (cards) => ({ current: cards.length, target: 11, met: cards.length === 11 }),
+      },
+    ],
+  },
+  {
     id: 'sbc-intl-joga-bonito',
     title: 'Seleção Joga Bonito 🇧🇷',
     category: 'International Moments',

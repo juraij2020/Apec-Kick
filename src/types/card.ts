@@ -5,6 +5,7 @@ export type Position =
   | 'LW' | 'RW' | 'CF' | 'ST';
 
 export type CardRarity = 
+  | 'street_kings'
   | 'international_moments'
   | 'hall_of_fame'
   | 'program_one'
@@ -18,6 +19,7 @@ export type CardRarity =
   | 'custom';
 
 export type CardStyle =
+  | 'street_kings_urban'
   | 'intl_moments_gold'
   | 'hof_gold_obsidian'
   | 'totw_black'
@@ -30,6 +32,7 @@ export type CardStyle =
   | 'emerald_legend';
 
 export type PackTheme = 
+  | 'street_kings'
   | 'intl_moments'
   | 'argentina'
   | 'brazil'
@@ -144,7 +147,7 @@ export interface SBCRequirement {
 export interface SBCChallenge {
   id: string;
   title: string;
-  category: 'International Moments' | 'Hall of Fame' | 'Hall of Fame Special' | 'Program One' | 'Futmas Special' | 'Base Challenges' | 'Creator Special' | 'Icons & Legends' | 'Starter' | 'Advanced';
+  category: 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Hall of Fame Special' | 'Program One' | 'Futmas Special' | 'Base Challenges' | 'Creator Special' | 'Icons & Legends' | 'Starter' | 'Advanced';
   description: string;
   slots: { position: Position; label: string }[];
   rewardPackId: string;

@@ -1,8 +1,39 @@
 import { PackDefinition } from '../types/card';
 import goldPackImg from '../assets/images/pack_gold_foil_1790566377916.jpg';
 import iconPackImg from '../assets/images/pack_icon_cosmic_1790566397330.jpg';
+import streetKingsPackImg from '../assets/images/street_kings_pack_1790668484887.jpg';
 
 export const PACKS: PackDefinition[] = [
+  {
+    id: 'pack-street-kings-vault',
+    name: 'Street Kings Underground Vault ⚡',
+    tagline: 'Apex urban street pack with guaranteed 90+ Street Kings star headlined by Haneen Mustafa 92 CM',
+    cost: 22000,
+    cardCount: 5,
+    minRating: 88,
+    programFilter: 'Street Kings',
+    customCardChance: 1.0,
+    customChance: 1.0,
+    guaranteedRating: 90,
+    guaranteedWalkout: true,
+    theme: 'street_kings',
+    imageAsset: streetKingsPackImg,
+  },
+  {
+    id: 'pack-street-kings-turf',
+    name: 'Street Kings Turf Booster 🎨',
+    tagline: 'Gritty street cage pack with 82+ rating floor and elevated odds for Haneen Mustafa & THARAVAADEES',
+    cost: 6500,
+    cardCount: 4,
+    minRating: 80,
+    programFilter: 'Street Kings',
+    customCardChance: 0.75,
+    customChance: 0.75,
+    guaranteedRating: 82,
+    guaranteedWalkout: false,
+    theme: 'street_kings',
+    imageAsset: streetKingsPackImg,
+  },
   {
     id: 'pack-intl-vault',
     name: 'International Moments Trophy Vault',

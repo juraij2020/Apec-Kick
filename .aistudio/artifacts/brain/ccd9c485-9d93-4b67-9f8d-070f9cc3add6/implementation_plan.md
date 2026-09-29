@@ -1,37 +1,40 @@
-# Higher or Lower Clue Mechanics, Streak Reward Ladder, Tiered Guess Who Packs & 'My Packs' Tab
+# Street Kings Event: Haneen Mustafa 92 CM (THARAVAADEES · TKM)
 
-Implement a shrouded mystery card presentation in **Higher or Lower** with intelligent multi-stat and profile clues, an interactive **Streak Reward Ladder** delivering automatic reward packs, **tiered pack rewards** for Guess Who solutions, and a dedicated **My Packs** unopened rewards tab positioned next to My Club.
+Introduce the high-octane **Street Kings** card event headlined by community star **Haneen Mustafa (92 OVR CM)** from club **THARAVAADEES** in the **TKM League**, featuring urban turf & graffiti card aesthetics, event packs with clear pack odds, Transfer Market live bidding, mini-game pool integration, and a dedicated Squad Building Challenge (SBC).
 
 ---
 
 ## User Review & Critical Decisions
 
 > [!IMPORTANT]
-> The following user preferences were confirmed in Phase 1 clarification:
-> - **Reward Ladder Packs Claiming**: Automatic transfer directly to the new "My Packs" tab upon hitting streak milestones.
-> - **'My Packs' Tab Placement**: Located directly adjacent to the "My Club" tab in both desktop and mobile navigation.
-> - **Guess Who Pack Rewards**: Tiered reward packs scaled by performance (how few clues/guesses were needed to solve).
+> The following specifications were confirmed in Phase 1 clarification:
+> - **Visual Theme**: *Street Kings* aesthetic with urban concrete, electric neon graffiti trims, spray-paint accents, and rugged street turf backgrounds.
+> - **Player Profile**: Haneen Mustafa as a **92 OVR Central Midfielder (CM)**, Playmaker archetype with elite passing (96 PAS), silky dribbling (95 DRI), rapid tempo (88 PAC), pinpoint shooting (89 SHO), and signature PlayStyle+ (*Incisive Pass+* & *Technical+*).
+> - **Event Scope**: Comprehensive feature rollout spanning **Event Packs with published drop odds**, **Transfer Market listings**, **Higher or Lower & Guess Who mini-games**, and a dedicated **Street Kings SBC**.
 
-- **Confirmed Decision 1**: Higher or Lower shrouds the mystery card's photo and name with an enigmatic card silhouette while providing rich contextual clues (Nation flag, Club & League, Position, and non-target face stats like PAC, SHO, DEF, PHY) so guessing higher or lower on the chosen attribute is a strategic, knowledge-based deduction.
-- **Confirmed Decision 2**: Higher or Lower features a visual Reward Ladder displaying streak milestones (3x, 5x, 8x, 12x, 15x) with corresponding coin bonuses and reward packs that automatically land in "My Packs".
-- **Confirmed Decision 3**: Guess Who grants tiered packs (e.g. Mastermind 85+ Walkout Pack for 1 guess, Detective Jumbo Pack for 2 guesses, Sleuth Gold Pack for 3 guesses, and Challenger Pack for 4-5 guesses) automatically routed to "My Packs".
-- **Confirmed Decision 4**: A dedicated "My Packs" tab near "My Club" with an unopened pack count badge, pack inventory showcase, full pack-rip animation, walkout sequences, and seamless "Add to Club" integration.
+- **Confirmed Decision 1**: Haneen Mustafa's card will feature his authentic uploaded photo stylized into an urban Street Kings dynamic cutout with custom THARAVAADEES club crest and TKM league branding.
+- **Confirmed Decision 2**: Introduce a dedicated Street Kings card program & rarity tier (`street_kings`) with distinctive animated neon graffiti borders, spray tags, and glowing dark turf textures.
+- **Confirmed Decision 3**: Add two specialized Street Kings packs to the Pack Store & My Packs:
+  1. *Street Kings Underground Vault* (22,000 Coins / guaranteed 90+ Street Kings walkout with high Haneen drop odds).
+  2. *Street Kings Turf Booster* (6,500 Coins / 82+ guaranteed with Street Kings chances).
+- **Confirmed Decision 4**: Create a custom Squad Building Challenge: *"Street Kings: The Pride of Tharavaadees"* rewarding an untradeable 92 OVR Haneen Mustafa card + 15,000 bonus coins.
+- **Confirmed Decision 5**: Add Haneen Mustafa and Street Kings contenders into the Transfer Market with live market price trends, as well as the Higher or Lower and Guess Who mini-game pools.
 
 ---
 
 ## 1. Overview & Core Concept
 
 - **What It Does**:
-  1. **Clue-Driven Higher or Lower**: Upgrades Higher or Lower from a trivial or blind guessing game into a tactical soccer IQ challenge. The opponent card's face is obscured with a sleek dark silhouette and concealed name ("Mystery Player"), but displays key soccer clues: nationality flag, club badge, league, pitch position, and face stats for the other attributes. Users evaluate the anchor player vs. mystery player clues to predict HIGHER or LOWER.
-  2. **Higher or Lower Streak Reward Ladder**: An interactive visual progression track that displays milestone steps (3x, 5x, 8x, 12x, 15x). Reaching each milestone awards instant bonus coins, triggers confetti, and automatically deposits high-value packs (e.g., Gold Booster, Jumbo Premium Gold, Elite Players, Walkout Mega, Ultimate Icon Vault) into "My Packs".
-  3. **Tiered Guess Who Rewards**: Winning the Guess Who mini-game rewards coins plus high-grade packs scaled by efficiency (fewer clues/guesses = rarer walkout packs).
-  4. **Dedicated 'My Packs' Tab**: An authentic FC/FUT-style unopened pack store located right next to "My Club". Players can inspect unopened packs, view contents and guaranteed ratings, and open them with full pack rip animations, dramatic walkout spotlights, and "Add to Club" or "Quick Sell" workflows.
+  - Launches a full-scale in-game promo event titled **Street Kings**, celebrating grassroots urban soccer culture.
+  - Headlined by user's friend **Haneen Mustafa (92 OVR CM)** representing **THARAVAADEES** in the **TKM League**.
+  - Embeds Haneen's real-world likeness directly into the soccer card engine with custom PlayStyle+ perks, signature stats, and an urban turf aesthetic.
+  - Integrates the card across the entire game loop: Open Packs, Buy/Sell on Transfer Market, Earn in Mini-Games, and Craft in SBCs.
 
 - **Target Audience / Persona**:
-  - Soccer fans and FUT enthusiasts who enjoy trivia, strategic deduction, streak progression, and the excitement of storing and ripping packs earned from gameplay achievements.
+  - Players wanting fresh, personalized high-rated promo cards with real personal connections, engaging street culture aesthetics, and balanced competitive stats.
 
 - **Key Value**:
-  - Connects game modes into a cohesive gameplay loop: play Mini-Games -> build streaks and solve mysteries -> earn exclusive reward packs -> open them in My Packs -> bolster club squad.
+  - Brings a personalized player card to life with full professional FUT presentation, matching the quality of official International Moments and Hall of Fame items.
 
 ---
 
@@ -39,63 +42,58 @@ Implement a shrouded mystery card presentation in **Higher or Lower** with intel
 
 ### Key User Flows
 
-1. **Higher or Lower Tactical Match**:
-   - The user selects an attribute (Overall Rating, Pace, Shooting, Passing, Dribbling).
-   - Left card is known (e.g. Kevin De Bruyne, 91 OVR, 86 PAS).
-   - Right card is shrouded: mysterious card shadow with pulsing gold perimeter, hidden name, but showing:
-     - Country flag & name (e.g. 🇧🇷 Brazil)
-     - Club & League (e.g. Real Madrid · La Liga)
-     - Primary Position (e.g. LW / Attacker)
-     - Visible complementary stats (e.g. PAC: 95, DRI: 90, DEF: 34, PHY: 78) while the target stat (SHO) displays `??? [HIGHER OR LOWER?]`.
-   - The user deduces whether Vinícius Jr.'s Shooting is higher or lower than De Bruyne's, and clicks **Higher** or **Lower**.
-   - Upon guessing, the shroud dissipates with a gold flash: the full card, player photo, and exact stat value are revealed with win/loss celebration feedback.
+1. **Street Kings Event Showcase Banner**:
+   - Prominent event banner across the app and pack store with neon magenta/cyan spray-tag typography and rugged street pitch textures.
+   - Highlights: *"STREET KINGS INVASION: Haneen Mustafa 92 CM Masterclass Available in Packs, Market & SBCs Now!"*
 
-2. **Reward Ladder Streak Progression**:
-   - Above or below the Higher or Lower arena, a visual progression ladder highlights milestones:
-     - 🎯 **3 Streak**: +1,000 Coins + *Gold Booster Pack*
-     - 🔥 **5 Streak**: +2,500 Coins + *Jumbo Premium Gold Pack*
-     - ⚡ **8 Streak**: +5,000 Coins + *Elite Players Pack*
-     - 👑 **12 Streak**: +10,000 Coins + *Walkout Mega Pack (85+ Guaranteed)*
-     - 🏆 **15 Streak**: +25,000 Coins + *Ultimate Icon Vault Pack (88+ Guaranteed)*
-   - When a milestone is reached, an celebratory modal pops up with confetti: *"Reward Ladder Unlocked! Jumbo Premium Gold Pack transferred to My Packs!"*.
+2. **Opening Street Kings Packs**:
+   - Players can purchase or earn *Street Kings Underground Vault* packs.
+   - Transparent Pack Odds modal: shows exact probabilities (e.g. 100% 86+, 35% 90+, 12.5% Haneen Mustafa Walkout).
+   - Full walkout animation triggers when pulling Haneen:
+     - 🇮🇳 Country spotlight
+     - CM Position spotlight
+     - THARAVAADEES crest spotlight
+     - Explosive graffiti explosion with neon confetti and crowd cheers!
 
-3. **Guess Who Clue-Scaled Victory**:
-   - Player guesses mystery soccer star with progressive hints.
-   - Upon identifying the player:
-     - Solved in 1 guess: **Mastermind Rank** -> 6,000 Coins + *Rare Walkout Pack (85+)*
-     - Solved in 2 guesses: **Expert Sleuth** -> 4,000 Coins + *Detective Jumbo Pack (82+)*
-     - Solved in 3 guesses: **Tactician** -> 2,500 Coins + *Mystery Gold Pack (78+)*
-     - Solved in 4-5 guesses: **Solver** -> 1,500 Coins + *Challenger Pack*
-   - Direct notification banner with button: *"Go to My Packs to Rip Now"*.
+3. **Street Kings SBC Challenge**:
+   - Located in the SBC Challenges tab: *"Street Kings: Haneen Mustafa Special"*.
+   - Requirements: 11-player squad, Min 83 Team Rating, Min 2 Midfielders, Min 70 Chemistry.
+   - Reward: **Untradeable 92 OVR Haneen Mustafa Street Kings Item** + 15,000 Coins + Street Kings Mega Badge.
 
-4. **'My Packs' Tab Hub**:
-   - Positioned in primary navigation between **My Club** and **Card Creator** (or adjacent to My Club), marked with an active counter chip (e.g. `My Packs [3]`).
-   - Displays an unopened pack vault grid showing each stored reward pack:
-     - Pack foil artwork, pack tier title, source origin tag (*"Higher or Lower 5x Streak"*, *"Guess Who 1-Guess Mastermind"*).
-     - Card count and guaranteed walkout criteria.
-     - **Open Pack** button.
-   - Clicking **Open Pack** transitions into the immersive pack-opening animation stage:
-     - Tear animation with sound effects.
-     - Walkout card reveal for high-rated players (flag, position, club stage before full card reveal).
-     - Card summary grid with *"Send All to Club"* or *"Quick Sell"* controls.
-   - Empty state when 0 packs are held, with shortcuts to Mini-Games and Daily Objectives to earn more.
+4. **Transfer Market Action**:
+   - Haneen Mustafa is featured on the Transfer Market with fluctuating street demand (Hot trend indicator `+8%`), Buy Now options, and active bidding.
+
+5. **Mini-Games Integration**:
+   - In **Higher or Lower**: Haneen appears with his 92 OVR, 96 PAS, and 95 DRI, serving as a formidable comparison anchor and mystery opponent.
+   - In **Guess Who**: Haneen is added as a mystery star with clues for club (THARAVAADEES), league (TKM), position (CM), and rating (92).
+
+### Visual Identity & Theme
+
+- **Aesthetic Direction**: Gritty urban street soccer, concrete cage pitches, fluorescent graffiti spray, stencil badges, and dark industrial contrast.
+- **Color Palette**:
+  - Dominant Arena: Dark asphalt / midnight slate (`#0B0F19`, `#020617`)
+  - Accent Neons: Electric Cyber Cyan (`#06B6D4`), Street Magenta (`#EC4899`), Bright Amber Flare (`#F59E0B`)
+  - Pitch Green: Rugged cage turf green (`#10B981`)
+- **Card Design**:
+  - Custom border with subtle graffiti stencils and spray-paint splatters.
+  - Position & rating block in electric cyan with sharp drop shadow.
+  - Photo frame displaying Haneen's uploaded photo with athletic cutout treatment and vibrant edge glow.
+  - Badges for THARAVAADEES crest and TKM League emblem.
 
 ---
 
 ## 3. Key Product Decisions & Trade-Offs
 
-- **Decision 1: Concealment Level for Higher or Lower**:
-  - *Chosen Approach*: Shroud player face and name, but expose nationality, club/league, position, and 3-4 non-target face stats.
-  - *Why*: Balances difficulty and fun. Pure blind guessing (no info) is luck; full card visibility makes it a simple math test. Providing clues lets players use real-world soccer knowledge (e.g. *"Brazilian winger at Real Madrid with 95 pace... that's Vini Jr., let's compare his shooting"*).
-  - *Alternatives Considered*: Hiding everything except rating range. Rejected because it eliminates the soccer trivia aspect.
+- **Decision 1: Card Rarity & Program Structure**:
+  - *Chosen Approach*: Add a new official program `Street Kings` and rarity `street_kings` with dedicated card frame styles in `CardItem.tsx`.
+  - *Why*: Seamlessly fits into existing filter dropdowns (Program filter, quality filters, SBC requirements, and pack tags) without breaking existing base or icon cards.
 
-- **Decision 2: Automatic Pack Delivery vs. Manual Claim Button**:
-  - *Chosen Approach*: User confirmed automatic transfer directly to My Packs upon reaching milestones, accompanied by celebratory toasts and sound effects.
-  - *Why*: Frictionless; players never lose rewards if they exit or restart a streak.
+- **Decision 2: Image Handling for Haneen Mustafa**:
+  - *Chosen Approach*: Embed Haneen's uploaded photo into `src/assets/images/` as an optimized asset with cutout transparency or styled framed portrait, ensuring fast local rendering, high fidelity, and zero network dependency.
 
-- **Decision 3: Persistent Storage of Unopened Packs**:
-  - *Chosen Approach*: Store unopened reward packs in `localStorage` under `apex_fut_my_unopened_packs_v1`.
-  - *Why*: Retains earned packs across page reloads, browser restarts, and device sessions without requiring external backend servers.
+- **Decision 3: Stat & Meta Balance**:
+  - *Chosen Approach*: 92 OVR with 88 PAC, 89 SHO, 96 PAS, 95 DRI, 82 DEF, 85 PHY, 5-Star Skill Moves, and *Incisive Pass+* & *Technical+* PlayStyles.
+  - *Why*: Creates an elite, meta-defining playmaker suitable for endgame dream squads while maintaining competitive match simulator realism.
 
 ---
 
@@ -105,76 +103,71 @@ Implement a shrouded mystery card presentation in **Higher or Lower** with intel
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                                App.tsx                                 │
-│  - coins, clubCards, userCreatedCards, activeTab                       │
-│  - unopenedPacks: StoredPack[] (localStorage persistence)               │
-│  - onAddUnopenedPack(pack), onRemoveUnopenedPack(id)                   │
-└───────────┬────────────────────────────┬───────────────────────────────┘
-            │                            │
-   ┌────────▼─────────────┐     ┌────────▼───────────────────────────────┐
-   │    MiniGamesHub      │     │               MyPacksHub               │
-   │  ┌─────────────────┐ │     │  - Unopened pack inventory grid        │
-   │  │ Higher or Lower │ │     │  - Pack foil art & source badges       │
-   │  │ - Shrouded Card │ │     │  - Integrated Pack Tear Animation      │
-   │  │ - Clue Engine   │ │     │  - Walkout reveal sequence             │
-   │  │ - Reward Ladder │ │     │  - Summary grid (Send to Club/Sell)    │
-   │  └─────────────────┘ │     └────────────────────────────────────────┘
-   │  ┌─────────────────┐ │
-   │  │    Guess Who    │ │
-   │  │ - Tiered Packs  │ │
-   │  └─────────────────┘ │
-   └──────────────────────┘
+│                          Street Kings Event                            │
+└───────────┬───────────────────┬───────────────────┬────────────────────┘
+            │                   │                   │
+   ┌────────▼─────────┐ ┌───────▼────────┐  ┌───────▼────────┐  ┌────────▼─────────┐
+   │ Haneen Card Data │ │ Event Packs    │  │ SBC Challenge  │  │ Transfer Market  │
+   │ - 92 OVR CM      │ │ - Vault (90+)  │  │ - 11 Players   │  │ - Seed Listings  │
+   │ - THARAVAADEES   │ │ - Odds Modal   │  │ - 83 OVR Req   │  │ - Live Bidding   │
+   │ - TKM League     │ │ - Walkouts     │  │ - 92 Card Rwd  │  │ - Dynamic Trends │
+   │ - Custom Photo   │ └────────────────┘  └────────────────┘  └──────────────────┘
+   └──────────────────┘
 ```
 
-### Data Models & Pack Storage
+### Data Schema Extensions
 
 ```typescript
-export interface StoredRewardPack {
-  instanceId: string;
-  packDefinition: PackDefinition;
-  earnedAt: number;
-  sourceTitle: string; // e.g. "Higher or Lower 5x Streak" | "Guess Who 1-Clue Mastermind"
-  sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus';
-}
+// Added to SoccerCard in src/types/card.ts
+program: 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards';
+rarity: 'street_kings' | ... ;
+
+// Haneen Mustafa Card Definition
+export const HANEEN_MUSTAFA_CARD: SoccerCard = {
+  id: 'sk-haneen-mustafa-92',
+  name: 'Haneen Mustafa',
+  rating: 92,
+  position: 'CM',
+  club: 'THARAVAADEES',
+  league: 'TKM',
+  nation: 'India',
+  nationFlag: '🇮🇳',
+  program: 'Street Kings',
+  rarity: 'street_kings',
+  stats: { pac: 88, sho: 89, pas: 96, dri: 95, def: 82, phy: 85 },
+  playStylePlus: {
+    id: 'incisive_pass',
+    name: 'Incisive Pass+',
+    shortDesc: 'Visionary line-breaking through balls with pinpoint curve',
+    iconSymbol: '⚡',
+    isPlus: true,
+    statBoost: { attribute: 'pas', bonus: 16 },
+  },
+  price: 240000,
+  photoUrl: '...',
+};
 ```
-
-### Reward Ladder Definition (Higher or Lower)
-
-```typescript
-export interface RewardLadderTier {
-  streak: number;
-  coins: number;
-  pack: PackDefinition;
-  title: string;
-  description: string;
-}
-```
-
-- Tier 1: 3 Streak -> 1,000 Coins + Gold Booster Pack (3 cards, 75+ OVR)
-- Tier 2: 5 Streak -> 2,500 Coins + Jumbo Premium Gold Pack (5 cards, 78+ OVR)
-- Tier 3: 8 Streak -> 5,000 Coins + Elite Players Pack (4 cards, 82+ OVR)
-- Tier 4: 12 Streak -> 10,000 Coins + Walkout Mega Pack (5 cards, 85+ guaranteed walkout)
-- Tier 5: 15 Streak -> 25,000 Coins + Ultimate Icon Vault (5 cards, 88+ guaranteed legend)
 
 ---
 
 ## 5. Step-by-Step Implementation Strategy
 
-1. **Step 1: Stored Packs State & Types (`src/types/card.ts`)**:
-   - Define `StoredRewardPack` and reward pack templates for ladder & Guess Who tiers.
-   - Add state in `App.tsx` with `localStorage` sync.
-2. **Step 2: Higher or Lower Shrouded Card & Clue Engine (`src/components/MiniGamesHub.tsx`)**:
-   - Build `ShroudedCard` component rendering dark silhouette avatar, redacted name, glowing question target, and visible clue panel (nation flag, club/league crest, position, and 3 complementary face stats).
-   - Implement the interactive **Streak Reward Ladder** component with milestone badges, active progress line, and claimed milestone tracking.
-   - Automatically award coins and dispatch ladder reward packs to `onAddUnopenedPack`.
-3. **Step 3: Guess Who Tiered Pack Rewards (`src/components/MiniGamesHub.tsx`)**:
-   - Calculate tier based on guess count (1, 2, 3, 4+).
-   - Award corresponding coin bonus and dispatch high-tier reward pack to `onAddUnopenedPack` with celebratory modal.
-4. **Step 4: 'My Packs' Dedicated Component (`src/components/MyPacksHub.tsx`)**:
-   - Build a dedicated, full-featured unopened packs hub adjacent to My Club.
-   - Render unopened reward pack inventory, pack details, guaranteed cards, and "Open Pack" button.
-   - Connect full opening flow: rip animation, walkout sequence with sound effects, and cards grid with "Send All to Club" / "Quick Sell".
-5. **Step 5: Navigation & Tab Integration (`src/App.tsx`)**:
-   - Add `'mypacks'` tab next to `'club'` in both desktop and mobile navigation bars.
-   - Include real-time badge count showing the number of unopened reward packs.
-   - Verify complete build with `compile_applet`.
+1. **Step 1: Asset Preparation & Card Definition**:
+   - Save and optimize Haneen Mustafa's photo into the assets directory.
+   - Define the `street_kings` rarity styling in `src/components/CardItem.tsx` (graffiti borders, urban texture, neon cyan/magenta badge accents).
+   - Add `HANEEN_MUSTAFA_CARD` and supplementary Street Kings contenders to `src/data/cards.ts` and `src/data/initialCustomCards.ts`.
+
+2. **Step 2: Street Kings Packs & Published Odds**:
+   - Add *Street Kings Underground Vault* and *Street Kings Turf Booster* to `src/data/packs.ts` with custom themes and guaranteed ratings.
+   - Implement pack drop odds inspector in `src/components/PackOpening.tsx` and `src/components/MyPacksHub.tsx`.
+
+3. **Step 3: Dedicated Street Kings SBC**:
+   - Add *"Street Kings: Haneen Mustafa"* SBC challenge into `src/data/initialSBCs.ts` with balanced criteria and untradeable 92 CM reward.
+
+4. **Step 4: Market & Mini-Games Pool Updates**:
+   - Add Street Kings listings to `src/data/initialMarketListings.ts` with active trends.
+   - Include Haneen Mustafa in Higher or Lower and Guess Who mini-game pools with accurate clues (Club: THARAVAADEES, League: TKM, Nation: 🇮🇳, Position: CM).
+
+5. **Step 5: Event Showcase & Navigation**:
+   - Feature Street Kings event banners in the app header, Pack Store, and My Club views.
+   - Verify build and compilation with `compile_applet`.

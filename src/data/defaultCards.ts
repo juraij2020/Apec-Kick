@@ -87,11 +87,18 @@ export function generateUserCardSvg(
   const l5 = isGK ? 'SPD' : 'DEF';
   const l6 = isGK ? 'POS' : 'PHY';
 
+  const isStreetKings = cardStyle === 'street_kings_urban' || (cardStyle as string) === 'street_kings';
   const isFutmas = cardStyle === 'futmas_crimson';
   const isGold = cardStyle === 'classic_gold';
   const isHOF = cardStyle === 'hof_gold_obsidian';
 
-  const borderStops = isFutmas
+  const borderStops = isStreetKings
+    ? `<stop offset="0%" stop-color="#06b6d4"/>
+       <stop offset="22%" stop-color="#ec4899"/>
+       <stop offset="50%" stop-color="#facc15"/>
+       <stop offset="78%" stop-color="#10b981"/>
+       <stop offset="100%" stop-color="#06b6d4"/>`
+    : isFutmas
     ? `<stop offset="0%" stop-color="#a7f3d0"/>
        <stop offset="25%" stop-color="#34d399"/>
        <stop offset="50%" stop-color="#fef08a"/>
@@ -116,7 +123,12 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isFutmas
+  const shieldStops = isStreetKings
+    ? `<stop offset="0%" stop-color="#0e1726"/>
+       <stop offset="35%" stop-color="#0a0f1d"/>
+       <stop offset="70%" stop-color="#030712"/>
+       <stop offset="100%" stop-color="#000000"/>`
+    : isFutmas
     ? `<stop offset="0%" stop-color="#991b1b"/>
        <stop offset="50%" stop-color="#4c0519"/>
        <stop offset="100%" stop-color="#190207"/>`
@@ -133,7 +145,11 @@ export function generateUserCardSvg(
        <stop offset="50%" stop-color="#09090b"/>
        <stop offset="100%" stop-color="#000000"/>`;
 
-  const lineStops = isFutmas
+  const lineStops = isStreetKings
+    ? `<stop offset="0%" stop-color="#06b6d4" stop-opacity="0.9"/>
+       <stop offset="45%" stop-color="#ec4899" stop-opacity="0.8"/>
+       <stop offset="100%" stop-color="#10b981" stop-opacity="0.2"/>`
+    : isFutmas
     ? `<stop offset="0%" stop-color="#67e8f9" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#34d399" stop-opacity="0.1"/>`
     : isHOF
@@ -146,7 +162,7 @@ export function generateUserCardSvg(
     : `<stop offset="0%" stop-color="#eab308" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#a16207" stop-opacity="0.1"/>`;
 
-  const starSymbol = isFutmas ? '❄' : isHOF ? '👑' : '★';
+  const starSymbol = isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 900" width="100%" height="100%">
     <defs>
@@ -190,7 +206,10 @@ export function generateUserCardSvg(
       ` : ''}
     </g>
 
-    ${isHOF ? `
+    ${isStreetKings ? `
+    <!-- Street Kings Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#22d3ee" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">⚡ STREET KINGS ⚡</text>
+    ` : isHOF ? `
     <!-- Hall of Fame Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#fef08a" letter-spacing="4" text-anchor="middle" filter="url(#goldGlow)">HALL OF FAME</text>
     ` : ''}
@@ -3204,11 +3223,14 @@ export const HALL_OF_FAME_CARDS: SoccerCard[] = [
 // Backwards compatibility alias for Program One references
 export const PROGRAM_ONE_CARDS: SoccerCard[] = HALL_OF_FAME_CARDS;
 
-// Re-export International Moments Collection
+// Re-export International Moments & Street Kings Collection
 export { INTERNATIONAL_MOMENTS_CARDS };
+export { STREET_KINGS_CARDS, HANEEN_MUSTAFA_CARD } from './streetKings';
+import { STREET_KINGS_CARDS } from './streetKings';
 
-// ALL INITIAL CARDS: International Moments, Hall of Fame & Futmas
+// ALL INITIAL CARDS: Street Kings, International Moments, Hall of Fame & Futmas
 export const INITIAL_CUSTOM_CARDS: SoccerCard[] = [
+  ...STREET_KINGS_CARDS,
   ...INTERNATIONAL_MOMENTS_CARDS,
   ...HALL_OF_FAME_CARDS,
   ...FUTMAS_CARDS,

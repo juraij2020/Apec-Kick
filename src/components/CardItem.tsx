@@ -74,7 +74,7 @@ export const CardItem: React.FC<CardItemProps> = ({
     card.nationFlag,
     card.club,
     card.photoUrl || '⚽',
-    card.cardStyle || (card.program === 'Hall of Fame' ? 'hof_gold_obsidian' : card.program === 'Futmas' ? 'futmas_crimson' : card.rarity === 'base' ? 'classic_gold' : 'hof_gold_obsidian'),
+    card.cardStyle || (card.program === 'Street Kings' ? 'street_kings_urban' : card.program === 'Hall of Fame' ? 'hof_gold_obsidian' : card.program === 'Futmas' ? 'futmas_crimson' : card.rarity === 'base' ? 'classic_gold' : 'hof_gold_obsidian'),
     card.playStylePlus
   );
 

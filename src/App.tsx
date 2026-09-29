@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { SoccerCard, SBCChallenge, PackDefinition } from './types/card';
-import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS } from './data/defaultCards';
+import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS, HANEEN_MUSTAFA_CARD } from './data/defaultCards';
 import { INITIAL_SBCS } from './data/sbcs';
 import { PACKS } from './data/packs';
 import { calculateSquadChemistry } from './utils/chemistry';
@@ -321,6 +321,21 @@ export default function App() {
 
     // Add reward coins
     setCoins((prev) => prev + rewardCoins);
+
+    // If reward pack exists in PACKS, award it directly to My Packs vault!
+    const matchingPack = PACKS.find((p) => p.id === rewardPackId);
+    if (matchingPack) {
+      handleAddUnopenedPack(matchingPack, `SBC: ${sbcId}`, 'sbc');
+    }
+
+    // If completing Haneen Mustafa SBC, grant untradeable 92 Haneen Mustafa into user's club!
+    if (sbcId === 'sbc-street-kings-haneen') {
+      const haneenReward: SoccerCard = {
+        ...HANEEN_MUSTAFA_CARD,
+        id: `sk_haneen_sbc_reward_${Date.now()}`,
+      };
+      setClubCards((prev) => [haneenReward, ...prev]);
+    }
 
     // Mark challenge completed
     setChallenges((prev) =>

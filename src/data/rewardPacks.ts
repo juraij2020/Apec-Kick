@@ -1,6 +1,7 @@
 import { PackDefinition, RewardLadderTier } from '../types/card';
 import goldPackImg from '../assets/images/pack_gold_foil_1790566377916.jpg';
 import iconPackImg from '../assets/images/pack_icon_cosmic_1790566397330.jpg';
+import streetKingsPackImg from '../assets/images/street_kings_pack_1790668484887.jpg';
 
 // Higher or Lower Streak Reward Ladder Tiers
 export const HL_REWARD_LADDER: RewardLadderTier[] = [
@@ -195,6 +196,26 @@ export const getGuessWhoTierReward = (guessesCount: number) => {
 
 // Starter reward pack for new users or testing
 export const INITIAL_REWARD_PACKS = [
+  {
+    instanceId: 'reward-starter-street-kings-0',
+    packDefinition: {
+      id: 'pack-street-kings-turf',
+      name: 'Street Kings Turf Booster 🎨',
+      tagline: 'Celebration Street Kings gift pack · High chance for Haneen Mustafa 92 CM & THARAVAADEES stars',
+      cost: 0,
+      cardCount: 4,
+      minRating: 80,
+      guaranteedRating: 82,
+      programFilter: 'Street Kings',
+      theme: 'street_kings' as const,
+      imageAsset: streetKingsPackImg,
+      customChance: 0.8,
+      customCardChance: 0.8,
+    },
+    earnedAt: Date.now() - 600000,
+    sourceTitle: 'Street Kings Launch Celebration ⚡',
+    sourceType: 'bonus' as const,
+  },
   {
     instanceId: 'reward-starter-jumbo-1',
     packDefinition: {
