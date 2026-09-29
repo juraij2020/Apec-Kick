@@ -22,6 +22,7 @@ import {
   ChevronRight,
   TrendingUp,
 } from 'lucide-react';
+import { safeSetItem, safeGetItem, sanitizeListingsForStorage } from '../utils/safeStorage';
 
 interface TransferMarketProps {
   coins: number;
@@ -51,7 +52,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
 
   // Load / initialize listings
   const [listings, setListings] = useState<TransferListing[]>(() => {
-    const saved = localStorage.getItem(STORAGE_MARKET_KEY);
+    const saved = safeGetItem(STORAGE_MARKET_KEY);
     if (saved) {
       try {
         const parsed: TransferListing[] = JSON.parse(saved);
@@ -72,15 +73,15 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       import('../data/initialMarketListings').then(({ generateInitialListings }) => {
         const initial = generateInitialListings();
         setListings(initial);
-        localStorage.setItem(STORAGE_MARKET_KEY, JSON.stringify(initial));
+        safeSetItem(STORAGE_MARKET_KEY, JSON.stringify(sanitizeListingsForStorage(initial)));
       });
     }
   }, [listings.length]);
 
-  // Persist listings
+  // Persist listings safely
   useEffect(() => {
     if (listings.length > 0) {
-      localStorage.setItem(STORAGE_MARKET_KEY, JSON.stringify(listings));
+      safeSetItem(STORAGE_MARKET_KEY, JSON.stringify(sanitizeListingsForStorage(listings)));
     }
   }, [listings]);
 

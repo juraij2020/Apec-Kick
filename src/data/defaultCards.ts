@@ -223,8 +223,8 @@ export function generateUserCardSvg(
       <clipPath id="avatarClip">
         <circle cx="0" cy="0" r="126"/>
       </clipPath>
-      <circle cx="0" cy="0" r="128" fill="#18181b" stroke="${isHOF ? '#ca8a04' : '#3f3f46'}" stroke-width="4"/>
-      ${portraitEmojiOrUrl.startsWith('http') || portraitEmojiOrUrl.startsWith('data:') || portraitEmojiOrUrl.startsWith('/')
+      <circle cx="0" cy="0" r="128" fill="#18181b" stroke="${isStreetKings ? '#06b6d4' : isHOF ? '#ca8a04' : '#3f3f46'}" stroke-width="${isStreetKings ? '5' : '4'}" filter="${isStreetKings ? 'url(#goldGlow)' : 'none'}"/>
+      ${portraitEmojiOrUrl.startsWith('http') || portraitEmojiOrUrl.startsWith('data:') || portraitEmojiOrUrl.startsWith('/') || portraitEmojiOrUrl.includes('/') || portraitEmojiOrUrl.includes('.') || portraitEmojiOrUrl.length > 10
         ? `<image href="${portraitEmojiOrUrl}" x="-126" y="-126" width="252" height="252" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarClip)"/>`
         : `<text x="0" y="35" font-family="system-ui, sans-serif" font-size="110" text-anchor="middle">${portraitEmojiOrUrl}</text>`
       }

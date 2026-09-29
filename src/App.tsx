@@ -28,6 +28,7 @@ import { StoredRewardPack } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
 
 import { Volume2, VolumeX, Coins, Sparkles, PlusCircle, Crown, Globe, Store, Gamepad2, PackageOpen } from 'lucide-react';
+import { safeSetItem, safeGetItem, sanitizeCardsListForStorage } from './utils/safeStorage';
 
 type NavTab = 'intl' | 'hof' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas';
 
@@ -156,38 +157,38 @@ export default function App() {
     return saved !== null ? saved === 'true' : true;
   });
 
-  // Persist State
+  // Persist State safely with quota management
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.COINS, coins.toString());
+    safeSetItem(STORAGE_KEYS.COINS, coins.toString());
   }, [coins]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.USER_CARDS, JSON.stringify(userCreatedCards));
+    safeSetItem(STORAGE_KEYS.USER_CARDS, JSON.stringify(sanitizeCardsListForStorage(userCreatedCards)));
   }, [userCreatedCards]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CLUB_CARDS, JSON.stringify(clubCards));
+    safeSetItem(STORAGE_KEYS.CLUB_CARDS, JSON.stringify(sanitizeCardsListForStorage(clubCards)));
   }, [clubCards]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SQUAD_SLOTS, JSON.stringify(activeSquadSlots));
+    safeSetItem(STORAGE_KEYS.SQUAD_SLOTS, JSON.stringify(activeSquadSlots));
   }, [activeSquadSlots]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.FORMATION, formationId);
+    safeSetItem(STORAGE_KEYS.FORMATION, formationId);
   }, [formationId]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SBCS, JSON.stringify(challenges.map(c => ({ id: c.id, completed: c.completed }))));
+    safeSetItem(STORAGE_KEYS.SBCS, JSON.stringify(challenges.map(c => ({ id: c.id, completed: c.completed }))));
   }, [challenges]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CUSTOM_PACKS, JSON.stringify(customPacks));
+    safeSetItem(STORAGE_KEYS.CUSTOM_PACKS, JSON.stringify(customPacks));
   }, [customPacks]);
 
   useEffect(() => {
     sound.enabled = audioEnabled;
-    localStorage.setItem(STORAGE_KEYS.AUDIO, audioEnabled ? 'true' : 'false');
+    safeSetItem(STORAGE_KEYS.AUDIO, audioEnabled ? 'true' : 'false');
   }, [audioEnabled]);
 
   // Combined card pool for packs (Standard cards + All user-created custom cards, deduplicated)
@@ -376,7 +377,7 @@ export default function App() {
     };
     setUnopenedPacks((prev) => {
       const updated = [newStoredPack, ...prev];
-      localStorage.setItem(STORAGE_KEYS.UNOPENED_PACKS, JSON.stringify(updated));
+      safeSetItem(STORAGE_KEYS.UNOPENED_PACKS, JSON.stringify(updated));
       return updated;
     });
   };
@@ -385,7 +386,7 @@ export default function App() {
   const handleOpenRewardPack = (instanceId: string) => {
     setUnopenedPacks((prev) => {
       const updated = prev.filter((p) => p.instanceId !== instanceId);
-      localStorage.setItem(STORAGE_KEYS.UNOPENED_PACKS, JSON.stringify(updated));
+      safeSetItem(STORAGE_KEYS.UNOPENED_PACKS, JSON.stringify(updated));
       return updated;
     });
   };
@@ -682,11 +683,11 @@ export default function App() {
             onClaimHolidayGift={(giftCoins, giftPackName) => {
               setCoins((prev) => {
                 const updated = prev + giftCoins;
-                localStorage.setItem(STORAGE_KEYS.COINS, updated.toString());
+                safeSetItem(STORAGE_KEYS.COINS, updated.toString());
                 return updated;
               });
               setHasClaimedGift(true);
-              localStorage.setItem('apex_fut_futmas_gift_v1', 'true');
+              safeSetItem('apex_fut_futmas_gift_v1', 'true');
               const futmasPool = allCardsPool.filter(c => c.program === 'Futmas' || c.rarity === 'futmas');
               const randomThree = [...futmasPool].sort(() => 0.5 - Math.random()).slice(0, 3);
               if (randomThree.length > 0) {

@@ -28,6 +28,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { safeSetItem } from '../utils/safeStorage';
 
 interface MiniGamesHubProps {
   coins: number;
@@ -128,7 +129,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
 
       if (newStreak > hlBestStreak) {
         setHlBestStreak(newStreak);
-        localStorage.setItem('apex_fut_hl_best_streak', newStreak.toString());
+        safeSetItem('apex_fut_hl_best_streak', newStreak.toString());
       }
 
       // Base round win coins
