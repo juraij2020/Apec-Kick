@@ -1,0 +1,6 @@
+{
+  "name": "Apex Kick - FUT Pack Opening & SBC Studio",
+  "description": "Soccer card pack opening with walkout reveals, custom card creator, squad building challenges (SBC), chemistry calculation, and match simulator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
