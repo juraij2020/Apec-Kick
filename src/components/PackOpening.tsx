@@ -66,7 +66,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   const [stage, setStage] = useState<OpeningStage>('idle');
   const [pulledCards, setPulledCards] = useState<SoccerCard[]>([]);
   const [walkoutCard, setWalkoutCard] = useState<SoccerCard | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'All' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
 
   // Pack Creation Modal State
   const [showCreatePackModal, setShowCreatePackModal] = useState<boolean>(false);
@@ -75,8 +75,8 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   const [newPackCost, setNewPackCost] = useState<number>(3500);
   const [newPackCardCount, setNewPackCardCount] = useState<number>(4);
   const [newPackMinRating, setNewPackMinRating] = useState<number>(75);
-  const [newPackProgram, setNewPackProgram] = useState<'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Program One' | 'Base Cards' | 'Futmas' | 'All'>('Street Kings');
-  const [newPackTheme, setNewPackTheme] = useState<PackTheme>('street_kings');
+  const [newPackProgram, setNewPackProgram] = useState<'Street Kings' | 'Summer Transfers' | 'International Moments' | 'Hall of Fame' | 'Program One' | 'Base Cards' | 'Futmas' | 'All'>('Summer Transfers');
+  const [newPackTheme, setNewPackTheme] = useState<PackTheme>('summer_pack');
   const [newPackGuaranteedWalkout, setNewPackGuaranteedWalkout] = useState<boolean>(true);
 
   // Trigger confetti burst
@@ -118,7 +118,12 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
     // Filter candidate pool by program if specified
     let candidatePool: SoccerCard[] = [];
-    if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
+    if (pack.programFilter === 'Summer Transfers' || pack.theme === 'summer_pack') {
+      const summerPool = allCardsPool.filter(
+        (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
+      );
+      candidatePool = summerPool.length > 0 ? summerPool : allCardsPool;
+    } else if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
       const skPool = allCardsPool.filter(
         (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
       );
@@ -287,6 +292,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
   // Filter packs according to selected category
   const filteredPacks = allAvailablePacks.filter((p) => {
+    if (activeFilter === 'Summer Transfers') {
+      return p.programFilter === 'Summer Transfers' || p.theme === 'summer_pack';
+    }
     if (activeFilter === 'Street Kings') {
       return p.programFilter === 'Street Kings' || p.theme === 'street_kings';
     }
@@ -348,6 +356,46 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             </div>
           </div>
 
+          {/* Summer Transfers Promo Showcase Banner */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-amber-400/80 bg-gradient-to-r from-slate-950 via-[#041a2e] to-slate-950 p-6 shadow-[0_0_35px_rgba(245,158,11,0.25)] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/50 text-cyan-300 text-xs font-black uppercase tracking-wider">
+                <span>☀️</span>
+                <span>Summer Transfers Event Live</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase">
+                Summer Basic <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-cyan-300 to-sky-400">Blockbuster Signings</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+                Celebrate the biggest summer moves: <strong>Mbappé (92 ST)</strong> to Real Madrid, <strong>Olise (86 RM)</strong> to Bayern Munich, <strong>Álvarez (87 ST)</strong> to Atlético Madrid, <strong>Calafiori (85 CB)</strong> to Arsenal &amp; <strong>Olmo (88 CAM)</strong> to Barcelona. Available in Store Packs &amp; Summer SBCs!
+              </p>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
+                <span className="text-[11px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded">
+                  ☀️ Summer Basic Edition
+                </span>
+                <span className="text-[11px] font-mono bg-slate-900 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded">
+                  New Clubs &amp; Chem Links
+                </span>
+                <span className="text-[11px] font-mono bg-slate-900 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded">
+                  Sunburst Gold &amp; Cyan Styling
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const summerPack = allAvailablePacks.find((p) => p.id === 'pack-summer-transfers-vault');
+                  if (summerPack) handleOpenPack(summerPack);
+                }}
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-cyan-400 hover:from-amber-300 hover:to-cyan-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap"
+              >
+                <span>☀️ Open Summer Vault</span>
+              </button>
+            </div>
+          </div>
+
           {/* Street Kings Event Hero Showcase Banner */}
           <div className="relative rounded-3xl overflow-hidden border-2 border-cyan-400/80 bg-gradient-to-r from-slate-950 via-[#071324] to-slate-950 p-6 shadow-[0_0_35px_rgba(6,182,212,0.35)] flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2 text-center md:text-left">
@@ -391,7 +439,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
           {/* Filter Categories */}
           <div className="flex flex-wrap items-center gap-2">
-            {(['All', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
+            {(['All', 'Summer Transfers', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -404,6 +452,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                     : 'bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
+                {cat === 'Summer Transfers' && <span>☀️</span>}
                 {cat === 'Street Kings' && <span className="text-cyan-400">⚡</span>}
                 {cat === 'International Moments' && <span>🌍</span>}
                 {cat === 'Futmas' && <span className="text-cyan-400">❄️</span>}
@@ -428,7 +477,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                 <div
                   key={pack.id}
                   className={`group relative rounded-3xl p-5 border transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xl ${
-                    pack.theme === 'street_kings'
+                    pack.theme === 'summer_pack'
+                      ? 'bg-gradient-to-b from-cyan-950/70 via-slate-900 to-amber-950/30 border-cyan-400/80 hover:border-amber-400 shadow-cyan-950/40'
+                      : pack.theme === 'street_kings'
                       ? 'bg-gradient-to-b from-cyan-950/70 via-slate-900 to-black border-cyan-400/70 hover:border-pink-500 shadow-cyan-950/40'
                       : pack.theme === 'argentina'
                       ? 'bg-gradient-to-b from-sky-950/70 via-slate-900 to-black border-sky-400/60 hover:border-sky-300 shadow-sky-950/30'

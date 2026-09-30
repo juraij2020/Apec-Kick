@@ -18,7 +18,7 @@ export const ClubGallery: React.FC<ClubGalleryProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<
-    'all' | 'intl' | 'hall_of_fame' | 'futmas' | 'program_one' | 'base' | 'custom' | 'icons' | 'attackers' | 'midfielders' | 'defenders' | 'gks'
+    'all' | 'summer' | 'street_kings' | 'intl' | 'hall_of_fame' | 'futmas' | 'program_one' | 'base' | 'custom' | 'icons' | 'attackers' | 'midfielders' | 'defenders' | 'gks'
   >('all');
   const [minRatingFilter, setMinRatingFilter] = useState<number>(0);
   const [sortBy, setSortBy] = useState<'rating_desc' | 'rating_asc' | 'price_desc'>('rating_desc');
@@ -35,6 +35,8 @@ export const ClubGallery: React.FC<ClubGalleryProps> = ({
     if (!matchesSearch) return false;
     if (minRatingFilter > 0 && c.rating < minRatingFilter) return false;
 
+    if (filterType === 'summer') return c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic';
+    if (filterType === 'street_kings') return c.program === 'Street Kings' || c.rarity === 'street_kings';
     if (filterType === 'intl') return c.program === 'International Moments' || c.rarity === 'international_moments';
     if (filterType === 'hall_of_fame') return c.program === 'Hall of Fame' || c.rarity === 'hall_of_fame' || c.program === 'Program One';
     if (filterType === 'futmas') return c.program === 'Futmas' || c.rarity === 'futmas';
@@ -102,6 +104,8 @@ export const ClubGallery: React.FC<ClubGalleryProps> = ({
         <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-950 border border-slate-800 rounded-xl">
           {[
             { id: 'all', label: 'All Players' },
+            { id: 'summer', label: '☀️ Summer Transfers' },
+            { id: 'street_kings', label: '⚡ Street Kings' },
             { id: 'intl', label: '🌍 Intl Moments' },
             { id: 'hall_of_fame', label: '👑 Hall of Fame' },
             { id: 'futmas', label: '❄️ Futmas' },

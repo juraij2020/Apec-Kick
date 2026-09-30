@@ -88,12 +88,19 @@ export function generateUserCardSvg(
   const l6 = isGK ? 'POS' : 'PHY';
 
   const isObjectiveExclusive = cardStyle === 'objective_obsidian_gold' || (cardStyle as string) === 'objective_exclusive';
+  const isSummerBasic = cardStyle === 'summer_basic' || (cardStyle as string) === 'summer_transfers';
   const isStreetKings = cardStyle === 'street_kings_urban' || (cardStyle as string) === 'street_kings';
   const isFutmas = cardStyle === 'futmas_crimson';
   const isGold = cardStyle === 'classic_gold';
   const isHOF = cardStyle === 'hof_gold_obsidian';
 
-  const borderStops = isObjectiveExclusive
+  const borderStops = isSummerBasic
+    ? `<stop offset="0%" stop-color="#06b6d4"/>
+       <stop offset="28%" stop-color="#38bdf8"/>
+       <stop offset="55%" stop-color="#fbbf24"/>
+       <stop offset="82%" stop-color="#f59e0b"/>
+       <stop offset="100%" stop-color="#0891b2"/>`
+    : isObjectiveExclusive
     ? `<stop offset="0%" stop-color="#f59e0b"/>
        <stop offset="25%" stop-color="#06b6d4"/>
        <stop offset="50%" stop-color="#fbbf24"/>
@@ -130,7 +137,12 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isStreetKings
+  const shieldStops = isSummerBasic
+    ? `<stop offset="0%" stop-color="#083344"/>
+       <stop offset="35%" stop-color="#0e7490"/>
+       <stop offset="70%" stop-color="#155e75"/>
+       <stop offset="100%" stop-color="#032530"/>`
+    : isStreetKings
     ? `<stop offset="0%" stop-color="#0e1726"/>
        <stop offset="35%" stop-color="#0a0f1d"/>
        <stop offset="70%" stop-color="#030712"/>
@@ -152,7 +164,11 @@ export function generateUserCardSvg(
        <stop offset="50%" stop-color="#09090b"/>
        <stop offset="100%" stop-color="#000000"/>`;
 
-  const lineStops = isStreetKings
+  const lineStops = isSummerBasic
+    ? `<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95"/>
+       <stop offset="45%" stop-color="#fbbf24" stop-opacity="0.85"/>
+       <stop offset="100%" stop-color="#0891b2" stop-opacity="0.2"/>`
+    : isStreetKings
     ? `<stop offset="0%" stop-color="#06b6d4" stop-opacity="0.9"/>
        <stop offset="45%" stop-color="#ec4899" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#10b981" stop-opacity="0.2"/>`
@@ -169,7 +185,7 @@ export function generateUserCardSvg(
     : `<stop offset="0%" stop-color="#eab308" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#a16207" stop-opacity="0.1"/>`;
 
-  const starSymbol = isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
+  const starSymbol = isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 900" width="100%" height="100%">
     <defs>
@@ -213,7 +229,10 @@ export function generateUserCardSvg(
       ` : ''}
     </g>
 
-    ${isObjectiveExclusive ? `
+    ${isSummerBasic ? `
+    <!-- Summer Transfers Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#38bdf8" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">☀️ SUMMER TRANSFERS ☀️</text>
+    ` : isObjectiveExclusive ? `
     <!-- Objective Exclusive Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#fbbf24" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">🎯 OBJECTIVE EXCLUSIVE 🎯</text>
     ` : isStreetKings ? `
@@ -3237,13 +3256,16 @@ export const PROGRAM_ONE_CARDS: SoccerCard[] = HALL_OF_FAME_CARDS;
 export { INTERNATIONAL_MOMENTS_CARDS };
 export { STREET_KINGS_CARDS, HANEEN_MUSTAFA_CARD } from './streetKings';
 import { STREET_KINGS_CARDS } from './streetKings';
+export { SUMMER_BASIC_CARDS } from './summerCards';
+import { SUMMER_BASIC_CARDS } from './summerCards';
 
-// ALL INITIAL CARDS: Street Kings, International Moments, Hall of Fame & Futmas
+// ALL INITIAL CARDS: Street Kings, International Moments, Hall of Fame, Futmas & Summer Transfers
 export const INITIAL_CUSTOM_CARDS: SoccerCard[] = [
   ...STREET_KINGS_CARDS,
   ...INTERNATIONAL_MOMENTS_CARDS,
   ...HALL_OF_FAME_CARDS,
   ...FUTMAS_CARDS,
+  ...SUMMER_BASIC_CARDS,
 ];
 
 export const BASE_SOCCER_CARDS: SoccerCard[] = [

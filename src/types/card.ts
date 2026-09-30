@@ -17,7 +17,8 @@ export type CardRarity =
   | 'totw'
   | 'tots'
   | 'custom'
-  | 'objective_exclusive';
+  | 'objective_exclusive'
+  | 'summer_transfers';
 
 export type CardStyle =
   | 'street_kings_urban'
@@ -31,7 +32,8 @@ export type CardStyle =
   | 'future_stars_magenta'
   | 'custom_neon'
   | 'emerald_legend'
-  | 'objective_obsidian_gold';
+  | 'objective_obsidian_gold'
+  | 'summer_basic';
 
 export type PackTheme = 
   | 'street_kings'
@@ -48,7 +50,8 @@ export type PackTheme =
   | 'emerald' 
   | 'custom' 
   | 'mega' 
-  | 'icon';
+  | 'icon'
+  | 'summer_pack';
 
 export type PlayStylePlusType = 
   | 'quick_step'     // +12 Pace burst & breakaway finishing
@@ -149,7 +152,7 @@ export interface SBCRequirement {
 export interface SBCChallenge {
   id: string;
   title: string;
-  category: 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Hall of Fame Special' | 'Program One' | 'Futmas Special' | 'Base Challenges' | 'Creator Special' | 'Icons & Legends' | 'Starter' | 'Advanced';
+  category: 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Hall of Fame Special' | 'Program One' | 'Futmas Special' | 'Base Challenges' | 'Creator Special' | 'Icons & Legends' | 'Starter' | 'Advanced';
   description: string;
   slots: { position: Position; label: string }[];
   rewardPackId: string;

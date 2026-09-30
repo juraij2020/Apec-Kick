@@ -43,7 +43,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '⚡',
       statBoost: { attribute: 'pac', bonus: 12 },
     },
-    metaDescription: 'Objective Exclusive Milestone: Blistering sprint pace with 5-star skill moves.'
+    momentDescription: 'Objective Exclusive Milestone: Blistering sprint pace with 5-star skill moves.'
   },
   {
     id: 'obj-federico-valverde-93',
@@ -78,7 +78,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '🔋',
       statBoost: { attribute: 'phy', bonus: 14 },
     },
-    metaDescription: 'Objective Exclusive Milestone: The tireless box-to-box engine.'
+    momentDescription: 'Objective Exclusive Milestone: The tireless box-to-box engine.'
   },
   {
     id: 'obj-xavi-simons-92',
@@ -113,7 +113,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '🪄',
       statBoost: { attribute: 'dri', bonus: 15 },
     },
-    metaDescription: 'Objective Exclusive Milestone: Dutch maestro with 5-star double skills.'
+    momentDescription: 'Objective Exclusive Milestone: Dutch maestro with 5-star double skills.'
   },
   {
     id: 'obj-takehiro-tomiyasu-91',
@@ -148,7 +148,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '🛑',
       statBoost: { attribute: 'def', bonus: 15 },
     },
-    metaDescription: 'Objective Exclusive Milestone: Two-footed defensive fortress.'
+    momentDescription: 'Objective Exclusive Milestone: Two-footed defensive fortress.'
   },
   {
     id: 'obj-tariq-lamptey-91',
@@ -183,7 +183,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '⚡',
       statBoost: { attribute: 'pac', bonus: 14 },
     },
-    metaDescription: 'Objective Exclusive Milestone: 98 Pace speedster.'
+    momentDescription: 'Objective Exclusive Milestone: 98 Pace speedster.'
   },
   {
     id: 'obj-adama-traore-92',
@@ -218,7 +218,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '💥',
       statBoost: { attribute: 'phy', bonus: 16 },
     },
-    metaDescription: 'Objective Exclusive Milestone: Pure powerhouse winger.'
+    momentDescription: 'Objective Exclusive Milestone: Pure powerhouse winger.'
   },
   {
     id: 'obj-achraf-hakimi-93',
@@ -253,7 +253,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '🎯',
       statBoost: { attribute: 'pas', bonus: 14 },
     },
-    metaDescription: 'Objective Exclusive Milestone: Atlas Lion world-class wingback.'
+    momentDescription: 'Objective Exclusive Milestone: Atlas Lion world-class wingback.'
   },
   {
     id: 'obj-nasser-al-dawsari-92',
@@ -288,7 +288,7 @@ export const EXCLUSIVE_OBJECTIVE_PLAYERS: SoccerCard[] = [
       iconSymbol: '💫',
       statBoost: { attribute: 'sho', bonus: 15 },
     },
-    metaDescription: 'Objective Exclusive Milestone: Saudi long-range maestro.'
+    momentDescription: 'Objective Exclusive Milestone: Saudi long-range maestro.'
   },
 ];
 

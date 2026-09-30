@@ -2,6 +2,111 @@ import { SBCChallenge, SoccerCard } from '../types/card';
 
 export const INITIAL_SBCS: SBCChallenge[] = [
   {
+    id: 'sbc-summer-signings-debut',
+    title: 'Summer Signings Debut ☀️',
+    category: 'Summer Transfers',
+    description: 'Assemble a 5-player tactical squad (Min. Team Rating 81, Min. 1 Attacker & 1 Midfielder) to unlock a guaranteed Summer Transfers Vault Pack + 18,000 Coins!',
+    rewardPackId: 'pack-summer-transfers-vault',
+    rewardPackName: 'Summer Transfers Vault ☀️',
+    rewardCoins: 18000,
+    completed: false,
+    slots: [
+      { position: 'LW', label: 'Left Attacker' },
+      { position: 'ST', label: 'Center Forward' },
+      { position: 'CAM', label: 'Playmaker' },
+      { position: 'CM', label: 'Midfield Controller' },
+      { position: 'CB', label: 'Defender' },
+    ],
+    requirements: [
+      {
+        id: 'req-summer-rating',
+        description: 'Min. Team Rating: 81',
+        check: (cards) => {
+          if (cards.length === 0) return false;
+          const avg = cards.reduce((acc, c) => acc + c.rating, 0) / cards.length;
+          return avg >= 81;
+        },
+        progress: (cards) => {
+          const avg = cards.length ? Math.round(cards.reduce((acc, c) => acc + c.rating, 0) / cards.length) : 0;
+          return { current: avg, target: 81, met: avg >= 81 };
+        },
+      },
+      {
+        id: 'req-summer-attacker',
+        description: 'Min. 1 Forward / Winger (ST/CF/LW/RW)',
+        check: (cards) => cards.some((c) => ['ST', 'CF', 'LW', 'RW'].includes(c.position)),
+        progress: (cards) => {
+          const count = cards.filter((c) => ['ST', 'CF', 'LW', 'RW'].includes(c.position)).length;
+          return { current: count, target: 1, met: count >= 1 };
+        },
+      },
+      {
+        id: 'req-summer-midfielder',
+        description: 'Min. 1 Midfielder (CM/CAM/CDM)',
+        check: (cards) => cards.some((c) => ['CM', 'CAM', 'CDM'].includes(c.position)),
+        progress: (cards) => {
+          const count = cards.filter((c) => ['CM', 'CAM', 'CDM'].includes(c.position)).length;
+          return { current: count, target: 1, met: count >= 1 };
+        },
+      },
+      {
+        id: 'req-summer-slots',
+        description: '5 Players Submitted',
+        check: (cards) => cards.length === 5,
+        progress: (cards) => ({ current: cards.length, target: 5, met: cards.length === 5 }),
+      },
+    ],
+  },
+  {
+    id: 'sbc-summer-marquee-blockbuster',
+    title: 'Blockbuster Summer Transfers 🌊',
+    category: 'Summer Transfers',
+    description: 'Assemble an elite squad (Min. Team Rating 83, Min. 2 Defenders) to unlock the prestigious Summer Transfers Vault Pack + 28,000 Coins!',
+    rewardPackId: 'pack-summer-transfers-vault',
+    rewardPackName: 'Summer Transfers Vault ☀️',
+    rewardCoins: 28000,
+    completed: false,
+    slots: [
+      { position: 'ST', label: 'Target Striker' },
+      { position: 'RW', label: 'Right Winger' },
+      { position: 'CM', label: 'Central Midfielder' },
+      { position: 'CDM', label: 'Anchor Midfielder' },
+      { position: 'CB', label: 'Center Back' },
+      { position: 'CB', label: 'Center Back' },
+      { position: 'GK', label: 'Goalkeeper' },
+    ],
+    requirements: [
+      {
+        id: 'req-summer-blockbuster-rating',
+        description: 'Min. Team Rating: 83',
+        check: (cards) => {
+          if (cards.length === 0) return false;
+          const avg = cards.reduce((acc, c) => acc + c.rating, 0) / cards.length;
+          return avg >= 83;
+        },
+        progress: (cards) => {
+          const avg = cards.length ? Math.round(cards.reduce((acc, c) => acc + c.rating, 0) / cards.length) : 0;
+          return { current: avg, target: 83, met: avg >= 83 };
+        },
+      },
+      {
+        id: 'req-summer-defenders',
+        description: 'Min. 2 Defenders (CB/LB/RB/LWB/RWB)',
+        check: (cards) => cards.filter((c) => ['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(c.position)).length >= 2,
+        progress: (cards) => {
+          const count = cards.filter((c) => ['CB', 'LB', 'RB', 'LWB', 'RWB'].includes(c.position)).length;
+          return { current: count, target: 2, met: count >= 2 };
+        },
+      },
+      {
+        id: 'req-summer-blockbuster-slots',
+        description: '7 Players Submitted',
+        check: (cards) => cards.length === 7,
+        progress: (cards) => ({ current: cards.length, target: 7, met: cards.length === 7 }),
+      },
+    ],
+  },
+  {
     id: 'sbc-street-kings-haneen',
     title: 'Street Kings: The Pride of Tharavaadees ⚡',
     category: 'Street Kings',

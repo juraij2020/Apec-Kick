@@ -20,7 +20,7 @@ export const SBCView: React.FC<SBCViewProps> = ({
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [slotAssignments, setSlotAssignments] = useState<{ [slotIndex: number]: SoccerCard | null }>({});
-  const [categoryFilter, setCategoryFilter] = useState<'All' | 'International Moments' | 'Hall of Fame' | 'Futmas Special' | 'Program One' | 'Base Challenges' | 'Starter' | 'Advanced'>('All');
+  const [categoryFilter, setCategoryFilter] = useState<'All' | 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas Special' | 'Program One' | 'Base Challenges' | 'Starter' | 'Advanced'>('All');
   const [completedRewardModal, setCompletedRewardModal] = useState<{
     coins: number;
     packId: string;
@@ -223,7 +223,7 @@ export const SBCView: React.FC<SBCViewProps> = ({
         <div className="space-y-6">
           {/* Segmented Filter Controls */}
           <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl w-fit">
-            {(['All', 'International Moments', 'Hall of Fame', 'Futmas Special', 'Program One', 'Base Challenges', 'Starter', 'Advanced'] as const).map((cat) => (
+            {(['All', 'Summer Transfers', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas Special', 'Program One', 'Base Challenges', 'Starter', 'Advanced'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
@@ -233,7 +233,7 @@ export const SBCView: React.FC<SBCViewProps> = ({
                     : 'text-slate-400 hover:text-white'
                 }`}
               >
-                {cat === 'International Moments' ? '🌍 International Moments' : cat === 'Hall of Fame' ? '👑 Hall of Fame' : cat === 'Futmas Special' ? '❄️ Futmas Special' : cat}
+                {cat === 'Summer Transfers' ? '☀️ Summer Transfers' : cat === 'Street Kings' ? '⚡ Street Kings' : cat === 'International Moments' ? '🌍 International Moments' : cat === 'Hall of Fame' ? '👑 Hall of Fame' : cat === 'Futmas Special' ? '❄️ Futmas Special' : cat}
               </button>
             ))}
           </div>
