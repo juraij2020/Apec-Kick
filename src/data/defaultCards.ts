@@ -87,12 +87,19 @@ export function generateUserCardSvg(
   const l5 = isGK ? 'SPD' : 'DEF';
   const l6 = isGK ? 'POS' : 'PHY';
 
+  const isObjectiveExclusive = cardStyle === 'objective_obsidian_gold' || (cardStyle as string) === 'objective_exclusive';
   const isStreetKings = cardStyle === 'street_kings_urban' || (cardStyle as string) === 'street_kings';
   const isFutmas = cardStyle === 'futmas_crimson';
   const isGold = cardStyle === 'classic_gold';
   const isHOF = cardStyle === 'hof_gold_obsidian';
 
-  const borderStops = isStreetKings
+  const borderStops = isObjectiveExclusive
+    ? `<stop offset="0%" stop-color="#f59e0b"/>
+       <stop offset="25%" stop-color="#06b6d4"/>
+       <stop offset="50%" stop-color="#fbbf24"/>
+       <stop offset="75%" stop-color="#ec4899"/>
+       <stop offset="100%" stop-color="#f59e0b"/>`
+    : isStreetKings
     ? `<stop offset="0%" stop-color="#06b6d4"/>
        <stop offset="22%" stop-color="#ec4899"/>
        <stop offset="50%" stop-color="#facc15"/>
@@ -206,7 +213,10 @@ export function generateUserCardSvg(
       ` : ''}
     </g>
 
-    ${isStreetKings ? `
+    ${isObjectiveExclusive ? `
+    <!-- Objective Exclusive Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#fbbf24" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">🎯 OBJECTIVE EXCLUSIVE 🎯</text>
+    ` : isStreetKings ? `
     <!-- Street Kings Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#22d3ee" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">⚡ STREET KINGS ⚡</text>
     ` : isHOF ? `

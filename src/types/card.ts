@@ -16,7 +16,8 @@ export type CardRarity =
   | 'icon'
   | 'totw'
   | 'tots'
-  | 'custom';
+  | 'custom'
+  | 'objective_exclusive';
 
 export type CardStyle =
   | 'street_kings_urban'
@@ -29,7 +30,8 @@ export type CardStyle =
   | 'tots_electric_blue'
   | 'future_stars_magenta'
   | 'custom_neon'
-  | 'emerald_legend';
+  | 'emerald_legend'
+  | 'objective_obsidian_gold';
 
 export type PackTheme = 
   | 'street_kings'

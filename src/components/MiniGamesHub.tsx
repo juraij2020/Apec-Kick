@@ -37,6 +37,7 @@ interface MiniGamesHubProps {
   onAddCardsToClub: (cards: SoccerCard[]) => void;
   onAddUnopenedPack: (pack: PackDefinition, sourceTitle: string, sourceType: 'high_low' | 'guess_who') => void;
   onNavigateToMyPacks?: () => void;
+  onMiniGamePlayed?: () => void;
 }
 
 type MiniGameMode = 'high_low' | 'guess_who';
@@ -49,6 +50,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
   onAddCardsToClub,
   onAddUnopenedPack,
   onNavigateToMyPacks,
+  onMiniGamePlayed,
 }) => {
   const [activeGame, setActiveGame] = useState<MiniGameMode>('high_low');
 
@@ -114,6 +116,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
   const handleHighLowGuess = (guess: 'higher' | 'lower') => {
     if (!hlCurrentCard || !hlNextCard || hlRevealed) return;
 
+    onMiniGamePlayed?.();
     setHlRevealed(true);
     const leftVal = getCardStatValue(hlCurrentCard, hlStat);
     const rightVal = getCardStatValue(hlNextCard, hlStat);
@@ -253,6 +256,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
   const handleMakeGuess = (guessedCard: SoccerCard) => {
     if (gwGameOver || !gwTargetCard) return;
 
+    onMiniGamePlayed?.();
     sound.playCardFlip();
     const newGuesses = [guessedCard, ...gwGuesses];
     setGwGuesses(newGuesses);

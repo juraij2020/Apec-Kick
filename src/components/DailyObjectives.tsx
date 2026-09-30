@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   CheckCircle2, 
   Clock, 
@@ -8,36 +8,52 @@ import {
   Trophy, 
   ArrowRight, 
   Sparkles, 
-  RotateCcw,
-  Layers,
-  Swords,
-  Flame,
-  Crown
+  Layers, 
+  Swords, 
+  Flame, 
+  Crown,
+  Gamepad2,
+  Store,
+  AlertTriangle,
+  Lock,
+  Calendar,
+  XCircle,
+  ShieldAlert
 } from 'lucide-react';
-import { PackDefinition } from '../types/card';
+import { PackDefinition, SoccerCard } from '../types/card';
 import { sound } from '../utils/audio';
+import { CardItem } from './CardItem';
+import { 
+  EXCLUSIVE_OBJECTIVE_PLAYERS, 
+  getObjectiveDaySchedule, 
+  OBJECTIVE_STORAGE_KEYS,
+  getClaimedPlayerIds,
+  getMissedPlayerIds
+} from '../data/objectivePlayers';
 
 export interface DailyObjectiveItem {
-  id: 'open_packs' | 'win_match' | 'submit_sbc';
+  id: 'open_packs' | 'win_match' | 'submit_sbc' | 'play_minigame' | 'market_trade';
   title: string;
   description: string;
   category: string;
-  iconName: 'package' | 'swords' | 'layers';
+  iconType: 'package' | 'swords' | 'layers' | 'gamepad' | 'market';
   current: number;
   target: number;
   completed: boolean;
   claimed: boolean;
   coinReward: number;
-  actionTab: 'packs' | 'clash' | 'sbcs' | 'minigames';
+  actionTab: 'packs' | 'clash' | 'sbcs' | 'minigames' | 'market';
   actionLabel: string;
 }
 
-export interface DailyObjectivesState {
+export interface DailyObjectivesStateV3 {
   lastUpdatedDate: string;
   tasks: {
     open_packs: { current: number; completed: boolean; claimed: boolean };
     win_match: { current: number; completed: boolean; claimed: boolean };
     submit_sbc: { current: number; completed: boolean; claimed: boolean };
+    play_minigame: { current: number; completed: boolean; claimed: boolean };
+    market_trade: { current: number; completed: boolean; claimed: boolean };
   };
   groupClaimed: boolean;
 }
@@ -50,46 +66,82 @@ interface DailyObjectivesProps {
     sourceTitle: string,
     sourceType: 'daily_objective' | 'bonus'
   ) => void;
+  onAddCardsToClub: (cards: SoccerCard[]) => void;
   dailyBonusPack: PackDefinition;
   onNavigateToTab: (tab: any) => void;
-  // Live stats from App
+  // Live stats tracked in App
   packsOpenedToday: number;
   matchesWonToday: number;
   sbcsSubmittedToday: number;
-  onResetObjectives?: () => void;
+  miniGamesPlayedToday: number;
+  marketTradesToday: number;
+  clubCards: SoccerCard[];
 }
 
-const STORAGE_KEY = 'apex_fut_daily_objectives_v2';
-
 export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
+  coins,
   onAddCoins,
   onAddUnopenedPack,
+  onAddCardsToClub,
   dailyBonusPack,
   onNavigateToTab,
   packsOpenedToday,
   matchesWonToday,
   sbcsSubmittedToday,
-  onResetObjectives,
+  miniGamesPlayedToday,
+  marketTradesToday,
+  clubCards,
 }) => {
   const getTodayDateStr = () => new Date().toISOString().split('T')[0];
+  const todayStr = getTodayDateStr();
 
-  const [state, setState] = useState<DailyObjectivesState>(() => {
+  // Day Schedule & Reward computation
+  const daySchedule = useMemo(() => getObjectiveDaySchedule(todayStr), [todayStr]);
+  const isPlayerDay = daySchedule.rewardType === 'player';
+  const todayPlayerReward = daySchedule.playerReward;
+
+  // Track claimed & missed players
+  const [claimedPlayerIds, setClaimedPlayerIds] = useState<string[]>(() => getClaimedPlayerIds());
+  const [missedPlayerIds, setMissedPlayerIds] = useState<string[]>(() => getMissedPlayerIds());
+
+  // Daily state management
+  const [state, setState] = useState<DailyObjectivesStateV3>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(OBJECTIVE_STORAGE_KEYS.OBJECTIVE_STATE);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.lastUpdatedDate === getTodayDateStr()) {
+        const parsed: DailyObjectivesStateV3 = JSON.parse(saved);
+        if (parsed.lastUpdatedDate === todayStr && parsed.tasks.play_minigame && parsed.tasks.market_trade) {
           return parsed;
+        } else if (parsed.lastUpdatedDate !== todayStr) {
+          // A previous day has elapsed! Check if yesterday's player was missed:
+          const prevSchedule = getObjectiveDaySchedule(parsed.lastUpdatedDate);
+          if (prevSchedule.rewardType === 'player' && prevSchedule.playerReward) {
+            const pid = prevSchedule.playerReward.id;
+            const currentClaimed = getClaimedPlayerIds();
+            if (!parsed.groupClaimed && !currentClaimed.includes(pid)) {
+              // Mark player as missed forever!
+              const currentMissed = getMissedPlayerIds();
+              if (!currentMissed.includes(pid)) {
+                const nextMissed = [...currentMissed, pid];
+                try {
+                  localStorage.setItem(OBJECTIVE_STORAGE_KEYS.MISSED_PLAYERS, JSON.stringify(nextMissed));
+                } catch (_) {}
+              }
+            }
+          }
         }
       }
     } catch (_) {}
 
+    // Initialize fresh 5 tasks for today
     return {
-      lastUpdatedDate: getTodayDateStr(),
+      lastUpdatedDate: todayStr,
       tasks: {
         open_packs: { current: packsOpenedToday || 0, completed: (packsOpenedToday || 0) >= 3, claimed: false },
         win_match: { current: matchesWonToday || 0, completed: (matchesWonToday || 0) >= 1, claimed: false },
         submit_sbc: { current: sbcsSubmittedToday || 0, completed: (sbcsSubmittedToday || 0) >= 1, claimed: false },
+        play_minigame: { current: miniGamesPlayedToday || 0, completed: (miniGamesPlayedToday || 0) >= 2, claimed: false },
+        market_trade: { current: marketTradesToday || 0, completed: (marketTradesToday || 0) >= 1, claimed: false },
       },
       groupClaimed: false,
     };
@@ -127,9 +179,12 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
       const openPacksCount = Math.max(prev.tasks.open_packs.current, packsOpenedToday);
       const winMatchCount = Math.max(prev.tasks.win_match.current, matchesWonToday);
       const sbcCount = Math.max(prev.tasks.submit_sbc.current, sbcsSubmittedToday);
+      const minigameCount = Math.max(prev.tasks.play_minigame?.current || 0, miniGamesPlayedToday);
+      const marketCount = Math.max(prev.tasks.market_trade?.current || 0, marketTradesToday);
 
-      const next = {
+      const next: DailyObjectivesStateV3 = {
         ...prev,
+        lastUpdatedDate: todayStr,
         tasks: {
           open_packs: {
             ...prev.tasks.open_packs,
@@ -146,24 +201,35 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
             current: sbcCount,
             completed: sbcCount >= 1,
           },
+          play_minigame: {
+            ...prev.tasks.play_minigame,
+            current: minigameCount,
+            completed: minigameCount >= 2,
+          },
+          market_trade: {
+            ...prev.tasks.market_trade,
+            current: marketCount,
+            completed: marketCount >= 1,
+          },
         },
       };
 
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+        localStorage.setItem(OBJECTIVE_STORAGE_KEYS.OBJECTIVE_STATE, JSON.stringify(next));
       } catch (_) {}
 
       return next;
     });
-  }, [packsOpenedToday, matchesWonToday, sbcsSubmittedToday]);
+  }, [packsOpenedToday, matchesWonToday, sbcsSubmittedToday, miniGamesPlayedToday, marketTradesToday, todayStr]);
 
+  // List of 5 daily objectives
   const tasksList: DailyObjectiveItem[] = [
     {
       id: 'open_packs',
       title: 'Pack Hunter',
-      description: 'Rip open any 3 packs from the Store or your My Packs vault.',
+      description: 'Rip open any 3 packs from the Pack Store or your My Packs vault.',
       category: 'Store & Packs',
-      iconName: 'package',
+      iconType: 'package',
       current: Math.min(3, state.tasks.open_packs.current),
       target: 3,
       completed: state.tasks.open_packs.completed,
@@ -175,23 +241,23 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
     {
       id: 'win_match',
       title: 'Pitch Victor',
-      description: 'Clinch 1 victory in Squad Clash simulation or Higher/Lower mini-games.',
+      description: 'Clinch 1 victory in Squad Clash simulation against top tier opponents.',
       category: 'Competitions',
-      iconName: 'swords',
+      iconType: 'swords',
       current: Math.min(1, state.tasks.win_match.current),
       target: 1,
       completed: state.tasks.win_match.completed,
       claimed: state.tasks.win_match.claimed,
       coinReward: 500,
       actionTab: 'clash',
-      actionLabel: 'Play Match',
+      actionLabel: 'Play Clash',
     },
     {
       id: 'submit_sbc',
       title: 'Squad Strategist',
-      description: 'Assemble and submit any 1 Squad Building Challenge (e.g. Street Kings Haneen).',
+      description: 'Assemble and submit any 1 Squad Building Challenge in SBC Challenges.',
       category: 'Club Management',
-      iconName: 'layers',
+      iconType: 'layers',
       current: Math.min(1, state.tasks.submit_sbc.current),
       target: 1,
       completed: state.tasks.submit_sbc.completed,
@@ -200,19 +266,47 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
       actionTab: 'sbcs',
       actionLabel: 'Go to SBCs',
     },
+    {
+      id: 'play_minigame',
+      title: 'Arcade Ace',
+      description: 'Play 2 rounds in Mini-Games (Higher or Lower stat duel or Guess Who).',
+      category: 'Mini-Games',
+      iconType: 'gamepad',
+      current: Math.min(2, state.tasks.play_minigame.current),
+      target: 2,
+      completed: state.tasks.play_minigame.completed,
+      claimed: state.tasks.play_minigame.claimed,
+      coinReward: 500,
+      actionTab: 'minigames',
+      actionLabel: 'Play Games',
+    },
+    {
+      id: 'market_trade',
+      title: 'Transfer Scout',
+      description: 'Engage with the market: buy, sell, or quick-sell any player card today.',
+      category: 'Transfer Market',
+      iconType: 'market',
+      current: Math.min(1, state.tasks.market_trade.current),
+      target: 1,
+      completed: state.tasks.market_trade.completed,
+      claimed: state.tasks.market_trade.claimed,
+      coinReward: 500,
+      actionTab: 'market',
+      actionLabel: 'View Market',
+    },
   ];
 
   const completedCount = tasksList.filter((t) => t.completed).length;
-  const allTasksCompleted = completedCount === 3;
+  const allTasksCompleted = completedCount === 5;
   const [showCelebration, setShowCelebration] = useState(false);
 
   // Claim individual task
-  const handleClaimTask = (taskId: 'open_packs' | 'win_match' | 'submit_sbc', reward: number) => {
+  const handleClaimTask = (taskId: 'open_packs' | 'win_match' | 'submit_sbc' | 'play_minigame' | 'market_trade', reward: number) => {
     sound.playGoalCheer();
     onAddCoins(reward);
 
     setState((prev) => {
-      const updated = {
+      const updated: DailyObjectivesStateV3 = {
         ...prev,
         tasks: {
           ...prev.tasks,
@@ -223,72 +317,59 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
         },
       };
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        localStorage.setItem(OBJECTIVE_STORAGE_KEYS.OBJECTIVE_STATE, JSON.stringify(updated));
       } catch (_) {}
       return updated;
     });
   };
 
-  // Claim group reward: 2,500 coins + Daily Bonus Pack
+  // Claim group reward: 2,500 coins + (Pack OR Exclusive Player)
   const handleClaimGroup = () => {
     if (!allTasksCompleted || state.groupClaimed) return;
 
     sound.playWalkoutFanfare();
     onAddCoins(2500);
-    onAddUnopenedPack(dailyBonusPack, 'Daily Objectives Milestone', 'daily_objective');
+
+    if (isPlayerDay && todayPlayerReward) {
+      // Award the exclusive card to club
+      onAddCardsToClub([todayPlayerReward]);
+
+      // Record player as claimed forever
+      const updatedClaimed = [...claimedPlayerIds, todayPlayerReward.id];
+      setClaimedPlayerIds(updatedClaimed);
+      try {
+        localStorage.setItem(OBJECTIVE_STORAGE_KEYS.CLAIMED_PLAYERS, JSON.stringify(updatedClaimed));
+      } catch (_) {}
+    } else {
+      // Award the daily bonus pack to vault
+      onAddUnopenedPack(dailyBonusPack, 'Daily Objectives 5/5 Milestone', 'daily_objective');
+    }
 
     setShowCelebration(true);
-    setTimeout(() => setShowCelebration(false), 5000);
+    setTimeout(() => setShowCelebration(false), 6000);
 
     setState((prev) => {
-      const updated = {
+      const updated: DailyObjectivesStateV3 = {
         ...prev,
         groupClaimed: true,
       };
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        localStorage.setItem(OBJECTIVE_STORAGE_KEYS.OBJECTIVE_STATE, JSON.stringify(updated));
       } catch (_) {}
       return updated;
     });
   };
 
-  // Test simulation helper to reset or complete
-  const handleManualReset = () => {
-    sound.playClick();
-    const fresh: DailyObjectivesState = {
-      lastUpdatedDate: getTodayDateStr(),
-      tasks: {
-        open_packs: { current: 0, completed: false, claimed: false },
-        win_match: { current: 0, completed: false, claimed: false },
-        submit_sbc: { current: 0, completed: false, claimed: false },
-      },
-      groupClaimed: false,
-    };
-    setState(fresh);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
-    } catch (_) {}
-    if (onResetObjectives) {
-      onResetObjectives();
+  // Helper icons
+  const renderTaskIcon = (type: string) => {
+    switch (type) {
+      case 'package': return <Package className="w-5 h-5" />;
+      case 'swords': return <Swords className="w-5 h-5" />;
+      case 'layers': return <Layers className="w-5 h-5" />;
+      case 'gamepad': return <Gamepad2 className="w-5 h-5" />;
+      case 'market': return <Store className="w-5 h-5" />;
+      default: return <Sparkles className="w-5 h-5" />;
     }
-  };
-
-  const handleSimulateComplete = () => {
-    sound.playClick();
-    setState((prev) => {
-      const completed: DailyObjectivesState = {
-        ...prev,
-        tasks: {
-          open_packs: { current: 3, completed: true, claimed: prev.tasks.open_packs.claimed },
-          win_match: { current: 1, completed: true, claimed: prev.tasks.win_match.claimed },
-          submit_sbc: { current: 1, completed: true, claimed: prev.tasks.submit_sbc.claimed },
-        },
-      };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(completed));
-      } catch (_) {}
-      return completed;
-    });
   };
 
   return (
@@ -302,28 +383,37 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-300 text-xs font-bold uppercase tracking-wider">
               <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-              <span>Daily Season 1 · Live Today</span>
+              <span>5 Daily Objectives · Resets Every 24 Hours</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
               <span>Daily Objectives</span>
-              <span className="text-amber-400 text-2xl sm:text-3xl">⚡</span>
+              <span className="text-amber-400 text-2xl sm:text-3xl">🎯</span>
             </h1>
             <p className="text-slate-300 text-sm max-w-xl leading-relaxed">
-              Complete today's 3 tasks to earn quick coin boosts and unlock the grand <strong className="text-amber-300 font-bold">2,500 Coins + Daily Bonus Pack</strong> reward!
+              Complete today's <strong>5 dynamic tasks</strong> to earn coin bonuses and claim the grand milestone:{' '}
+              {isPlayerDay && todayPlayerReward ? (
+                <strong className="text-amber-300 font-bold">
+                  2,500 Coins + Exclusive {todayPlayerReward.name} ({todayPlayerReward.rating} OVR)!
+                </strong>
+              ) : (
+                <strong className="text-cyan-300 font-bold">
+                  2,500 Coins + Daily Bonus Pack!
+                </strong>
+              )}
             </p>
           </div>
 
           {/* Reset Countdown Timer Badge */}
-          <div className="flex flex-col items-start md:items-end gap-2 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl backdrop-blur-md">
+          <div className="flex flex-col items-start md:items-end gap-2 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl backdrop-blur-md flex-shrink-0">
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
               <Clock className="w-4 h-4 text-cyan-400" />
-              <span>Next Reset In</span>
+              <span>Next Daily Reset In</span>
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono text-cyan-300 tracking-wider">
               {timeLeft || '23h 59m'}
             </div>
-            <div className="text-[11px] text-slate-500">
-              {completedCount} of 3 Objectives Completed
+            <div className="text-[11px] text-slate-400 font-medium">
+              {completedCount} of 5 Tasks Completed
             </div>
           </div>
         </div>
@@ -333,46 +423,32 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
           <div className="flex items-center justify-between text-xs font-bold mb-2">
             <span className="text-slate-300 flex items-center gap-1.5">
               <Trophy className="w-4 h-4 text-amber-400" />
-              <span>Milestone Progress: {completedCount} / 3</span>
+              <span>Milestone Progress: {completedCount} / 5</span>
             </span>
-            <span className="text-amber-400">
-              {allTasksCompleted ? 'Group Reward Unlocked!' : `${3 - completedCount} remaining`}
+            <span className={allTasksCompleted ? 'text-emerald-400 font-black' : 'text-amber-400'}>
+              {allTasksCompleted ? 'All 5 Tasks Finished · Ready to Claim!' : `${5 - completedCount} tasks remaining today`}
             </span>
           </div>
           <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/60">
             <div 
               className="h-full bg-gradient-to-r from-cyan-500 via-indigo-500 to-amber-400 rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]"
-              style={{ width: `${(completedCount / 3) * 100}%` }}
+              style={{ width: `${(completedCount / 5) * 100}%` }}
             />
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Objectives List + Grand Group Reward Card */}
+      {/* Main Grid: 5 Objectives List + Grand Group Reward Card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Objectives Task List (2 cols on lg) */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-2 space-y-3.5">
           <div className="flex items-center justify-between pb-1">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span>Active Tasks</span>
+              <span>Today's 5 Objectives</span>
             </h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSimulateComplete}
-                title="Quick-test by marking all tasks complete"
-                className="text-[11px] text-slate-400 hover:text-cyan-300 bg-slate-900 border border-slate-800 hover:border-cyan-500/40 px-2.5 py-1 rounded-lg transition-colors"
-              >
-                Simulate Done
-              </button>
-              <button
-                onClick={handleManualReset}
-                title="Reset progress to 0"
-                className="text-[11px] text-slate-400 hover:text-rose-300 bg-slate-900 border border-slate-800 hover:border-rose-500/40 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Reset</span>
-              </button>
+            <div className="text-xs text-slate-400 font-mono">
+              Valid until 00:00 UTC
             </div>
           </div>
 
@@ -382,7 +458,7 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
             return (
               <div 
                 key={task.id}
-                className={`relative overflow-hidden rounded-2xl border transition-all p-5 backdrop-blur-md ${
+                className={`relative overflow-hidden rounded-2xl border transition-all p-4 backdrop-blur-md ${
                   task.completed
                     ? 'bg-slate-900/90 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
                     : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
@@ -390,15 +466,13 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
               >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   {/* Left: Icon & Info */}
-                  <div className="flex items-start gap-4">
-                    <div className={`p-3 rounded-xl border flex-shrink-0 ${
+                  <div className="flex items-start gap-3.5">
+                    <div className={`p-2.5 rounded-xl border flex-shrink-0 ${
                       task.completed 
                         ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400' 
                         : 'bg-slate-800 border-slate-700 text-slate-300'
                     }`}>
-                      {task.iconName === 'package' && <Package className="w-6 h-6" />}
-                      {task.iconName === 'swords' && <Swords className="w-6 h-6" />}
-                      {task.iconName === 'layers' && <Layers className="w-6 h-6" />}
+                      {renderTaskIcon(task.iconType)}
                     </div>
 
                     <div className="space-y-1">
@@ -413,7 +487,7 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
                           </span>
                         )}
                       </div>
-                      <h3 className="text-base font-bold text-white tracking-wide">
+                      <h3 className="text-sm sm:text-base font-bold text-white tracking-wide">
                         {task.title}
                       </h3>
                       <p className="text-xs text-slate-400 leading-relaxed max-w-md">
@@ -433,7 +507,7 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
                     {/* Action buttons */}
                     {task.completed ? (
                       task.claimed ? (
-                        <span className="text-xs font-semibold text-slate-500 px-3 py-1.5">
+                        <span className="text-xs font-semibold text-slate-500 px-3 py-1">
                           Claimed ✓
                         </span>
                       ) : (
@@ -461,13 +535,11 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
                 </div>
 
                 {/* Task Progress Tracker */}
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center gap-3">
+                <div className="mt-3 pt-2.5 border-t border-slate-800/60 flex items-center gap-3">
                   <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full transition-all duration-300 ${
-                        task.completed 
-                          ? 'bg-emerald-400' 
-                          : 'bg-cyan-500'
+                        task.completed ? 'bg-emerald-400' : 'bg-cyan-500'
                       }`}
                       style={{ width: `${pct}%` }}
                     />
@@ -481,67 +553,97 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
           })}
         </div>
 
-        {/* Grand Milestone Card (1 col on lg) */}
+        {/* Grand Milestone Group Reward Card (1 col on lg) */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2 pb-1">
-            <Gift className="w-4 h-4 text-amber-400" />
-            <span>Group Reward</span>
-          </h2>
+          <div className="flex items-center justify-between pb-1">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Gift className="w-4 h-4 text-amber-400" />
+              <span>Group Reward</span>
+            </h2>
+            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+              isPlayerDay 
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' 
+                : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+            }`}>
+              {isPlayerDay ? '⭐ Exclusive Player Day' : '🎁 Bonus Pack Day'}
+            </span>
+          </div>
 
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 via-indigo-950/60 to-slate-950 border border-amber-500/40 p-6 shadow-2xl flex flex-col justify-between h-[420px]">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900 via-indigo-950/70 to-slate-950 border border-amber-500/40 p-5 shadow-2xl flex flex-col justify-between min-h-[460px]">
             {/* Ambient gold glow */}
-            <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute top-0 right-0 -mr-10 -mt-10 w-44 h-44 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
 
             {/* Header info */}
             <div>
               <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black uppercase tracking-wider">
                 <Crown className="w-3 h-3 text-amber-400" />
-                <span>Complete All 3 Tasks</span>
+                <span>Complete All 5 Tasks</span>
               </div>
-              <h3 className="text-xl font-black text-white mt-3">
-                Daily Completion Bonus
+              <h3 className="text-xl font-black text-white mt-2">
+                {isPlayerDay && todayPlayerReward ? todayPlayerReward.name : 'Daily Milestone Bonus'}
               </h3>
-              <p className="text-xs text-slate-300 mt-1">
-                Finish every objective today to unlock the ultimate daily booster package.
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                {isPlayerDay && todayPlayerReward ? (
+                  <span>
+                    Exclusive <strong>{todayPlayerReward.rating} OVR {todayPlayerReward.position}</strong> card. 
+                    <span className="text-rose-400 font-semibold block mt-0.5">
+                      ⚠️ Never found in packs! Missed forever if not completed today.
+                    </span>
+                  </span>
+                ) : (
+                  <span>
+                    Guaranteed 83+ player pack + 2,500 coins. (Tomorrow will feature an exclusive player card!)
+                  </span>
+                )}
               </p>
             </div>
 
-            {/* Pack Art Visual & Rewards breakdown */}
-            <div className="my-auto text-center py-4">
-              <div className="relative inline-block mx-auto mb-3 group">
-                <div className="w-28 h-36 mx-auto rounded-xl border border-amber-500/50 overflow-hidden shadow-2xl transform group-hover:scale-105 transition-transform bg-slate-950">
-                  <img
-                    src={dailyBonusPack.imageAsset}
-                    alt={dailyBonusPack.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
-                  />
+            {/* Visual: Exclusive Card or Pack Art */}
+            <div className="my-auto text-center py-2 flex flex-col items-center justify-center">
+              {isPlayerDay && todayPlayerReward ? (
+                <div className="transform scale-95 transition-transform hover:scale-100">
+                  <CardItem card={todayPlayerReward} size="md" interactive={false} />
+                  <div className="mt-2 text-xs font-black text-amber-300">
+                    {todayPlayerReward.club} · {todayPlayerReward.nation}
+                  </div>
                 </div>
-                <span className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-yellow-300 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
-                  83+ OVR
-                </span>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="text-sm font-black text-amber-300">
-                  {dailyBonusPack.name}
-                </div>
-                <div className="flex items-center justify-center gap-2 text-xs font-bold text-slate-300">
-                  <span className="flex items-center gap-1 text-amber-400">
-                    <Coins className="w-3.5 h-3.5" />
-                    <span>+2,500 Coins</span>
+              ) : (
+                <div className="relative inline-block mx-auto mb-2 group">
+                  <div className="w-28 h-36 mx-auto rounded-xl border border-amber-500/50 overflow-hidden shadow-2xl bg-slate-950">
+                    <img
+                      src={dailyBonusPack.imageAsset}
+                      alt={dailyBonusPack.name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-yellow-300 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow-md">
+                    83+ OVR
                   </span>
-                  <span>·</span>
-                  <span className="text-cyan-300">1x Vault Pack</span>
+                  <div className="mt-2 text-xs font-bold text-slate-300">
+                    {dailyBonusPack.name}
+                  </div>
                 </div>
+              )}
+
+              <div className="flex items-center justify-center gap-2 text-xs font-bold text-slate-300 mt-2">
+                <span className="flex items-center gap-1 text-amber-400">
+                  <Coins className="w-3.5 h-3.5" />
+                  <span>+2,500 Coins</span>
+                </span>
+                <span>·</span>
+                <span className={isPlayerDay ? 'text-amber-300 font-bold' : 'text-cyan-300'}>
+                  {isPlayerDay ? '1x Exclusive Player' : '1x Bonus Pack'}
+                </span>
               </div>
             </div>
 
             {/* Claim Group Button */}
-            <div>
+            <div className="pt-2">
               {state.groupClaimed ? (
-                <div className="w-full py-3 bg-slate-800/80 border border-slate-700/60 rounded-xl text-center text-xs font-bold text-slate-400">
-                  Completed & Claimed Today ✓
+                <div className="w-full py-3 bg-slate-800/90 border border-emerald-500/40 rounded-xl text-center text-xs font-bold text-emerald-400 flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span>Completed & Claimed Today ✓</span>
                 </div>
               ) : allTasksCompleted ? (
                 <button
@@ -549,15 +651,41 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
                   className="w-full py-3.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-sm rounded-xl shadow-[0_0_20px_rgba(251,191,36,0.6)] transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 animate-bounce"
                 >
                   <Gift className="w-4 h-4 text-slate-950" />
-                  <span>Claim 2,500 Coins & Pack!</span>
+                  <span>
+                    Claim 2,500 Coins & {isPlayerDay && todayPlayerReward ? todayPlayerReward.name : 'Pack'}!
+                  </span>
                 </button>
               ) : (
-                <div className="w-full py-3 bg-slate-900 border border-slate-800 rounded-xl text-center text-xs font-semibold text-slate-500">
-                  Complete {3 - completedCount} more to unlock
+                <div className="w-full py-3 bg-slate-900/90 border border-slate-800 rounded-xl text-center text-xs font-semibold text-slate-500 flex items-center justify-center gap-2">
+                  <Lock className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Complete {5 - completedCount} more tasks to unlock</span>
                 </div>
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Schedule & Exclusivity Notice Strip */}
+      <div className="rounded-2xl bg-slate-900/80 border border-slate-800 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-400">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-slate-800 border border-slate-700 text-amber-400 flex-shrink-0">
+            <ShieldAlert className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="font-bold text-white">Daily Rotation Policy & Player Exclusivity</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Objective reward players are permanently retired if not claimed before the daily timer ends. They never appear in store packs or transfer market packs.
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0 text-[11px] font-mono">
+          <span className="text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg">
+            Claimed: {claimedPlayerIds.length}
+          </span>
+          <span className="text-rose-400 bg-rose-500/10 border border-rose-500/30 px-2 py-1 rounded-lg">
+            Missed: {missedPlayerIds.length}
+          </span>
         </div>
       </div>
 
@@ -569,19 +697,34 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
               🎉
             </div>
             <h3 className="text-2xl font-black text-white">
-              Daily Bonus Claimed!
+              Daily Milestone Unlocked!
             </h3>
-            <p className="text-sm text-slate-300 mt-2">
-              <strong className="text-amber-400 font-bold">+2,500 Coins</strong> added to your balance, and your <strong className="text-cyan-300 font-bold">Daily Bonus Pack</strong> has been delivered to your My Packs vault!
+            <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+              <strong className="text-amber-400 font-bold">+2,500 Coins</strong> added to your balance!
+              {isPlayerDay && todayPlayerReward ? (
+                <>
+                  <br />
+                  Your exclusive <strong className="text-amber-300 font-bold">{todayPlayerReward.name} ({todayPlayerReward.rating} OVR)</strong> has been added directly to your My Club collection!
+                </>
+              ) : (
+                <>
+                  <br />
+                  Your <strong className="text-cyan-300 font-bold">Daily Bonus Pack</strong> has been delivered to your My Packs vault!
+                </>
+              )}
             </p>
             <button
               onClick={() => {
                 setShowCelebration(false);
-                onNavigateToTab('mypacks');
+                if (isPlayerDay) {
+                  onNavigateToTab('club');
+                } else {
+                  onNavigateToTab('mypacks');
+                }
               }}
-              className="mt-6 w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-black text-sm rounded-xl shadow-lg transition-transform active:scale-95"
+              className="mt-6 w-full py-3 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-sm rounded-xl shadow-lg transition-transform active:scale-95"
             >
-              Open Daily Bonus Pack Now
+              {isPlayerDay ? 'View in My Club' : 'Open Daily Bonus Pack'}
             </button>
           </div>
         </div>

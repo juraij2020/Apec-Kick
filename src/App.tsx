@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { SoccerCard, SBCChallenge, PackDefinition } from './types/card';
 import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS, HANEEN_MUSTAFA_CARD } from './data/defaultCards';
 import { INITIAL_SBCS } from './data/sbcs';
@@ -28,7 +28,26 @@ import { DailyObjectives } from './components/DailyObjectives';
 import { StoredRewardPack } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
 
-import { Volume2, VolumeX, Coins, Sparkles, PlusCircle, Crown, Globe, Store, Gamepad2, PackageOpen, Target, ArrowRight } from 'lucide-react';
+import { 
+  Volume2, 
+  VolumeX, 
+  Coins, 
+  Sparkles, 
+  Crown, 
+  Globe, 
+  Store, 
+  Gamepad2, 
+  PackageOpen, 
+  Target, 
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  Users,
+  Layers,
+  Swords,
+  Package
+} from 'lucide-react';
 import { safeSetItem, safeGetItem, sanitizeCardsListForStorage } from './utils/safeStorage';
 
 type NavTab = 'intl' | 'hof' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives';
@@ -161,18 +180,39 @@ export default function App() {
 
   const getTodayDateStr = () => new Date().toISOString().split('T')[0];
 
-  // Daily Objectives Dynamic Tracking
-  const [dailyStats, setDailyStats] = useState<{ date: string; packsOpened: number; matchesWon: number; sbcsSubmitted: number }>(() => {
+  // Daily Objectives Dynamic Tracking for 5 tasks
+  const [dailyStats, setDailyStats] = useState<{
+    date: string;
+    packsOpened: number;
+    matchesWon: number;
+    sbcsSubmitted: number;
+    miniGamesPlayed: number;
+    marketTrades: number;
+  }>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.DAILY_STATS);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.date === getTodayDateStr()) {
-          return parsed;
+          return {
+            date: getTodayDateStr(),
+            packsOpened: parsed.packsOpened || 0,
+            matchesWon: parsed.matchesWon || 0,
+            sbcsSubmitted: parsed.sbcsSubmitted || 0,
+            miniGamesPlayed: parsed.miniGamesPlayed || 0,
+            marketTrades: parsed.marketTrades || 0,
+          };
         }
       }
     } catch (_) {}
-    return { date: getTodayDateStr(), packsOpened: 0, matchesWon: 0, sbcsSubmitted: 0 };
+    return {
+      date: getTodayDateStr(),
+      packsOpened: 0,
+      matchesWon: 0,
+      sbcsSubmitted: 0,
+      miniGamesPlayed: 0,
+      marketTrades: 0,
+    };
   });
 
   useEffect(() => {
@@ -205,13 +245,20 @@ export default function App() {
     }));
   };
 
-  const handleResetObjectives = () => {
-    setDailyStats({
+  const handleIncrementMiniGamesPlayed = () => {
+    setDailyStats((prev) => ({
+      ...prev,
       date: getTodayDateStr(),
-      packsOpened: 0,
-      matchesWon: 0,
-      sbcsSubmitted: 0,
-    });
+      miniGamesPlayed: prev.miniGamesPlayed + 1,
+    }));
+  };
+
+  const handleIncrementMarketTrades = () => {
+    setDailyStats((prev) => ({
+      ...prev,
+      date: getTodayDateStr(),
+      marketTrades: prev.marketTrades + 1,
+    }));
   };
 
   // Persist State safely with quota management
@@ -298,6 +345,7 @@ export default function App() {
   };
 
   const handleQuickSellCard = (card: SoccerCard) => {
+    handleIncrementMarketTrades();
     setCoins((prev) => prev + card.price);
     setClubCards((prev) => prev.filter((c) => c.id !== card.id));
     // If card was in squad, clear that slot
@@ -453,178 +501,278 @@ export default function App() {
     });
   };
 
-  // Free coin grant if user is out of funds
-  const handleClaimDailyGift = () => {
-    setCoins((prev) => prev + 10000);
-    sound.playGoalCheer();
+  const desktopNavRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+
+  const handleScrollNav = (direction: 'left' | 'right') => {
+    sound.playClick();
+    if (desktopNavRef.current) {
+      desktopNavRef.current.scrollBy({
+        left: direction === 'left' ? -260 : 260,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const handleScrollMobileNav = (direction: 'left' | 'right') => {
+    sound.playClick();
+    if (mobileNavRef.current) {
+      mobileNavRef.current.scrollBy({
+        left: direction === 'left' ? -180 : 180,
+        behavior: 'smooth',
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-black">
       {/* Strict Top Bar Contract: 3 zones */}
-      <header className="sticky top-0 z-40 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800/80 px-3 sm:px-6 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           {/* Zone 1: Single text wordmark */}
           <div
             onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
-            className="cursor-pointer text-lg font-black tracking-tight text-white hover:text-emerald-400 transition-colors flex items-center gap-2"
+            className="cursor-pointer text-lg font-black tracking-tight text-white hover:text-emerald-400 transition-colors flex items-center gap-2 flex-shrink-0"
           >
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-            <span>APEX KICK</span>
+            <span className="hidden sm:inline">APEX KICK</span>
+            <span className="sm:hidden font-mono font-black">APEX</span>
           </div>
 
-          {/* Zone 2: Navigation links with smooth scroll & clear visibility */}
-          <nav className="hidden md:flex items-center gap-3 lg:gap-4 text-xs lg:text-sm font-semibold text-slate-400 overflow-x-auto scrollbar-none py-1 max-w-[calc(100vw-360px)]">
-            {/* Daily Objectives - Promoted to front */}
+          {/* Zone 2: Rolling Navigation Carousel with Left/Right Roll Chevrons */}
+          <div className="hidden md:flex items-center relative flex-1 min-w-0 mx-2 max-w-4xl">
+            {/* Roll Left Arrow */}
             <button
-              onClick={() => { setCurrentTab('objectives'); sound.playClick(); }}
-              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 px-2.5 py-1 rounded-lg ${
-                currentTab === 'objectives' 
-                  ? 'text-amber-300 bg-amber-500/10 border border-amber-500/40 font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)]' 
-                  : 'text-amber-400/90 hover:bg-slate-800/60'
-              }`}
+              onClick={() => handleScrollNav('left')}
+              className="p-1.5 rounded-lg bg-slate-900/95 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-700/70 shadow-lg flex-shrink-0 z-20 transition-all hover:scale-105 active:scale-95"
+              title="Roll tabs left"
+              aria-label="Scroll navigation left"
             >
-              <Target className="w-4 h-4 text-amber-400 animate-pulse" />
-              <span>Objectives</span>
-              <span className="text-[10px] bg-amber-500/30 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 rounded-full font-mono font-black">
-                Daily 🎁
-              </span>
+              <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <button
-              onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
-                currentTab === 'packs' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              Open Packs
-            </button>
+            {/* Left Edge Gradient Fade */}
+            <div className="absolute left-8 top-0 bottom-0 w-6 bg-gradient-to-r from-[#090d16] to-transparent pointer-events-none z-10" />
 
-            <button
-              onClick={() => { setCurrentTab('mypacks'); sound.playClick(); }}
-              className={`hover:text-emerald-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
-                currentTab === 'mypacks' ? 'text-emerald-300 border-b-2 border-emerald-400 font-bold' : 'text-slate-300'
-              }`}
+            {/* Scrollable Rolling Track */}
+            <nav
+              ref={desktopNavRef}
+              className="flex items-center gap-2 overflow-x-auto scroll-smooth py-1 scrollbar-none px-4 mx-1 flex-1"
             >
-              <PackageOpen className="w-4 h-4 text-emerald-400" />
-              <span>My Packs</span>
-              {unopenedPacks.length > 0 && (
-                <span className="text-[10px] bg-emerald-500 text-slate-950 px-1.5 py-0.2 rounded-full font-mono font-black animate-pulse">
-                  {unopenedPacks.length}
+              {/* Daily Objectives */}
+              <button
+                onClick={() => { setCurrentTab('objectives'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'objectives'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                    : 'bg-slate-900/80 text-amber-400/90 border-slate-800 hover:border-amber-500/40 hover:text-amber-300'
+                }`}
+              >
+                <Target className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span>Objectives</span>
+                <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded-full uppercase">
+                  Daily
                 </span>
-              )}
-            </button>
+              </button>
 
+              {/* Open Packs */}
+              <button
+                onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'packs'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                <Package className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Open Packs</span>
+              </button>
+
+              {/* My Packs Vault */}
+              <button
+                onClick={() => { setCurrentTab('mypacks'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'mypacks'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-emerald-300'
+                }`}
+              >
+                <PackageOpen className="w-3.5 h-3.5 text-emerald-400" />
+                <span>My Packs</span>
+                {unopenedPacks.length > 0 && (
+                  <span className="text-[10px] bg-emerald-500 text-slate-950 px-1.5 py-0.2 rounded-full font-mono font-black animate-pulse">
+                    {unopenedPacks.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Mini-Games (High contrast and easy to see!) */}
+              <button
+                onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                  currentTab === 'minigames'
+                    ? 'bg-amber-500/25 text-amber-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.35)]'
+                    : 'bg-gradient-to-r from-amber-500/10 to-amber-600/10 text-amber-300 border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/20'
+                }`}
+              >
+                <Gamepad2 className="w-4 h-4 text-amber-400" />
+                <span>Mini Games</span>
+                <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded font-mono">
+                  HOT
+                </span>
+              </button>
+
+              {/* My Club (High contrast and easy to see!) */}
+              <button
+                onClick={() => { setCurrentTab('club'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                  currentTab === 'club'
+                    ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                    : 'bg-gradient-to-r from-emerald-500/10 to-teal-600/10 text-emerald-300 border-emerald-500/40 hover:border-emerald-400 hover:bg-emerald-500/20'
+                }`}
+              >
+                <Shield className="w-4 h-4 text-emerald-400" />
+                <span>My Club</span>
+                <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded-full font-mono font-bold border border-emerald-500/40">
+                  {clubCards.length}
+                </span>
+              </button>
+
+              {/* Intl Moments */}
+              <button
+                onClick={() => { setCurrentTab('intl'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'intl'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-amber-300'
+                }`}
+              >
+                <span>🌍</span>
+                <span>Intl Moments</span>
+                <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 rounded font-mono font-bold">
+                  24
+                </span>
+              </button>
+
+              {/* Hall of Fame */}
+              <button
+                onClick={() => { setCurrentTab('hof'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'hof'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-amber-400'
+                }`}
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>Hall of Fame</span>
+              </button>
+
+              {/* Transfer Market */}
+              <button
+                onClick={() => { setCurrentTab('market'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'market'
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-emerald-400'
+                }`}
+              >
+                <Store className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Market</span>
+                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1 rounded font-mono font-bold">
+                  HOT
+                </span>
+              </button>
+
+              {/* Squad Builder */}
+              <button
+                onClick={() => { setCurrentTab('squad'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'squad'
+                    ? 'bg-blue-500/20 text-blue-300 border-blue-400 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5 text-blue-400" />
+                <span>Squad</span>
+              </button>
+
+              {/* SBCs */}
+              <button
+                onClick={() => { setCurrentTab('sbcs'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'sbcs'
+                    ? 'bg-purple-500/20 text-purple-300 border-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-purple-400" />
+                <span>SBCs</span>
+              </button>
+
+              {/* Clash */}
+              <button
+                onClick={() => { setCurrentTab('clash'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'clash'
+                    ? 'bg-rose-500/20 text-rose-300 border-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                <Swords className="w-3.5 h-3.5 text-rose-400" />
+                <span>Clash</span>
+              </button>
+
+              {/* Card Creator */}
+              <button
+                onClick={() => { setCurrentTab('creator'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'creator'
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.25)]'
+                    : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <span>Creator</span>
+              </button>
+
+              {/* Futmas */}
+              <button
+                onClick={() => { setCurrentTab('futmas'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  currentTab === 'futmas'
+                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                    : 'bg-slate-900/80 text-rose-300/80 border-slate-800 hover:border-slate-700 hover:text-cyan-300'
+                }`}
+              >
+                <span>❄️</span>
+                <span>Futmas</span>
+              </button>
+            </nav>
+
+            {/* Right Edge Gradient Fade */}
+            <div className="absolute right-8 top-0 bottom-0 w-6 bg-gradient-to-l from-[#090d16] to-transparent pointer-events-none z-10" />
+
+            {/* Roll Right Arrow */}
             <button
-              onClick={() => { setCurrentTab('intl'); sound.playClick(); }}
-              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
-                currentTab === 'intl' ? 'text-amber-400 border-b-2 border-amber-400 font-bold' : 'text-amber-300/90'
-              }`}
+              onClick={() => handleScrollNav('right')}
+              className="p-1.5 rounded-lg bg-slate-900/95 hover:bg-slate-800 text-slate-400 hover:text-amber-300 border border-slate-700/70 shadow-lg flex-shrink-0 z-20 transition-all hover:scale-105 active:scale-95"
+              title="Roll tabs right"
+              aria-label="Scroll navigation right"
             >
-              <span>🌍</span>
-              <span>Intl Moments</span>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 py-0.2 rounded font-mono font-bold">24</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
+          </div>
 
-            <button
-              onClick={() => { setCurrentTab('hof'); sound.playClick(); }}
-              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
-                currentTab === 'hof' ? 'text-amber-300 border-b-2 border-amber-400 font-bold' : 'text-amber-400/80'
-              }`}
-            >
-              <Crown className="w-4 h-4 text-amber-400" />
-              <span>Hall of Fame</span>
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('market'); sound.playClick(); }}
-              className={`hover:text-emerald-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
-                currentTab === 'market' ? 'text-emerald-400 border-b-2 border-emerald-400 font-bold' : 'text-emerald-400/90'
-              }`}
-            >
-              <Store className="w-4 h-4 text-emerald-400" />
-              <span>Market</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1 py-0.2 rounded font-mono font-bold">HOT</span>
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('squad'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
-                currentTab === 'squad' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              Squad
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('sbcs'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
-                currentTab === 'sbcs' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              SBCs
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('clash'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
-                currentTab === 'clash' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              Clash
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
-              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
-                currentTab === 'minigames' ? 'text-amber-300 border-b-2 border-amber-400 font-bold' : 'text-amber-400/80'
-              }`}
-            >
-              <Gamepad2 className="w-4 h-4 text-amber-400" />
-              <span>Games</span>
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('creator'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
-                currentTab === 'creator' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              Creator
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('club'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
-                currentTab === 'club' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              My Club
-            </button>
-
-            <button
-              onClick={() => { setCurrentTab('futmas'); sound.playClick(); }}
-              className={`hover:text-cyan-300 transition-colors relative pb-0.5 flex items-center gap-1 text-xs opacity-75 flex-shrink-0 ${
-                currentTab === 'futmas' ? 'text-cyan-300 border-b-2 border-cyan-400 font-bold opacity-100' : 'text-rose-300'
-              }`}
-            >
-              <span>❄️</span>
-              <span>Futmas</span>
-            </button>
-          </nav>
-
-          {/* Zone 3: 1-2 primary actions */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            {/* Coins indicator & Quick Grant Button */}
-            <button
-              onClick={handleClaimDailyGift}
-              title="Click to claim +10,000 Free Coins!"
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-amber-500/40 rounded-xl text-amber-300 transition-colors shadow-sm"
+          {/* Zone 3: Coins balance & Audio toggle */}
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            {/* Coins Balance Indicator (Display-only · Earned only via matches, SBCs, objectives & mini-games) */}
+            <div
+              title="Earn coins by winning matches, completing SBCs, and Daily Objectives!"
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/90 border border-amber-500/40 rounded-xl text-amber-300 shadow-sm select-none"
             >
               <Coins className="w-4 h-4 text-amber-400" />
-              <span className="text-xs font-black tabular-nums">{coins.toLocaleString()}</span>
-              <PlusCircle className="w-3.5 h-3.5 text-amber-400 opacity-60" />
-            </button>
+              <span className="text-xs font-black tabular-nums tracking-wide">{coins.toLocaleString()}</span>
+            </div>
 
             {/* Audio Toggle */}
             <button
@@ -637,92 +785,166 @@ export default function App() {
           </div>
         </div>
 
-        {/* Mobile Navigation bar */}
-        <div className="md:hidden flex items-center overflow-x-auto pt-3 mt-2 border-t border-slate-800/60 gap-4 text-xs font-semibold text-slate-400 scrollbar-none">
+        {/* Mobile Navigation bar with Rolling Carousel */}
+        <div className="md:hidden flex items-center relative pt-2.5 mt-2 border-t border-slate-800/60 gap-1.5">
           <button
-            onClick={() => { setCurrentTab('objectives'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1.5 flex-shrink-0 ${
-              currentTab === 'objectives' ? 'text-amber-400 font-black border-b-2 border-amber-400' : 'text-amber-300'
-            }`}
+            onClick={() => handleScrollMobileNav('left')}
+            className="p-1 rounded-md bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex-shrink-0 z-10"
+            aria-label="Scroll mobile tabs left"
           >
-            <Target className="w-3.5 h-3.5 text-amber-400" />
-            <span>Objectives</span>
-            <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 rounded font-mono font-bold">
-              Daily
-            </span>
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-          <button
-            onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'packs' ? 'text-emerald-400 font-bold border-b border-emerald-400' : ''}`}
+
+          <div
+            ref={mobileNavRef}
+            className="flex items-center overflow-x-auto scroll-smooth gap-2 text-xs font-semibold text-slate-400 scrollbar-none flex-1 py-1 px-1"
           >
-            Packs
-          </button>
+            <button
+              onClick={() => { setCurrentTab('objectives'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1.5 flex-shrink-0 border ${
+                currentTab === 'objectives' 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-amber-400'
+              }`}
+            >
+              <Target className="w-3.5 h-3.5 text-amber-400" />
+              <span>Objectives</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1 flex-shrink-0 border ${
+                currentTab === 'minigames' 
+                  ? 'bg-amber-500/25 text-amber-200 border-amber-400 font-bold shadow-[0_0_10px_rgba(245,158,11,0.3)]' 
+                  : 'bg-slate-900/60 border-amber-500/40 text-amber-300 font-bold'
+              }`}
+            >
+              <Gamepad2 className="w-3.5 h-3.5 text-amber-400" />
+              <span>Mini Games</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('club'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1 flex-shrink-0 border ${
+                currentTab === 'club' 
+                  ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400 font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                  : 'bg-slate-900/60 border-emerald-500/40 text-emerald-300 font-bold'
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5 text-emerald-400" />
+              <span>My Club ({clubCards.length})</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex-shrink-0 border ${
+                currentTab === 'packs' 
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
+              }`}
+            >
+              Packs
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('mypacks'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1 flex-shrink-0 border ${
+                currentTab === 'mypacks' 
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-emerald-300/80'
+              }`}
+            >
+              <PackageOpen className="w-3.5 h-3.5 text-emerald-400" />
+              <span>My Packs ({unopenedPacks.length})</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('intl'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1 flex-shrink-0 border ${
+                currentTab === 'intl' 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-amber-300/80'
+              }`}
+            >
+              <span>🌍</span>
+              <span>Intl</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('hof'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1 flex-shrink-0 border ${
+                currentTab === 'hof' 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-amber-400/80'
+              }`}
+            >
+              <Crown className="w-3.5 h-3.5 text-amber-400" />
+              <span>HOF</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('market'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1 flex-shrink-0 border ${
+                currentTab === 'market' 
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-emerald-400/80'
+              }`}
+            >
+              <Store className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Market</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('squad'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex-shrink-0 border ${
+                currentTab === 'squad' 
+                  ? 'bg-blue-500/20 text-blue-300 border-blue-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
+              }`}
+            >
+              Squad
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('sbcs'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex-shrink-0 border ${
+                currentTab === 'sbcs' 
+                  ? 'bg-purple-500/20 text-purple-300 border-purple-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
+              }`}
+            >
+              SBCs
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('clash'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex-shrink-0 border ${
+                currentTab === 'clash' 
+                  ? 'bg-rose-500/20 text-rose-300 border-rose-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
+              }`}
+            >
+              Clash
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('creator'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex-shrink-0 border ${
+                currentTab === 'creator' 
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-400 font-bold' 
+                  : 'bg-slate-900/60 border-slate-800 text-slate-300'
+              }`}
+            >
+              Creator
+            </button>
+          </div>
+
           <button
-            onClick={() => { setCurrentTab('mypacks'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${
-              currentTab === 'mypacks' ? 'text-emerald-400 font-bold border-b border-emerald-400' : 'text-emerald-300/80'
-            }`}
+            onClick={() => handleScrollMobileNav('right')}
+            className="p-1 rounded-md bg-slate-900 text-slate-400 hover:text-white border border-slate-800 flex-shrink-0 z-10"
+            aria-label="Scroll mobile tabs right"
           >
-            <PackageOpen className="w-3.5 h-3.5 text-emerald-400" />
-            <span>My Packs ({unopenedPacks.length})</span>
-          </button>
-          <button
-            onClick={() => { setCurrentTab('intl'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'intl' ? 'text-amber-400 font-bold border-b border-amber-400' : 'text-amber-300/80'}`}
-          >
-            <span>🌍</span>
-            <span>Intl</span>
-          </button>
-          <button
-            onClick={() => { setCurrentTab('hof'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'hof' ? 'text-amber-300 font-bold' : 'text-amber-400/80'}`}
-          >
-            <Crown className="w-3.5 h-3.5 text-amber-400" />
-            <span>HOF</span>
-          </button>
-          <button
-            onClick={() => { setCurrentTab('market'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'market' ? 'text-emerald-400 font-bold border-b border-emerald-400' : 'text-emerald-400/80'}`}
-          >
-            <Store className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Market</span>
-          </button>
-          <button
-            onClick={() => { setCurrentTab('squad'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'squad' ? 'text-emerald-400 font-bold' : ''}`}
-          >
-            Squad
-          </button>
-          <button
-            onClick={() => { setCurrentTab('sbcs'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'sbcs' ? 'text-emerald-400 font-bold' : ''}`}
-          >
-            SBCs
-          </button>
-          <button
-            onClick={() => { setCurrentTab('clash'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'clash' ? 'text-emerald-400 font-bold' : ''}`}
-          >
-            Clash
-          </button>
-          <button
-            onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'minigames' ? 'text-amber-300 font-bold' : 'text-amber-400/80'}`}
-          >
-            <Gamepad2 className="w-3.5 h-3.5 text-amber-400" />
-            <span>Games</span>
-          </button>
-          <button
-            onClick={() => { setCurrentTab('creator'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'creator' ? 'text-emerald-400 font-bold' : ''}`}
-          >
-            Creator
-          </button>
-          <button
-            onClick={() => { setCurrentTab('club'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'club' ? 'text-emerald-400 font-bold' : ''}`}
-          >
-            Club ({clubCards.length})
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </header>
@@ -846,6 +1068,7 @@ export default function App() {
             onAddCoins={handleAddCoins}
             onAddCardsToClub={handleAddCardsToClub}
             onAddUnopenedPack={handleAddUnopenedPack}
+            onMiniGamePlayed={handleIncrementMiniGamesPlayed}
             onNavigateToMyPacks={() => {
               setCurrentTab('mypacks');
               sound.playClick();
@@ -953,6 +1176,7 @@ export default function App() {
             coins={coins}
             onAddCoins={handleAddCoins}
             onAddUnopenedPack={handleAddUnopenedPack}
+            onAddCardsToClub={handleAddCardsToClub}
             dailyBonusPack={PACKS.find((p) => p.id === 'pack-daily-bonus') || PACKS[0]}
             onNavigateToTab={(tab) => {
               setCurrentTab(tab);
@@ -961,7 +1185,9 @@ export default function App() {
             packsOpenedToday={dailyStats.packsOpened}
             matchesWonToday={dailyStats.matchesWon}
             sbcsSubmittedToday={dailyStats.sbcsSubmitted}
-            onResetObjectives={handleResetObjectives}
+            miniGamesPlayedToday={dailyStats.miniGamesPlayed}
+            marketTradesToday={dailyStats.marketTrades}
+            clubCards={clubCards}
           />
         )}
       </main>
