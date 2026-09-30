@@ -35,6 +35,7 @@ interface PackOpeningProps {
   onAddCardsToClub: (cards: SoccerCard[]) => void;
   onQuickSellCard: (card: SoccerCard) => void;
   onOpenCardCreator: () => void;
+  onPackOpened?: () => void;
 }
 
 type OpeningStage =
@@ -57,6 +58,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   onAddCardsToClub,
   onQuickSellCard,
   onOpenCardCreator,
+  onPackOpened,
 }) => {
   const allAvailablePacks = [...PACKS, ...customPacks];
 
@@ -206,6 +208,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
     setStage('tearing');
     sound.playPackRip();
+    onPackOpened?.();
 
     setTimeout(() => {
       if (isWalkout) {

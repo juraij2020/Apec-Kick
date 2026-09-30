@@ -24,13 +24,14 @@ import { InternationalMomentsHub } from './components/InternationalMomentsHub';
 import { TransferMarket } from './components/TransferMarket';
 import { MiniGamesHub } from './components/MiniGamesHub';
 import { MyPacksHub } from './components/MyPacksHub';
+import { DailyObjectives } from './components/DailyObjectives';
 import { StoredRewardPack } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
 
-import { Volume2, VolumeX, Coins, Sparkles, PlusCircle, Crown, Globe, Store, Gamepad2, PackageOpen } from 'lucide-react';
+import { Volume2, VolumeX, Coins, Sparkles, PlusCircle, Crown, Globe, Store, Gamepad2, PackageOpen, Target, ArrowRight } from 'lucide-react';
 import { safeSetItem, safeGetItem, sanitizeCardsListForStorage } from './utils/safeStorage';
 
-type NavTab = 'intl' | 'hof' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas';
+type NavTab = 'intl' | 'hof' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives';
 
 const STORAGE_KEYS = {
   COINS: 'apex_fut_coins_v2',
@@ -42,10 +43,11 @@ const STORAGE_KEYS = {
   AUDIO: 'apex_fut_audio_v1',
   CUSTOM_PACKS: 'apex_fut_custom_packs_v1',
   UNOPENED_PACKS: 'apex_fut_my_unopened_packs_v1',
+  DAILY_STATS: 'apex_fut_daily_stats_v1',
 };
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<NavTab>('intl');
+  const [currentTab, setCurrentTab] = useState<NavTab>('objectives');
 
   // Coins State (starts with 50,000 so user can test Hall of Fame packs immediately)
   const [coins, setCoins] = useState<number>(() => {
@@ -156,6 +158,61 @@ export default function App() {
     const saved = localStorage.getItem(STORAGE_KEYS.AUDIO);
     return saved !== null ? saved === 'true' : true;
   });
+
+  const getTodayDateStr = () => new Date().toISOString().split('T')[0];
+
+  // Daily Objectives Dynamic Tracking
+  const [dailyStats, setDailyStats] = useState<{ date: string; packsOpened: number; matchesWon: number; sbcsSubmitted: number }>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.DAILY_STATS);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.date === getTodayDateStr()) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+    return { date: getTodayDateStr(), packsOpened: 0, matchesWon: 0, sbcsSubmitted: 0 };
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DAILY_STATS, JSON.stringify(dailyStats));
+    } catch (_) {}
+  }, [dailyStats]);
+
+  const handleIncrementPacksOpened = () => {
+    setDailyStats((prev) => ({
+      ...prev,
+      date: getTodayDateStr(),
+      packsOpened: prev.packsOpened + 1,
+    }));
+  };
+
+  const handleIncrementMatchesWon = () => {
+    setDailyStats((prev) => ({
+      ...prev,
+      date: getTodayDateStr(),
+      matchesWon: prev.matchesWon + 1,
+    }));
+  };
+
+  const handleIncrementSBCsSubmitted = () => {
+    setDailyStats((prev) => ({
+      ...prev,
+      date: getTodayDateStr(),
+      sbcsSubmitted: prev.sbcsSubmitted + 1,
+    }));
+  };
+
+  const handleResetObjectives = () => {
+    setDailyStats({
+      date: getTodayDateStr(),
+      packsOpened: 0,
+      matchesWon: 0,
+      sbcsSubmitted: 0,
+    });
+  };
 
   // Persist State safely with quota management
   useEffect(() => {
@@ -320,6 +377,9 @@ export default function App() {
       return next;
     });
 
+    // Increment Daily Objectives count
+    handleIncrementSBCsSubmitted();
+
     // Add reward coins
     setCoins((prev) => prev + rewardCoins);
 
@@ -346,6 +406,7 @@ export default function App() {
 
   // Award match simulator prize
   const handleAwardMatchPrize = (coinsEarned: number, bonusPackName?: string) => {
+    handleIncrementMatchesWon();
     setCoins((prev) => prev + coinsEarned);
     if (bonusPackName) {
       // Find matching pack or drop a bonus card
@@ -384,6 +445,7 @@ export default function App() {
 
   // Open / consume pack from My Packs vault
   const handleOpenRewardPack = (instanceId: string) => {
+    handleIncrementPacksOpened();
     setUnopenedPacks((prev) => {
       const updated = prev.filter((p) => p.instanceId !== instanceId);
       safeSetItem(STORAGE_KEYS.UNOPENED_PACKS, JSON.stringify(updated));
@@ -411,89 +473,36 @@ export default function App() {
             <span>APEX KICK</span>
           </div>
 
-          {/* Zone 2: 4-6 text navigation links */}
-          <nav className="hidden md:flex items-center gap-5 text-sm font-semibold text-slate-400">
+          {/* Zone 2: Navigation links with smooth scroll & clear visibility */}
+          <nav className="hidden md:flex items-center gap-3 lg:gap-4 text-xs lg:text-sm font-semibold text-slate-400 overflow-x-auto scrollbar-none py-1 max-w-[calc(100vw-360px)]">
+            {/* Daily Objectives - Promoted to front */}
             <button
-              onClick={() => { setCurrentTab('intl'); sound.playClick(); }}
-              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 ${
-                currentTab === 'intl' ? 'text-amber-400 border-b-2 border-amber-400 font-bold' : 'text-amber-300/90'
+              onClick={() => { setCurrentTab('objectives'); sound.playClick(); }}
+              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 px-2.5 py-1 rounded-lg ${
+                currentTab === 'objectives' 
+                  ? 'text-amber-300 bg-amber-500/10 border border-amber-500/40 font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)]' 
+                  : 'text-amber-400/90 hover:bg-slate-800/60'
               }`}
             >
-              <span>🌍</span>
-              <span>Intl Moments</span>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 py-0.2 rounded font-mono font-bold">24</span>
+              <Target className="w-4 h-4 text-amber-400 animate-pulse" />
+              <span>Objectives</span>
+              <span className="text-[10px] bg-amber-500/30 text-amber-300 border border-amber-500/50 px-1.5 py-0.2 rounded-full font-mono font-black">
+                Daily 🎁
+              </span>
             </button>
-            <button
-              onClick={() => { setCurrentTab('hof'); sound.playClick(); }}
-              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 ${
-                currentTab === 'hof' ? 'text-amber-300 border-b-2 border-amber-400 font-bold' : 'text-amber-400/80'
-              }`}
-            >
-              <Crown className="w-4 h-4 text-amber-400" />
-              <span>Hall of Fame</span>
-            </button>
-            <button
-              onClick={() => { setCurrentTab('market'); sound.playClick(); }}
-              className={`hover:text-emerald-300 transition-colors relative pb-0.5 flex items-center gap-1.5 ${
-                currentTab === 'market' ? 'text-emerald-400 border-b-2 border-emerald-400 font-bold' : 'text-emerald-400/90'
-              }`}
-            >
-              <Store className="w-4 h-4 text-emerald-400" />
-              <span>Transfer Market</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1 py-0.2 rounded font-mono font-bold">HOT</span>
-            </button>
-            <button
-              onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
-              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 ${
-                currentTab === 'minigames' ? 'text-amber-300 border-b-2 border-amber-400 font-bold' : 'text-amber-400/80'
-              }`}
-            >
-              <Gamepad2 className="w-4 h-4 text-amber-400" />
-              <span>Mini-Games</span>
-            </button>
+
             <button
               onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 ${
+              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
                 currentTab === 'packs' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
               }`}
             >
               Open Packs
             </button>
-            <button
-              onClick={() => { setCurrentTab('squad'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 ${
-                currentTab === 'squad' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              Squad Builder
-            </button>
-            <button
-              onClick={() => { setCurrentTab('sbcs'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 ${
-                currentTab === 'sbcs' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              SBC Challenges
-            </button>
-            <button
-              onClick={() => { setCurrentTab('clash'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 ${
-                currentTab === 'clash' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              Match Clash
-            </button>
-            <button
-              onClick={() => { setCurrentTab('creator'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 ${
-                currentTab === 'creator' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
-              }`}
-            >
-              Card Creator
-            </button>
+
             <button
               onClick={() => { setCurrentTab('mypacks'); sound.playClick(); }}
-              className={`hover:text-emerald-300 transition-colors relative pb-0.5 flex items-center gap-1.5 ${
+              className={`hover:text-emerald-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
                 currentTab === 'mypacks' ? 'text-emerald-300 border-b-2 border-emerald-400 font-bold' : 'text-slate-300'
               }`}
             >
@@ -505,17 +514,97 @@ export default function App() {
                 </span>
               )}
             </button>
+
+            <button
+              onClick={() => { setCurrentTab('intl'); sound.playClick(); }}
+              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
+                currentTab === 'intl' ? 'text-amber-400 border-b-2 border-amber-400 font-bold' : 'text-amber-300/90'
+              }`}
+            >
+              <span>🌍</span>
+              <span>Intl Moments</span>
+              <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 py-0.2 rounded font-mono font-bold">24</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('hof'); sound.playClick(); }}
+              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
+                currentTab === 'hof' ? 'text-amber-300 border-b-2 border-amber-400 font-bold' : 'text-amber-400/80'
+              }`}
+            >
+              <Crown className="w-4 h-4 text-amber-400" />
+              <span>Hall of Fame</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('market'); sound.playClick(); }}
+              className={`hover:text-emerald-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
+                currentTab === 'market' ? 'text-emerald-400 border-b-2 border-emerald-400 font-bold' : 'text-emerald-400/90'
+              }`}
+            >
+              <Store className="w-4 h-4 text-emerald-400" />
+              <span>Market</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1 py-0.2 rounded font-mono font-bold">HOT</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('squad'); sound.playClick(); }}
+              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
+                currentTab === 'squad' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
+              }`}
+            >
+              Squad
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('sbcs'); sound.playClick(); }}
+              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
+                currentTab === 'sbcs' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
+              }`}
+            >
+              SBCs
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('clash'); sound.playClick(); }}
+              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
+                currentTab === 'clash' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
+              }`}
+            >
+              Clash
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
+              className={`hover:text-amber-300 transition-colors relative pb-0.5 flex items-center gap-1.5 flex-shrink-0 ${
+                currentTab === 'minigames' ? 'text-amber-300 border-b-2 border-amber-400 font-bold' : 'text-amber-400/80'
+              }`}
+            >
+              <Gamepad2 className="w-4 h-4 text-amber-400" />
+              <span>Games</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('creator'); sound.playClick(); }}
+              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
+                currentTab === 'creator' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
+              }`}
+            >
+              Creator
+            </button>
+
             <button
               onClick={() => { setCurrentTab('club'); sound.playClick(); }}
-              className={`hover:text-white transition-colors relative pb-0.5 ${
+              className={`hover:text-white transition-colors relative pb-0.5 flex-shrink-0 ${
                 currentTab === 'club' ? 'text-white border-b-2 border-emerald-400 font-bold' : ''
               }`}
             >
               My Club
             </button>
+
             <button
               onClick={() => { setCurrentTab('futmas'); sound.playClick(); }}
-              className={`hover:text-cyan-300 transition-colors relative pb-0.5 flex items-center gap-1 text-xs opacity-75 ${
+              className={`hover:text-cyan-300 transition-colors relative pb-0.5 flex items-center gap-1 text-xs opacity-75 flex-shrink-0 ${
                 currentTab === 'futmas' ? 'text-cyan-300 border-b-2 border-cyan-400 font-bold opacity-100' : 'text-rose-300'
               }`}
             >
@@ -525,7 +614,7 @@ export default function App() {
           </nav>
 
           {/* Zone 3: 1-2 primary actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             {/* Coins indicator & Quick Grant Button */}
             <button
               onClick={handleClaimDailyGift}
@@ -549,82 +638,118 @@ export default function App() {
         </div>
 
         {/* Mobile Navigation bar */}
-        <div className="md:hidden flex items-center justify-between overflow-x-auto pt-3 mt-2 border-t border-slate-800/60 gap-4 text-xs font-semibold text-slate-400 scrollbar-none">
+        <div className="md:hidden flex items-center overflow-x-auto pt-3 mt-2 border-t border-slate-800/60 gap-4 text-xs font-semibold text-slate-400 scrollbar-none">
+          <button
+            onClick={() => { setCurrentTab('objectives'); sound.playClick(); }}
+            className={`whitespace-nowrap pb-1 flex items-center gap-1.5 flex-shrink-0 ${
+              currentTab === 'objectives' ? 'text-amber-400 font-black border-b-2 border-amber-400' : 'text-amber-300'
+            }`}
+          >
+            <Target className="w-3.5 h-3.5 text-amber-400" />
+            <span>Objectives</span>
+            <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 rounded font-mono font-bold">
+              Daily
+            </span>
+          </button>
+          <button
+            onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
+            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'packs' ? 'text-emerald-400 font-bold border-b border-emerald-400' : ''}`}
+          >
+            Packs
+          </button>
+          <button
+            onClick={() => { setCurrentTab('mypacks'); sound.playClick(); }}
+            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${
+              currentTab === 'mypacks' ? 'text-emerald-400 font-bold border-b border-emerald-400' : 'text-emerald-300/80'
+            }`}
+          >
+            <PackageOpen className="w-3.5 h-3.5 text-emerald-400" />
+            <span>My Packs ({unopenedPacks.length})</span>
+          </button>
           <button
             onClick={() => { setCurrentTab('intl'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 ${currentTab === 'intl' ? 'text-amber-400 font-bold border-b border-amber-400' : 'text-amber-300/80'}`}
+            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'intl' ? 'text-amber-400 font-bold border-b border-amber-400' : 'text-amber-300/80'}`}
           >
             <span>🌍</span>
-            <span>Intl Moments</span>
+            <span>Intl</span>
           </button>
           <button
             onClick={() => { setCurrentTab('hof'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 ${currentTab === 'hof' ? 'text-amber-300 font-bold' : 'text-amber-400/80'}`}
+            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'hof' ? 'text-amber-300 font-bold' : 'text-amber-400/80'}`}
           >
             <Crown className="w-3.5 h-3.5 text-amber-400" />
             <span>HOF</span>
           </button>
           <button
             onClick={() => { setCurrentTab('market'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 ${currentTab === 'market' ? 'text-emerald-400 font-bold border-b border-emerald-400' : 'text-emerald-400/80'}`}
+            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'market' ? 'text-emerald-400 font-bold border-b border-emerald-400' : 'text-emerald-400/80'}`}
           >
             <Store className="w-3.5 h-3.5 text-emerald-400" />
             <span>Market</span>
           </button>
           <button
-            onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 ${currentTab === 'minigames' ? 'text-amber-300 font-bold' : 'text-amber-400/80'}`}
-          >
-            <Gamepad2 className="w-3.5 h-3.5 text-amber-400" />
-            <span>Games</span>
-          </button>
-          <button
-            onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 ${currentTab === 'packs' ? 'text-emerald-400 font-bold' : ''}`}
-          >
-            Packs
-          </button>
-          <button
             onClick={() => { setCurrentTab('squad'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 ${currentTab === 'squad' ? 'text-emerald-400 font-bold' : ''}`}
+            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'squad' ? 'text-emerald-400 font-bold' : ''}`}
           >
             Squad
           </button>
           <button
             onClick={() => { setCurrentTab('sbcs'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 ${currentTab === 'sbcs' ? 'text-emerald-400 font-bold' : ''}`}
+            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'sbcs' ? 'text-emerald-400 font-bold' : ''}`}
           >
             SBCs
           </button>
           <button
             onClick={() => { setCurrentTab('clash'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 ${currentTab === 'clash' ? 'text-emerald-400 font-bold' : ''}`}
+            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'clash' ? 'text-emerald-400 font-bold' : ''}`}
           >
             Clash
           </button>
           <button
+            onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
+            className={`whitespace-nowrap pb-1 flex items-center gap-1 flex-shrink-0 ${currentTab === 'minigames' ? 'text-amber-300 font-bold' : 'text-amber-400/80'}`}
+          >
+            <Gamepad2 className="w-3.5 h-3.5 text-amber-400" />
+            <span>Games</span>
+          </button>
+          <button
             onClick={() => { setCurrentTab('creator'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 ${currentTab === 'creator' ? 'text-emerald-400 font-bold' : ''}`}
+            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'creator' ? 'text-emerald-400 font-bold' : ''}`}
           >
             Creator
           </button>
           <button
-            onClick={() => { setCurrentTab('mypacks'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 flex items-center gap-1 ${
-              currentTab === 'mypacks' ? 'text-emerald-400 font-bold border-b border-emerald-400' : 'text-emerald-300/80'
-            }`}
-          >
-            <PackageOpen className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Packs ({unopenedPacks.length})</span>
-          </button>
-          <button
             onClick={() => { setCurrentTab('club'); sound.playClick(); }}
-            className={`whitespace-nowrap pb-1 ${currentTab === 'club' ? 'text-emerald-400 font-bold' : ''}`}
+            className={`whitespace-nowrap pb-1 flex-shrink-0 ${currentTab === 'club' ? 'text-emerald-400 font-bold' : ''}`}
           >
             Club ({clubCards.length})
           </button>
         </div>
       </header>
+
+      {/* Global Interactive Announcement Ticker when not in Objectives */}
+      {currentTab !== 'objectives' && (
+        <div className="bg-gradient-to-r from-amber-500/20 via-indigo-950/60 to-amber-500/20 border-b border-amber-500/30 px-4 py-2">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-amber-300 font-semibold truncate">
+              <span className="flex h-2 w-2 relative flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              <span className="truncate">
+                🎯 <strong>Daily Objectives Active:</strong> Complete 3 dynamic tasks to receive <strong>+2,500 Coins & Daily Bonus Pack!</strong>
+              </span>
+            </div>
+            <button
+              onClick={() => { setCurrentTab('objectives'); sound.playClick(); }}
+              className="flex-shrink-0 px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg text-xs transition-transform active:scale-95 flex items-center gap-1 shadow-sm"
+            >
+              <span>View Objectives</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6">
@@ -757,6 +882,7 @@ export default function App() {
             onDeductCoins={handleDeductCoins}
             onAddCardsToClub={handleAddCardsToClub}
             onQuickSellCard={handleQuickSellCard}
+            onPackOpened={handleIncrementPacksOpened}
             onOpenCardCreator={() => {
               setCurrentTab('creator');
               sound.playClick();
@@ -819,6 +945,23 @@ export default function App() {
               setCurrentTab('creator');
               sound.playClick();
             }}
+          />
+        )}
+
+        {currentTab === 'objectives' && (
+          <DailyObjectives
+            coins={coins}
+            onAddCoins={handleAddCoins}
+            onAddUnopenedPack={handleAddUnopenedPack}
+            dailyBonusPack={PACKS.find((p) => p.id === 'pack-daily-bonus') || PACKS[0]}
+            onNavigateToTab={(tab) => {
+              setCurrentTab(tab);
+              sound.playClick();
+            }}
+            packsOpenedToday={dailyStats.packsOpened}
+            matchesWonToday={dailyStats.matchesWon}
+            sbcsSubmittedToday={dailyStats.sbcsSubmitted}
+            onResetObjectives={handleResetObjectives}
           />
         )}
       </main>

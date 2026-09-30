@@ -12,13 +12,14 @@ Introduce the high-octane **Street Kings** card event headlined by community sta
 > - **Player Profile**: Haneen Mustafa as a **92 OVR Central Midfielder (CM)**, Playmaker archetype with elite passing (96 PAS), silky dribbling (95 DRI), rapid tempo (88 PAC), pinpoint shooting (89 SHO), and signature PlayStyle+ (*Incisive Pass+* & *Technical+*).
 > - **Event Scope**: Comprehensive feature rollout spanning **Event Packs with published drop odds**, **Transfer Market listings**, **Higher or Lower & Guess Who mini-games**, and a dedicated **Street Kings SBC**.
 
-- **Confirmed Decision 1**: Haneen Mustafa's card will feature his authentic uploaded photo stylized into an urban Street Kings dynamic cutout with custom THARAVAADEES club crest and TKM league branding.
+- **Confirmed Decision 1**: Haneen Mustafa's card features his dynamic player cutout portrait flexing his biceps in a THARAVAADEES electric cyan football kit with glowing neon Street Kings borders.
 - **Confirmed Decision 2**: Introduce a dedicated Street Kings card program & rarity tier (`street_kings`) with distinctive animated neon graffiti borders, spray tags, and glowing dark turf textures.
 - **Confirmed Decision 3**: Add two specialized Street Kings packs to the Pack Store & My Packs:
   1. *Street Kings Underground Vault* (22,000 Coins / guaranteed 90+ Street Kings walkout with high Haneen drop odds).
   2. *Street Kings Turf Booster* (6,500 Coins / 82+ guaranteed with Street Kings chances).
 - **Confirmed Decision 4**: Create a custom Squad Building Challenge: *"Street Kings: The Pride of Tharavaadees"* rewarding an untradeable 92 OVR Haneen Mustafa card + 15,000 bonus coins.
 - **Confirmed Decision 5**: Add Haneen Mustafa and Street Kings contenders into the Transfer Market with live market price trends, as well as the Higher or Lower and Guess Who mini-game pools.
+- **Confirmed Decision 6**: Added the 'Daily Objectives' tab featuring 3 dynamic daily tasks ('Pack Hunter', 'Pitch Victor', 'Squad Strategist') with progress tracking, UTC midnight reset countdown, individual task rewards, and a grand 2,500 coins + Daily Bonus Pack group claim.
 
 ---
 

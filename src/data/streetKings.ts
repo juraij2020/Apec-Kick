@@ -1,5 +1,5 @@
 import { SoccerCard } from '../types/card';
-import haneenPhoto from '../assets/images/haneen_mustafa_cm_1790668469027.jpg';
+import haneenPhoto from '../assets/images/haneen_mustafa_dynamic_1790714737411.jpg';
 
 export const HANEEN_MUSTAFA_CARD: SoccerCard = {
   id: 'sk-haneen-mustafa-92',

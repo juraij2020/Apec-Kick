@@ -5,6 +5,20 @@ import streetKingsPackImg from '../assets/images/street_kings_pack_1790668484887
 
 export const PACKS: PackDefinition[] = [
   {
+    id: 'pack-daily-bonus',
+    name: 'Daily Objectives Bonus Pack 🎁',
+    tagline: 'Exclusive daily reward pack with guaranteed 83+ player, boosted coins and high Street Kings odds',
+    cost: 0,
+    cardCount: 4,
+    minRating: 82,
+    customCardChance: 0.70,
+    customChance: 0.70,
+    guaranteedRating: 83,
+    guaranteedWalkout: false,
+    theme: 'street_kings',
+    imageAsset: streetKingsPackImg,
+  },
+  {
     id: 'pack-street-kings-vault',
     name: 'Street Kings Underground Vault ⚡',
     tagline: 'Apex urban street pack with guaranteed 90+ Street Kings star headlined by Haneen Mustafa 92 CM',
