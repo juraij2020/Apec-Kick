@@ -140,6 +140,8 @@ export interface PackDefinition {
   customCardChance?: number;
   customChance?: number; // alias for backwards/syntax compatibility
   isUserPack?: boolean;
+  isUnlimited?: boolean;
+  summerCardChance?: number;
 }
 
 export interface SBCRequirement {

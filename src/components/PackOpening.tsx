@@ -118,7 +118,35 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
     // Filter candidate pool by program if specified
     let candidatePool: SoccerCard[] = [];
-    if (pack.programFilter === 'Summer Transfers' || pack.theme === 'summer_pack') {
+    if (pack.programFilter === 'Summer Hunt Unlimited' || pack.isUnlimited) {
+      const summerPool = allCardsPool.filter(
+        (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
+      );
+      const basePool = allCardsPool.filter(
+        (c) => c.program !== 'Summer Transfers' && c.rarity !== 'summer_transfers' && c.cardStyle !== 'summer_basic'
+      );
+      const safeBasePool = basePool.length > 0 ? basePool : allCardsPool;
+
+      for (let i = 0; i < pack.cardCount; i++) {
+        // Ultra-rare jackpot odds (~1.5% chance per card slot) for Summer Basic cards
+        const isRareSummerHit = Math.random() < (pack.summerCardChance || 0.015);
+        let picked: SoccerCard;
+        if (isRareSummerHit && summerPool.length > 0) {
+          picked = summerPool[Math.floor(Math.random() * summerPool.length)];
+        } else {
+          const eligibleBase = safeBasePool.filter((c) => c.rating >= pack.minRating);
+          const pool = eligibleBase.length > 0 ? eligibleBase : safeBasePool;
+          picked = pool[Math.floor(Math.random() * pool.length)];
+        }
+        cards.push({
+          ...picked,
+          id: `${picked.id}_inst_${Date.now()}_${i}`,
+        });
+      }
+
+      cards.sort((a, b) => b.rating - a.rating);
+      return cards;
+    } else if (pack.programFilter === 'Summer Transfers' || pack.theme === 'summer_pack') {
       const summerPool = allCardsPool.filter(
         (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
       );
@@ -193,20 +221,24 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   };
 
   const handleOpenPack = (pack: PackDefinition) => {
-    if (coins < pack.cost) {
+    if (!pack.isUnlimited && pack.cost > 0 && coins < pack.cost) {
       sound.playClick();
       return;
     }
 
-    if (!onDeductCoins(pack.cost)) return;
+    if (!pack.isUnlimited && pack.cost > 0 && !onDeductCoins(pack.cost)) return;
 
     setSelectedPack(pack);
     const newCards = generatePackCards(pack);
     setPulledCards(newCards);
 
     const topCard = newCards[0];
+    const hasSummerCard = newCards.some(
+      (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
+    );
     const isWalkout =
       pack.guaranteedWalkout ||
+      hasSummerCard ||
       topCard.rating >= 78 ||
       topCard.program === 'Program One' ||
       topCard.rarity === 'program_one';
@@ -528,6 +560,11 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                       <span className="px-2 py-0.5 text-[10px] font-black rounded bg-black/80 text-amber-300 border border-amber-500/30 backdrop-blur-sm">
                         {pack.cardCount} Players
                       </span>
+                      {pack.isUnlimited && (
+                        <span className="px-2 py-0.5 text-[10px] font-black rounded bg-gradient-to-r from-cyan-950 to-amber-950 text-cyan-300 border border-cyan-400/70 backdrop-blur-sm flex items-center gap-1 shadow-[0_0_12px_rgba(6,182,212,0.4)] animate-pulse">
+                          <span>☀️</span> UNLIMITED OPENS (RAREST ODDS)
+                        </span>
+                      )}
                       {isIntl && (
                         <span className="px-2 py-0.5 text-[10px] font-black rounded bg-amber-950/90 text-amber-300 border border-amber-400/60 backdrop-blur-sm flex items-center gap-1 shadow-[0_0_12px_rgba(251,191,36,0.35)]">
                           <span>🌍</span> International Moments
@@ -571,23 +608,33 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                     <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                       <div>
                         <span className="text-[10px] text-slate-500 uppercase block font-semibold">Cost</span>
-                        <div className="flex items-center gap-1 text-amber-400 font-extrabold text-base tabular-nums">
-                          <Coins className="w-4 h-4" />
-                          <span>{pack.cost.toLocaleString()}</span>
-                        </div>
+                        {pack.isUnlimited || pack.cost === 0 ? (
+                          <div className="flex items-center gap-1 text-cyan-300 font-extrabold text-base tabular-nums">
+                            <span className="text-xs uppercase tracking-wider bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 px-2 py-0.5 rounded font-black">
+                              FREE · ♾️
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-amber-400 font-extrabold text-base tabular-nums">
+                            <Coins className="w-4 h-4" />
+                            <span>{pack.cost.toLocaleString()}</span>
+                          </div>
+                        )}
                       </div>
 
                       <button
                         onClick={() => handleOpenPack(pack)}
-                        disabled={!canAfford}
+                        disabled={!canAfford && !pack.isUnlimited}
                         className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md ${
-                          canAfford
+                          pack.isUnlimited
+                            ? 'bg-gradient-to-r from-cyan-500 via-sky-400 to-amber-400 hover:from-cyan-400 hover:to-amber-300 text-slate-950 hover:scale-105 active:scale-95 shadow-cyan-900/40 font-black'
+                            : canAfford
                             ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 hover:scale-105 active:scale-95 shadow-amber-900/30'
                             : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                         }`}
                       >
                         <Zap className="w-3.5 h-3.5" />
-                        <span>{canAfford ? 'Open' : 'Need Coins'}</span>
+                        <span>{pack.isUnlimited ? 'Rip Pack ⚡' : canAfford ? 'Open' : 'Need Coins'}</span>
                       </button>
                     </div>
                   </div>
@@ -790,7 +837,12 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             <div className="absolute -top-24 w-96 h-96 bg-amber-400/20 blur-3xl rounded-full pointer-events-none animate-flare" />
 
             {/* Street Kings, International Moments, Hall of Fame, Futmas & Program One Walkout Announcement */}
-            {(walkoutCard.program === 'Street Kings' || walkoutCard.rarity === 'street_kings') ? (
+            {walkoutCard.program === 'Summer Transfers' || walkoutCard.rarity === 'summer_transfers' || walkoutCard.cardStyle === 'summer_basic' ? (
+              <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-950 via-[#042f2e] to-amber-950 border-2 border-cyan-400 text-cyan-200 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_35px_rgba(6,182,212,0.7)] animate-pulse">
+                <Sparkles className="w-5 h-5 text-amber-400 animate-spin" />
+                <span>☀️ ULTRA-RARE SUMMER TRANSFERS WALKOUT! ☀️</span>
+              </div>
+            ) : (walkoutCard.program === 'Street Kings' || walkoutCard.rarity === 'street_kings') ? (
               <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-950 via-slate-900 to-pink-950 border-2 border-cyan-400 text-cyan-200 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_40px_rgba(6,182,212,0.8)] animate-pulse">
                 <Zap className="w-5 h-5 text-yellow-400 animate-bounce" />
                 <span>⚡ STREET KINGS MASTERCLASS WALKOUT! ⚡</span>
@@ -892,6 +944,19 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              {selectedPack?.isUnlimited && (
+                <button
+                  onClick={() => {
+                    handleKeepAll();
+                    setTimeout(() => handleOpenPack(selectedPack), 80);
+                  }}
+                  className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 via-sky-400 to-amber-400 hover:from-cyan-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-cyan-950/60 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Send & Rip Again ⚡</span>
+                </button>
+              )}
+
               <button
                 onClick={handleKeepAll}
                 className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg flex items-center gap-2 transition-all hover:scale-105"

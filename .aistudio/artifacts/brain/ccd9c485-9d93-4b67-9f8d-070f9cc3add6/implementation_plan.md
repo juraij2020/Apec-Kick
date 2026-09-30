@@ -1,106 +1,111 @@
-# Summer Transfers (Summer Basic) Card Series
+# Summer Basic 125 Cards & Unlimited Hunt Expansion
 
-A brand-new "Summer Transfers" card program featuring **Summer Basic** edition cards for landmark summer club transfers, styled with sunburst gold and tropical cyan ocean gradients, distributed through Store Packs and dedicated Summer SBC challenges.
+Comprehensive implementation plan to integrate all 125 uploaded player cards into the **Summer Basic (Summer Transfers)** series, faithfully mapping each player's exact rating, position, club, and nation, embedding high-fidelity card visuals, and introducing an **Unlimited Summer Hunt Pack** in the store with ultra-rare walkout drop rates alongside guaranteed SBCs.
 
-## User Review & Critical Decisions
+---
+
+### User Review & Critical Decisions
 
 > [!IMPORTANT]
-> The following user preferences were confirmed during Phase 1 interactive clarification:
-> - **Visual Theme & Palette**: Sunburst gold and tropical cyan ocean gradients (`#06b6d4`, `#0891b2`, `#f59e0b`, `#fbbf24`).
-> - **Card Program & Roster**: "Summer Basic" cards exclusively celebrating summer transfers with updated club badges and ratings.
-> - **Acquisition Channels**: Available in Store Packs (new dedicated Summer Transfers Pack + standard pack pool chances) and custom Summer Squad Building Challenges (SBCs).
+> Based on your direct choices in Phase 1, the following core specifications are confirmed for implementation:
 
-- **Confirmed Decision 1**: Visual shield design utilizes an animated sunburst gold radial core framed by a vibrant tropical cyan ocean border with a distinct "SUMMER TRANSFERS" header notch.
-- **Confirmed Decision 2**: Acquisition includes both direct store pack openings and puzzle-based Summer SBCs so players can either test their pack luck or trade duplicate squads for guaranteed Summer Basic stars.
-
----
-
-## 1. Overview & Core Concept
-
-- **What It Does**: Introduces the **Summer Transfers** card category (`summer_transfers` rarity, `summer_basic` card style). Players can discover marquee transferred athletes at their new clubs (e.g. Kylian Mbappé at Real Madrid, Michael Olise at Bayern Munich, Julián Álvarez at Atlético Madrid, Riccardo Calafiori at Arsenal, Dani Olmo at Barcelona) with custom Summer Basic visuals, enhanced PlayStyles, and updated chemistry links.
-- **Target Audience / Persona**: Card collectors, squad builders, and football fans eager to build modern squads with the latest blockbuster summer moves.
-- **Key Value**: Expands the game's collectible depth with a vibrant, seasonal card aesthetic, rewarding both pack-opening enthusiasts and strategic SBC solvers.
+- **Confirmed Decision 1 (Visual Art)**: Embed uploaded player cards directly into the Summer Basic card framework, preserving the 644×900 aspect ratio and sunburst cyan/gold accents.
+- **Confirmed Decision 2 (Exact Ratings & Stats)**: Assign the exact official ratings and positions shown on each player card (ranging from marquee stars like Marc-André ter Stegen 89, Dušan Vlahović 84, Sandro Tonali 85, Gabriel Martinelli 83, Savinho 82, Artem Dovbyk 84, Thiago Silva 81 down to rising transfer talents like Karetsas, Jan Virgili, Geovany Quenda, and Max Arfsten).
+- **Confirmed Decision 3 (Unlimited Pack with Ultra-Rare Odds)**: Introduce an **Unlimited Summer Hunt Pack** (0 coins / free repeatable open) where players can rip packs continuously, but rolling a Summer Basic card is exceptionally rare (~1.5% drop rate), making every Summer walkout an exhilarating jackpot.
+- **Confirmed Decision 4 (Store & SBC Retention)**: Retain the high-tier Summer Transfers Vault packs (guaranteed 85+ Summer players) and Squad Building Challenges for players who want guaranteed routes.
 
 ---
 
-## 2. User Experience & Visual Design
+### 1. Overview & Core Concept
 
-### Key User Flows
-
-1. **Store Exploration**: Player browses the Pack Store and finds the new **"Summer Transfers Pack"** featuring tropical cyan and sunburst gold branding, guaranteed to contain at least 1 Summer Basic transfer player.
-2. **Pack Opening Ceremony**: Opening a Summer Pack triggers a tropical cyan and gold fireworks reveal animation displaying the player's new club badge, summer notch banner, and boosted attributes.
-3. **Summer SBC Challenges**: In the SBC Hub, players find the **"Summer Signings Debut"** and **"Blockbuster Summer Swap"** SBCs, requiring tactical squad ratings in exchange for tradeable/untradeable Summer Basic stars.
-4. **Club Gallery & Squad Builder**: Filter club cards by "Summer Transfers" rarity, seamlessly slotting them into active squads with appropriate league/nation chemistry.
-
-### Visual Identity & Theme
-
-- **Aesthetic Direction**: High-energy coastal festival theme celebrating summer moves, blending clean modern card architecture with sun-drenched sunburst gold and deep ocean cyan gradients.
-- **Color Palette & Mood**:
-  - *Dominant Ocean Cyan*: `#06b6d4` (Cyan 500) to `#0e7490` (Cyan 700).
-  - *Sunburst Accent Gold*: `#f59e0b` (Amber 500) to `#fbbf24` (Amber 400).
-  - *Deep Navy Slate Background*: `#08101e` to `#0f172a` ensuring WCAG AA contrast.
-  - *Notch & Metallic Foil*: Prismatic cyan shimmer with gold typography.
-- **Typography & Hierarchy**:
-  - Card Name & Header: Bold condensed uppercase (`font-black tracking-tight`).
-  - Card Tier Banner: "SUMMER TRANSFERS" in sunburst gold with cyan sub-lining.
-  - Tabular Stats: Monospace tabular numerals (`tabular-nums font-bold`) for crisp rating comparison.
-- **Component Styling & Layout**:
-  - Responsive card shield SVG with dual-tone gradient stops (`url(#summerBorderGrad)` & `url(#summerShieldGrad)`).
-  - Shimmering sunburst rays in the SVG background pattern.
+- **What It Does**: Expands the Summer Basic catalog from the initial 8 marquee signings to an expansive 133-player universe featuring all 125 new transfer cards (Savinho, Dovbyk, Tonali, Garnacho, Martinelli, Thiago Silva, Vlahović, Calafiori, Adeyemi, Weghorst, etc.). Adds an endless pack-opening mechanic ("Unlimited Summer Hunt") with authentic slot-machine suspense, instant collection tracking, and squad-building synergy.
+- **Target Audience / Persona**: FUT card collectors, pack opening enthusiasts, and squad builders wanting real-world 2024/25 transfers with chemistry links across Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Eredivisie, Liga Portugal, and Saudi Pro League.
+- **Key Value**: Delivers the thrills of infinite pack opening without coin gatekeeping, coupled with a massive, authentic 125-card Summer Transfers roster.
 
 ---
 
-## 3. Key Product Decisions & Trade-Offs
+### 2. User Experience & Visual Design
 
-### Decision 1: Dedicated Roster vs Overwriting Existing Base Cards
-- **Chosen Approach**: Create a dedicated `SUMMER_BASIC_CARDS` collection in `src/data/summerCards.ts` with explicit summer transfer clubs and `summer_transfers` rarity, rather than overwriting base cards.
-- **Why**: Keeps base cards intact for standard play and SBC requirements, while offering players a distinct, highly sought-after seasonal edition.
-- **Alternatives Considered**: In-place club mutations of base cards (rejected because it would disrupt existing user saved squads and SBC formulas).
+#### Key User Flows
+1. **Unlimited Pack Ripping**:
+   - Player navigates to **Store Packs** -> selects **"Unlimited Summer Hunt ☀️"** (labeled *FREE / INFINITE OPENS*).
+   - Player taps *Open Pack*. Most packs contain solid gold base squad fillers.
+   - When the ultra-rare 1.5% Summer Basic trigger fires, the screen detonates into vibrant sunburst cyan and gold lightning effects, dramatic walkout tunnels, and confetti, revealing the rare Summer Basic card art.
+   - Quick "Open Another Immediately" button enables seamless, rapid-fire pack ripping without reloading.
+2. **My Club Summer Filter & Inspection**:
+   - Navigating to **My Club** and tapping the `☀️ Summer Transfers` pill displays the player's unlocked Summer Basic cards.
+   - Cards display full 644×900 shield art, 3D tilt responsiveness, club badges, and detailed player stats.
+3. **Summer SBC Submissions**:
+   - Players can submit duplicate or surplus base cards from the unlimited hunt into the Summer SBCs to earn guaranteed Summer Vault packs.
 
-### Decision 2: Acquisition Through Both Store Packs and SBCs
-- **Chosen Approach**: Add a dedicated **Summer Transfers Pack** in `src/data/packs.ts` and add two themed Summer SBC challenges in `src/data/sbcs.ts`.
-- **Why**: Directly aligns with the user's explicit request ("available in store packs,sbc") providing both instant coin-spend routes and gameplay-earned craft routes.
-- **Alternatives Considered**: Exclusive store-only packs (rejected; excludes players who prefer earning cards through gameplay).
+#### Visual Identity & Theme
+- **Color Palette**:
+  - Tropical Cyan Accent: `#06b6d4` & `#38bdf8` (representing summer ocean vibes)
+  - Sunburst Gold Foil: `#f59e0b` & `#fbbf24` (transfer prestige and sunlight)
+  - Deep Pitch Void: `#09090b` & `#18181b` (high contrast backdrop)
+- **Typography & Proportions**:
+  - Sharp, sans-serif display headers (`font-black`, `uppercase`, tracking wide).
+  - Clean unboxed metadata discipline: ratings, positions, and club names separated by elegant typographical glyphs.
+  - Zero-pill compliance: Clean, unboxed badges and high-contrast typography.
 
 ---
 
-## 4. Technical Architecture & Data Strategy
+### 3. Key Product Decisions & Trade-Offs
+
+- **Decision 1: Full 125 Player Catalog Architecture**
+  - *Chosen Approach*: Group all 125 new players into structured data modules (`src/data/summerCards.ts` and companion registry) with authentic clubs, leagues, positions, and ratings matching the uploaded cards.
+  - *Why*: Eliminates mock placeholders and ensures full playable chemistry and match-engine simulation across all 125 players.
+  - *Alternatives Considered*: Lazy-loading only 10 players; rejected because the user explicitly requested adding all cards.
+
+- **Decision 2: Unlimited Hunt Pack Mechanics & Odds Tuning**
+  - *Chosen Approach*: A dedicated 0-coin pack with 1.5% odds per slot (overall ~6% chance across a 4-card pack) of rolling a Summer Basic card, while base cards fill the remaining slots.
+  - *Why*: Satisfies the user requirement ("unlimited open but the odds of getting summer card is rarest") while preventing endless empty frustration by pairing with high-tempo replay buttons.
+
+- **Decision 3: Card Graphic Resolution Hierarchy**
+  - *Chosen Approach*: Integrate card rendering so `CardItem` dynamically binds each player's designated card graphic with customized fallback SVG shield styling.
+  - *Why*: Ensures crisp rendering across mobile, desktop, pack walkouts, and match engine avatars.
+
+---
+
+### 4. Technical Architecture & Data Strategy
 
 ```
-┌───────────────────────────────────────────────────────────────┐
-│                       App State (App.tsx)                     │
-│  - allCards: SoccerCard[] (Base + HOF + Futmas + Summer)      │
-│  - packs: PackDefinition[] (includes Summer Transfers Pack)   │
-│  - sbcs: SBCChallenge[] (includes Summer Debut SBCs)          │
-└───────────────────────────────┬───────────────────────────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        ▼                       ▼                       ▼
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│   Pack Store     │  │     SBC Hub      │  │   Club Gallery   │
-│  - Summer Pack   │  │  - Summer Debut  │  │  - Summer Filter │
-│  - Cyan/Gold FX  │  │  - Summer Swap   │  │  - Shield View   │
-└──────────────────┘  └──────────────────┘  └──────────────────┘
-        │                       │                       │
-        └───────────────────────┼───────────────────────┘
-                                ▼
-              ┌───────────────────────────────────┐
-              │      CardItem & SVG Generator     │
-              │  - cardStyle: 'summer_basic'      │
-              │  - Sunburst Gold + Tropical Cyan  │
-              └───────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    Store & Pack Opening                     │
+│  ┌──────────────────────┐        ┌───────────────────────┐  │
+│  │ Unlimited Hunt Pack  │        │ Summer Transfers Vault│  │
+│  │ (0 Cost / Inf. Opens)│        │ (Guaranteed 85+ Pull) │  │
+│  │ (1.5% Rare Odds)     │        └───────────────────────┘  │
+│  └──────────┬───────────┘                                   │
+└─────────────┼───────────────────────────────────────────────┘
+              │  Pulls from
+              ▼
+┌─────────────────────────────────────────────────────────────┐
+│             SUMMER_BASIC_CARDS (133 Players)                │
+│  • 8 Initial Stars (Mbappé, Olise, Álvarez, Olmo...)        │
+│  • 125 Uploaded Signings (Vlahović, Tonali, Savinho,         │
+│    Garnacho, Martinelli, ter Stegen, Thiago Silva, etc.)    │
+│    Each with exact rating, position, club & flag            │
+└─────────────┬───────────────────────────────────────────────┘
+              │  Feeds into
+              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  App State & Components                     │
+│  ┌──────────────────┐  ┌────────────────┐  ┌─────────────┐  │
+│  │    ClubGallery   │  │   CardItem     │  │   SBCView   │  │
+│  │ (Summer Filter)  │  │(644x900 Art+3D)│  │(Vault SBCs) │  │
+│  └──────────────────┘  └────────────────┘  └─────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### Data Model & State Updates
-
-1. **`src/types/card.ts`**:
-   - Add `'summer_transfers'` to `CardRarity`.
-   - Add `'summer_basic'` to `CardStyle`.
-   - Add `'summer_pack'` to `PackTheme`.
-2. **`src/data/summerCards.ts`**:
-   - Define marquee Summer Transfers (e.g. Mbappé to Real Madrid, Olise to Bayern, Álvarez to Atlético Madrid, Calafiori to Arsenal, Dani Olmo to Barcelona, Endrick to Real Madrid).
-3. **`src/data/packs.ts` & `src/data/sbcs.ts`**:
-   - Add "Summer Transfers Pack" with guaranteed Summer Basic card odds.
-   - Add Summer SBCs with themed requirements and Summer Basic rewards.
-4. **`src/data/defaultCards.ts` & `src/components/CardItem.tsx`**:
-   - Implement `isSummerBasic` shader branches in SVG generator: tropical cyan `#06b6d4` & sunburst gold `#f59e0b` gradient stops, custom banner badge, and sun ray background overlay.
+#### Key Technical Modifications:
+1. **`src/data/summerCards.ts`**:
+   - Register all 125 uploaded players with their authentic ratings, positions, clubs, nations, and stats.
+   - Export comprehensive `SUMMER_BASIC_CARDS` array (133 total cards).
+2. **`src/data/packs.ts`**:
+   - Add `pack-summer-unlimited-hunt`: Cost 0, 4 cards, `theme: 'summer_pack'`, `isUnlimited: true`, `summerCardChance: 0.015`.
+   - Update `PACKS` catalog to prominently feature the Unlimited Hunt at the top of the Summer section.
+3. **`src/components/PackOpening.tsx`**:
+   - Support `isUnlimited` packs with zero-cost deductions, instant re-open ("⚡ Rip Again") controls, and ultra-rare walkout celebration triggers when a Summer Basic card is struck.
+4. **`src/components/CardItem.tsx` & `src/types/card.ts`**:
+   - Ensure seamless display and badge rendering across all 125 new cards.

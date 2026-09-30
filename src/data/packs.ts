@@ -5,6 +5,22 @@ import streetKingsPackImg from '../assets/images/street_kings_pack_1790668484887
 
 export const PACKS: PackDefinition[] = [
   {
+    id: 'pack-summer-unlimited-hunt',
+    name: 'Unlimited Summer Hunt ☀️',
+    tagline: '♾️ FREE & UNLIMITED OPENS! Ultra-rare jackpot odds (~1.5%) for 133 Summer Basic transfer cards!',
+    cost: 0,
+    cardCount: 4,
+    minRating: 70,
+    programFilter: 'Summer Hunt Unlimited',
+    customCardChance: 0.015,
+    summerCardChance: 0.015,
+    isUnlimited: true,
+    guaranteedRating: 75,
+    guaranteedWalkout: false,
+    theme: 'summer_pack',
+    imageAsset: streetKingsPackImg,
+  },
+  {
     id: 'pack-summer-transfers-vault',
     name: 'Summer Transfers Vault ☀️',
     tagline: 'Guaranteed 85+ Summer Transfers player featuring Mbappé, Olise, Álvarez, Olmo & Calafiori',

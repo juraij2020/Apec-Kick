@@ -1,12 +1,13 @@
 import { SoccerCard } from '../types/card';
 import { generateUserCardSvg } from './defaultCards';
+import { GENERATED_125_SUMMER_CARDS } from './summerTransfersRoster';
 
 /**
  * SUMMER TRANSFERS (SUMMER BASIC) CARD COLLECTION
  * Celebrating landmark summer transfer signings with updated clubs, leagues, and chemistry.
  * Visual theme: Sunburst gold and tropical cyan ocean gradients.
  */
-export const SUMMER_BASIC_CARDS: SoccerCard[] = [
+const INITIAL_MARQUEE_SUMMER_CARDS: SoccerCard[] = [
   {
     id: 'summer-mbappe-92',
     name: 'Kylian Mbappé',
@@ -524,4 +525,9 @@ export const SUMMER_BASIC_CARDS: SoccerCard[] = [
       statBoost: { attribute: 'sho', bonus: 15 },
     },
   },
+];
+
+export const SUMMER_BASIC_CARDS: SoccerCard[] = [
+  ...INITIAL_MARQUEE_SUMMER_CARDS,
+  ...GENERATED_125_SUMMER_CARDS,
 ];
