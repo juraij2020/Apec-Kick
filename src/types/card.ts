@@ -69,6 +69,7 @@ export type PlayStylePlusType =
   | 'long_ball_pass' // Pinpoint precision lofted distribution
   | 'press_proven'   // Iron ball retention under fierce physical pressing
   | 'power_header'   // Bullet trajectory on aerial set-piece strikes
+  | 'power_shot'     // Venomous long-range strikes and devastating drive speed
   | 'acrobatic'      // Volley conversion from difficult airborne angles
   | 'poacher';       // Instant first-time finishing inside penalty box
 
@@ -186,6 +187,15 @@ export interface MatchSimulationLog {
   score: [number, number];
 }
 
+export interface GoogleUserProfile {
+  uid: string;
+  name: string;
+  email: string;
+  photoUrl?: string;
+  signedInAt: number;
+  clubName?: string;
+}
+
 export interface TransferListing {
   id: string;
   card: SoccerCard;
@@ -195,12 +205,15 @@ export interface TransferListing {
   currentBid: number;
   buyNowPrice: number;
   bidsCount: number;
-  expiresAt: number; // timestamp in ms
+  expiresAt?: number; // legacy optional
+  isPermanent?: boolean; // Listings never expire unless purchased
   status: 'active' | 'sold' | 'expired';
   buyerName?: string;
   userHasBid?: boolean;
   trend?: 'up' | 'down' | 'hot' | 'stable';
   trendPercent?: number;
+  marketTrend?: 'rising' | 'stable' | 'dipping' | 'high_demand';
+  demandMultiplier?: number;
 }
 
 export interface TransferFilter {
@@ -215,7 +228,7 @@ export interface TransferFilter {
   maxRating: number;
   minPrice: number;
   maxPrice: number;
-  sortBy: 'price_asc' | 'price_desc' | 'rating_desc' | 'rating_asc' | 'expires_soon';
+  sortBy: 'price_asc' | 'price_desc' | 'rating_desc' | 'rating_asc' | 'trend' | 'popular' | 'expires_soon';
 }
 
 export interface StoredRewardPack {

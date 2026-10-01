@@ -73,28 +73,30 @@ export function calculateRealisticMarketPrice(card: SoccerCard): {
 }
 
 /**
- * Creates a single TransferListing for a card
+ * Creates a permanent TransferListing for a card (no expiration timer)
  */
 export function createListingForCard(
   card: SoccerCard,
   idx: number,
-  expiresInMins?: number
+  _expiresInMins?: number
 ): TransferListing {
   const { startBid, currentBid, buyNowPrice, bidsCount } = calculateRealisticMarketPrice(card);
   const seller = SELLER_NAMES[(idx + Math.floor(Math.random() * SELLER_NAMES.length)) % SELLER_NAMES.length];
-  const trends: ('up' | 'down' | 'hot' | 'stable')[] = ['up', 'down', 'hot', 'stable'];
-  const trend = trends[idx % trends.length];
-  const trendPercent =
-    trend === 'up'
-      ? Math.floor(Math.random() * 8) + 3
-      : trend === 'down'
-      ? -(Math.floor(Math.random() * 7) + 2)
-      : trend === 'hot'
-      ? Math.floor(Math.random() * 14) + 6
-      : 0;
 
-  const durationMins = expiresInMins ?? Math.floor(Math.random() * 150) + 15; // 15 to 165 minutes
-  const now = Date.now();
+  // Dynamic market trends: High Demand, Price Dip, Apex Value, or Stable Market
+  const trendOptions: {
+    trend: 'up' | 'down' | 'hot' | 'stable';
+    marketTrend: 'rising' | 'stable' | 'dipping' | 'high_demand';
+    percent: number;
+    multiplier: number;
+  }[] = [
+    { trend: 'hot', marketTrend: 'high_demand', percent: Math.floor(Math.random() * 9) + 6, multiplier: 1.15 },
+    { trend: 'up', marketTrend: 'rising', percent: Math.floor(Math.random() * 6) + 2, multiplier: 1.05 },
+    { trend: 'down', marketTrend: 'dipping', percent: -(Math.floor(Math.random() * 6) + 2), multiplier: 0.92 },
+    { trend: 'stable', marketTrend: 'stable', percent: 0, multiplier: 1.0 },
+  ];
+
+  const selectedTrend = trendOptions[idx % trendOptions.length];
 
   return {
     id: `listing-${Date.now()}-${idx}-${card.id}`,
@@ -103,12 +105,14 @@ export function createListingForCard(
     isUserListing: false,
     startBid,
     currentBid,
-    buyNowPrice,
+    buyNowPrice: Math.round((buyNowPrice * selectedTrend.multiplier) / 250) * 250,
     bidsCount,
-    expiresAt: now + durationMins * 60 * 1000,
+    isPermanent: true,
     status: 'active',
-    trend,
-    trendPercent,
+    trend: selectedTrend.trend,
+    trendPercent: selectedTrend.percent,
+    marketTrend: selectedTrend.marketTrend,
+    demandMultiplier: selectedTrend.multiplier,
   };
 }
 

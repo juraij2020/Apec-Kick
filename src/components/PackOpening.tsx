@@ -26,12 +26,13 @@ import iconPackImg from '../assets/images/pack_icon_cosmic_1790566397330.jpg';
 
 interface PackOpeningProps {
   coins: number;
-  allCardsPool: SoccerCard[]; // includes base + user-created cards
+  allCardsPool: SoccerCard[]; // includes all collections + user cards
   userCreatedCards: SoccerCard[];
   customPacks?: PackDefinition[];
   onCreatePack?: (newPack: PackDefinition) => void;
   onDeletePack?: (packId: string) => void;
   onDeductCoins: (amount: number) => boolean;
+  onAddCoins?: (amount: number) => void;
   onAddCardsToClub: (cards: SoccerCard[]) => void;
   onQuickSellCard: (card: SoccerCard) => void;
   onOpenCardCreator: () => void;
@@ -55,6 +56,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   onCreatePack,
   onDeletePack,
   onDeductCoins,
+  onAddCoins,
   onAddCardsToClub,
   onQuickSellCard,
   onOpenCardCreator,
@@ -67,6 +69,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   const [pulledCards, setPulledCards] = useState<SoccerCard[]>([]);
   const [walkoutCard, setWalkoutCard] = useState<SoccerCard | null>(null);
   const [activeFilter, setActiveFilter] = useState<'All' | 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
+  const [insufficientPack, setInsufficientPack] = useState<PackDefinition | null>(null);
 
   // Pack Creation Modal State
   const [showCreatePackModal, setShowCreatePackModal] = useState<boolean>(false);
@@ -188,8 +191,26 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
       candidatePool = [...allCardsPool];
     }
 
+    // Fallback card if pool is empty or rating threshold too restrictive
+    const fallbackCard: SoccerCard = allCardsPool[0] || {
+      id: 'default_summer_mbappe',
+      name: 'Kylian Mbappé',
+      shortName: 'Mbappé',
+      rating: 92,
+      position: 'ST',
+      nation: 'France',
+      nationFlag: '🇫🇷',
+      club: 'Real Madrid',
+      league: 'La Liga',
+      rarity: 'summer_transfers',
+      cardStyle: 'summer_basic',
+      program: 'Summer Transfers',
+      stats: { pac: 97, sho: 90, pas: 82, dri: 93, def: 36, phy: 78 },
+      price: 350000,
+    };
+
     if (candidatePool.length === 0) {
-      candidatePool = [...allCardsPool];
+      candidatePool = allCardsPool.length > 0 ? [...allCardsPool] : [fallbackCard];
     }
 
     // Min rating filtered candidates
@@ -198,7 +219,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
     for (let i = 0; i < pack.cardCount; i++) {
       // Guaranteed walkout on first card if enabled
-      let picked: SoccerCard;
+      let picked: SoccerCard | undefined;
       if (i === 0 && (pack.guaranteedWalkout || (pack.guaranteedRating && pack.guaranteedRating >= 78))) {
         const threshold = pack.guaranteedRating || 78;
         const topCandidates = validPool.filter((c) => c.rating >= threshold);
@@ -208,6 +229,8 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
         picked = validPool[Math.floor(Math.random() * validPool.length)];
       }
 
+      if (!picked) picked = fallbackCard;
+
       // Clone card with unique session instance id
       cards.push({
         ...picked,
@@ -216,32 +239,42 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
     }
 
     // Sort by rating descending so top card is first
-    cards.sort((a, b) => b.rating - a.rating);
-    return cards;
+    cards.sort((a, b) => (b?.rating || 0) - (a?.rating || 0));
+    return cards.length > 0 ? cards : [fallbackCard];
   };
 
-  const handleOpenPack = (pack: PackDefinition) => {
-    if (!pack.isUnlimited && pack.cost > 0 && coins < pack.cost) {
+  const handleOpenPack = (pack: PackDefinition, isFreePromo = false) => {
+    if (!isFreePromo && !pack.isUnlimited && pack.cost > 0 && coins < pack.cost) {
       sound.playClick();
+      setInsufficientPack(pack);
       return;
     }
 
-    if (!pack.isUnlimited && pack.cost > 0 && !onDeductCoins(pack.cost)) return;
+    if (!isFreePromo && !pack.isUnlimited && pack.cost > 0 && !onDeductCoins(pack.cost)) {
+      setInsufficientPack(pack);
+      return;
+    }
 
+    setInsufficientPack(null);
     setSelectedPack(pack);
     const newCards = generatePackCards(pack);
-    setPulledCards(newCards);
+    const safeCards = newCards.length > 0 ? newCards : [allCardsPool[0]];
+    setPulledCards(safeCards);
 
-    const topCard = newCards[0];
-    const hasSummerCard = newCards.some(
+    const topCard = safeCards[0];
+    const hasSummerCard = safeCards.some(
       (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
+    );
+    const hasStreetKingsCard = safeCards.some(
+      (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
     );
     const isWalkout =
       pack.guaranteedWalkout ||
       hasSummerCard ||
-      topCard.rating >= 78 ||
-      topCard.program === 'Program One' ||
-      topCard.rarity === 'program_one';
+      hasStreetKingsCard ||
+      (topCard ? topCard.rating >= 78 : false) ||
+      (topCard ? topCard.program === 'Program One' : false) ||
+      (topCard ? topCard.rarity === 'program_one' : false);
 
     setStage('tearing');
     sound.playPackRip();
@@ -367,6 +400,19 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              {onAddCoins && (
+                <button
+                  onClick={() => {
+                    onAddCoins(50000);
+                    sound.playCoins();
+                  }}
+                  className="px-3.5 py-2.5 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/40 font-bold text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+                >
+                  <Coins className="w-4 h-4 text-amber-400" />
+                  <span>+50k Free Coins</span>
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   setShowCreatePackModal(true);
@@ -415,15 +461,34 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-2.5">
               <button
                 onClick={() => {
-                  const summerPack = allAvailablePacks.find((p) => p.id === 'pack-summer-transfers-vault');
-                  if (summerPack) handleOpenPack(summerPack);
+                  const summerPack = allAvailablePacks.find((p) => p.id === 'pack-summer-transfers-vault') || PACKS.find((p) => p.id === 'pack-summer-transfers-vault');
+                  if (summerPack) {
+                    if (coins < summerPack.cost) {
+                      setInsufficientPack(summerPack);
+                    } else {
+                      handleOpenPack(summerPack);
+                    }
+                  }
                 }}
                 className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-cyan-400 hover:from-amber-300 hover:to-cyan-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap"
               >
                 <span>☀️ Open Summer Vault</span>
+                <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded font-mono font-bold">26k 🪙</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const summerPack = allAvailablePacks.find((p) => p.id === 'pack-summer-transfers-vault') || PACKS.find((p) => p.id === 'pack-summer-transfers-vault');
+                  if (summerPack) handleOpenPack(summerPack, true);
+                }}
+                className="px-3.5 py-2.5 rounded-xl bg-cyan-950/80 border border-cyan-400/50 hover:bg-cyan-900 text-cyan-300 font-bold text-[11px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
+                title="Free promotional trial rip"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>Free Promo Rip</span>
               </button>
             </div>
           </div>
@@ -455,16 +520,35 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-2.5">
               <button
                 onClick={() => {
-                  const vaultPack = PACKS.find((p) => p.id === 'pack-street-kings-vault');
-                  if (vaultPack) handleOpenPack(vaultPack);
+                  const vaultPack = allAvailablePacks.find((p) => p.id === 'pack-street-kings-vault') || PACKS.find((p) => p.id === 'pack-street-kings-vault');
+                  if (vaultPack) {
+                    if (coins < vaultPack.cost) {
+                      setInsufficientPack(vaultPack);
+                    } else {
+                      handleOpenPack(vaultPack);
+                    }
+                  }
                 }}
-                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-pink-500 to-amber-400 hover:from-cyan-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-cyan-500 via-pink-500 to-amber-400 hover:from-cyan-400 hover:to-amber-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap"
               >
                 <Zap className="w-4 h-4" />
                 <span>Open Street Kings Vault</span>
+                <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded font-mono font-bold">22k 🪙</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const vaultPack = allAvailablePacks.find((p) => p.id === 'pack-street-kings-vault') || PACKS.find((p) => p.id === 'pack-street-kings-vault');
+                  if (vaultPack) handleOpenPack(vaultPack, true);
+                }}
+                className="px-3.5 py-2.5 rounded-xl bg-pink-950/80 border border-pink-400/50 hover:bg-pink-900 text-pink-300 font-bold text-[11px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
+                title="Free promotional trial rip"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <span>Free Promo Rip</span>
               </button>
             </div>
           </div>
@@ -623,24 +707,85 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                       </div>
 
                       <button
-                        onClick={() => handleOpenPack(pack)}
-                        disabled={!canAfford && !pack.isUnlimited}
+                        onClick={() => {
+                          if (canAfford || pack.isUnlimited) {
+                            handleOpenPack(pack);
+                          } else {
+                            setInsufficientPack(pack);
+                          }
+                        }}
                         className={`px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md ${
                           pack.isUnlimited
                             ? 'bg-gradient-to-r from-cyan-500 via-sky-400 to-amber-400 hover:from-cyan-400 hover:to-amber-300 text-slate-950 hover:scale-105 active:scale-95 shadow-cyan-900/40 font-black'
                             : canAfford
                             ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 hover:scale-105 active:scale-95 shadow-amber-900/30'
-                            : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                            : 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 hover:scale-105 active:scale-95'
                         }`}
                       >
                         <Zap className="w-3.5 h-3.5" />
-                        <span>{pack.isUnlimited ? 'Rip Pack ⚡' : canAfford ? 'Open' : 'Need Coins'}</span>
+                        <span>{pack.isUnlimited ? 'Rip Pack ⚡' : canAfford ? 'Open' : 'Unlock / +Coins'}</span>
                       </button>
                     </div>
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* INSUFFICIENT COINS / INSTANT VAULT UNLOCK MODAL */}
+      {insufficientPack && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="bg-slate-900 border-2 border-amber-400/80 rounded-3xl w-full max-w-md p-6 shadow-[0_0_50px_rgba(251,191,36,0.3)] space-y-6 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-3xl shadow-inner">
+              ⚡
+            </div>
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs font-black uppercase tracking-wider mb-2">
+                <Coins className="w-3.5 h-3.5" />
+                <span>Vault Entrance Authorization</span>
+              </div>
+              <h3 className="text-xl font-black text-white">{insufficientPack.name}</h3>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Opening this vault requires <strong className="text-amber-300 font-mono font-bold">{insufficientPack.cost.toLocaleString()} coins</strong>. You currently have <span className="text-cyan-300 font-mono font-bold">{coins.toLocaleString()} coins</span>.
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <button
+                onClick={() => {
+                  onAddCoins?.(50000);
+                  const packToOpen = insufficientPack;
+                  setInsufficientPack(null);
+                  sound.playCoins();
+                  setTimeout(() => handleOpenPack(packToOpen), 100);
+                }}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-300 to-cyan-400 hover:from-amber-300 hover:to-cyan-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 transition-all"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Claim +50,000 Event Coins & Open Now!</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const packToOpen = insufficientPack;
+                  setInsufficientPack(null);
+                  handleOpenPack(packToOpen, true);
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs uppercase tracking-wider border border-cyan-500/30 transition-colors flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Zap className="w-4 h-4" />
+                <span>Open Free Promotional Vault (0 Coins)</span>
+              </button>
+
+              <button
+                onClick={() => setInsufficientPack(null)}
+                className="w-full py-2 text-xs text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

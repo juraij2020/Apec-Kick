@@ -91,9 +91,32 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
   const generateCardsFromPack = (pack: PackDefinition): SoccerCard[] => {
     const cards: SoccerCard[] = [];
 
+    // Fallback card if pool is empty
+    const fallbackCard: SoccerCard = allCardsPool[0] || {
+      id: 'default_summer_mbappe',
+      name: 'Kylian Mbappé',
+      shortName: 'Mbappé',
+      rating: 92,
+      position: 'ST',
+      nation: 'France',
+      nationFlag: '🇫🇷',
+      club: 'Real Madrid',
+      league: 'La Liga',
+      rarity: 'summer_transfers',
+      cardStyle: 'summer_basic',
+      program: 'Summer Transfers',
+      stats: { pac: 97, sho: 90, pas: 82, dri: 93, def: 36, phy: 78 },
+      price: 350000,
+    };
+
     // Filter candidate pool by program if specified
     let candidatePool: SoccerCard[] = [];
-    if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
+    if (pack.programFilter === 'Summer Transfers' || pack.theme === 'summer_pack') {
+      const summerPool = allCardsPool.filter(
+        (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
+      );
+      candidatePool = summerPool.length > 0 ? summerPool : allCardsPool;
+    } else if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
       const skPool = allCardsPool.filter(
         (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
       );
@@ -123,7 +146,7 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
     }
 
     if (candidatePool.length === 0) {
-      candidatePool = [...allCardsPool];
+      candidatePool = allCardsPool.length > 0 ? [...allCardsPool] : [fallbackCard];
     }
 
     // Min rating filtered candidates
@@ -136,9 +159,9 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
         const threshold = pack.guaranteedRating || 78;
         const topCandidates = validPool.filter((c) => c.rating >= threshold);
         const poolToUse = topCandidates.length > 0 ? topCandidates : validPool;
-        picked = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+        picked = poolToUse[Math.floor(Math.random() * poolToUse.length)] || fallbackCard;
       } else {
-        picked = validPool[Math.floor(Math.random() * validPool.length)];
+        picked = validPool[Math.floor(Math.random() * validPool.length)] || fallbackCard;
       }
 
       cards.push({
@@ -162,10 +185,11 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
     onOpenRewardPack(storedPack.instanceId);
 
     const generated = generateCardsFromPack(storedPack.packDefinition);
-    setPulledCards(generated);
+    const safeCards = generated.length > 0 ? generated : [allCardsPool[0]];
+    setPulledCards(safeCards);
 
-    const topCard = generated[0];
-    const isWalkout = topCard.rating >= 85 || !!storedPack.packDefinition.guaranteedWalkout;
+    const topCard = safeCards[0];
+    const isWalkout = topCard ? (topCard.rating >= 85 || !!storedPack.packDefinition.guaranteedWalkout) : false;
 
     setStage('tearing');
 

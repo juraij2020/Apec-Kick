@@ -5,7 +5,10 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { SoccerCard, SBCChallenge, PackDefinition } from './types/card';
-import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS, HANEEN_MUSTAFA_CARD } from './data/defaultCards';
+import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS, HANEEN_MUSTAFA_CARD, HALL_OF_FAME_CARDS, FUTMAS_CARDS } from './data/defaultCards';
+import { STREET_KINGS_CARDS } from './data/streetKings';
+import { SUMMER_BASIC_CARDS } from './data/summerCards';
+import { INTERNATIONAL_MOMENTS_CARDS } from './data/internationalMoments';
 import { INITIAL_SBCS } from './data/sbcs';
 import { PACKS } from './data/packs';
 import { calculateSquadChemistry } from './utils/chemistry';
@@ -25,6 +28,7 @@ import { TransferMarket } from './components/TransferMarket';
 import { MiniGamesHub } from './components/MiniGamesHub';
 import { MyPacksHub } from './components/MyPacksHub';
 import { DailyObjectives } from './components/DailyObjectives';
+import { GoogleAuthButton } from './components/GoogleAuthButton';
 import { StoredRewardPack } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
 
@@ -295,10 +299,16 @@ export default function App() {
     safeSetItem(STORAGE_KEYS.AUDIO, audioEnabled ? 'true' : 'false');
   }, [audioEnabled]);
 
-  // Combined card pool for packs (Standard cards + All user-created custom cards, deduplicated)
+  // Combined card pool for packs, market & squads (Standard cards + Street Kings + Summer Transfers + Intl Moments + HOF + Futmas + User cards)
   const allCardsPool = useMemo(() => {
     const cardMap = new Map<string, SoccerCard>();
     BASE_SOCCER_CARDS.forEach((c) => cardMap.set(c.id, c));
+    INITIAL_CUSTOM_CARDS.forEach((c) => cardMap.set(c.id, c));
+    STREET_KINGS_CARDS.forEach((c) => cardMap.set(c.id, c));
+    SUMMER_BASIC_CARDS.forEach((c) => cardMap.set(c.id, c));
+    INTERNATIONAL_MOMENTS_CARDS.forEach((c) => cardMap.set(c.id, c));
+    HALL_OF_FAME_CARDS.forEach((c) => cardMap.set(c.id, c));
+    FUTMAS_CARDS.forEach((c) => cardMap.set(c.id, c));
     userCreatedCards.forEach((c) => cardMap.set(c.id, c));
     return Array.from(cardMap.values());
   }, [userCreatedCards]);
@@ -763,8 +773,15 @@ export default function App() {
             </button>
           </div>
 
-          {/* Zone 3: Coins balance & Audio toggle */}
-          <div className="flex items-center gap-2.5 flex-shrink-0">
+          {/* Zone 3: Google Login, Coins balance & Audio toggle */}
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
+            {/* Google Account Authentication */}
+            <GoogleAuthButton
+              coins={coins}
+              clubCards={clubCards}
+              onAddCoins={handleAddCoins}
+            />
+
             {/* Coins Balance Indicator (Display-only · Earned only via matches, SBCs, objectives & mini-games) */}
             <div
               title="Earn coins by winning matches, completing SBCs, and Daily Objectives!"
@@ -1058,6 +1075,14 @@ export default function App() {
               setCurrentTab('minigames');
               sound.playClick();
             }}
+            onNavigateToMatchSimulator={() => {
+              setCurrentTab('clash');
+              sound.playClick();
+            }}
+            onNavigateToObjectives={() => {
+              setCurrentTab('objectives');
+              sound.playClick();
+            }}
           />
         )}
 
@@ -1103,6 +1128,7 @@ export default function App() {
             onCreatePack={handleCreatePack}
             onDeletePack={handleDeletePack}
             onDeductCoins={handleDeductCoins}
+            onAddCoins={handleAddCoins}
             onAddCardsToClub={handleAddCardsToClub}
             onQuickSellCard={handleQuickSellCard}
             onPackOpened={handleIncrementPacksOpened}

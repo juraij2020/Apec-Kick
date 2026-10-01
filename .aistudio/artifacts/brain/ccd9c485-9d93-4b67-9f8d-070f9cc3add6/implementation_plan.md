@@ -1,111 +1,80 @@
-# Summer Basic 125 Cards & Unlimited Hunt Expansion
+# Implementation Plan: Permanent Transfer Market & Google Account Authentication
 
-Comprehensive implementation plan to integrate all 125 uploaded player cards into the **Summer Basic (Summer Transfers)** series, faithfully mapping each player's exact rating, position, club, and nation, embedding high-fidelity card visuals, and introducing an **Unlimited Summer Hunt Pack** in the store with ultra-rare walkout drop rates alongside guaranteed SBCs.
+## Section 1: Executive Summary & User Alignment
 
----
-
-### User Review & Critical Decisions
-
-> [!IMPORTANT]
-> Based on your direct choices in Phase 1, the following core specifications are confirmed for implementation:
-
-- **Confirmed Decision 1 (Visual Art)**: Embed uploaded player cards directly into the Summer Basic card framework, preserving the 644×900 aspect ratio and sunburst cyan/gold accents.
-- **Confirmed Decision 2 (Exact Ratings & Stats)**: Assign the exact official ratings and positions shown on each player card (ranging from marquee stars like Marc-André ter Stegen 89, Dušan Vlahović 84, Sandro Tonali 85, Gabriel Martinelli 83, Savinho 82, Artem Dovbyk 84, Thiago Silva 81 down to rising transfer talents like Karetsas, Jan Virgili, Geovany Quenda, and Max Arfsten).
-- **Confirmed Decision 3 (Unlimited Pack with Ultra-Rare Odds)**: Introduce an **Unlimited Summer Hunt Pack** (0 coins / free repeatable open) where players can rip packs continuously, but rolling a Summer Basic card is exceptionally rare (~1.5% drop rate), making every Summer walkout an exhilarating jackpot.
-- **Confirmed Decision 4 (Store & SBC Retention)**: Retain the high-tier Summer Transfers Vault packs (guaranteed 85+ Summer players) and Squad Building Challenges for players who want guaranteed routes.
+Based on user feedback, this update introduces two foundational capabilities:
+1. **Permanent, Timer-Free Dynamic Transfer Market**:
+   - **No Expiration Timers**: Removal of artificial countdown timers. Market listings remain live indefinitely until purchased by the player or actively sold by the community.
+   - **Dynamic Market Trends**: Integrated real-time market trends (📈 High Demand / 📉 Price Dip / 💎 Apex Value) reflecting player ratings, positions, and program rarity.
+   - **Play-to-Earn & Cash Integration**: Transparent economy highlighting both routes: earning coins through matches, objectives, and mini-games vs. direct quick cash/coin store access for immediate card acquisition.
+2. **Client Google Account Sign-In**:
+   - Integrated client-side Google Sign-In linked directly to the user's club progress, saved squads, coins, and market listings.
+   - High-contrast authenticated user badge in the top navigation bar featuring the Google avatar, user name, account status, and easy switch/sign-out controls.
 
 ---
 
-### 1. Overview & Core Concept
+## Section 2: Domain-Specific Design & Anti-Slop Safeguards
 
-- **What It Does**: Expands the Summer Basic catalog from the initial 8 marquee signings to an expansive 133-player universe featuring all 125 new transfer cards (Savinho, Dovbyk, Tonali, Garnacho, Martinelli, Thiago Silva, Vlahović, Calafiori, Adeyemi, Weghorst, etc.). Adds an endless pack-opening mechanic ("Unlimited Summer Hunt") with authentic slot-machine suspense, instant collection tracking, and squad-building synergy.
-- **Target Audience / Persona**: FUT card collectors, pack opening enthusiasts, and squad builders wanting real-world 2024/25 transfers with chemistry links across Premier League, La Liga, Serie A, Bundesliga, Ligue 1, Eredivisie, Liga Portugal, and Saudi Pro League.
-- **Key Value**: Delivers the thrills of infinite pack opening without coin gatekeeping, coupled with a massive, authentic 125-card Summer Transfers roster.
+Applying rules from `frontend-design` and `4_games_2d_casual.md`:
 
----
+### A. Transfer Market Card Presentation
+- **Zero-Pill Discipline**: Remove tiny pill timer capsules (`Ends in 04:12`) and replace them with quiet, clean metadata: seller reputation, listing status, and market trend indicators (`📈 +4.2% Demand` or `💎 Permanent Auction`).
+- **Clear Action Hierarchy**:
+  - Primary button: High-contrast **"Buy Now"** with exact coin cost.
+  - Secondary button: **"Place Bid"** with minimum bid increment step.
+  - Quick Play-to-Earn affordance: **"Earn Coins"** shortcut leading directly to Match Simulator or Mini-Games.
+- **Dynamic Price Indices**: Visual trend cues with clean typography (emerald for trending up, rose for price dips) to simulate a living soccer stock market.
 
-### 2. User Experience & Visual Design
-
-#### Key User Flows
-1. **Unlimited Pack Ripping**:
-   - Player navigates to **Store Packs** -> selects **"Unlimited Summer Hunt ☀️"** (labeled *FREE / INFINITE OPENS*).
-   - Player taps *Open Pack*. Most packs contain solid gold base squad fillers.
-   - When the ultra-rare 1.5% Summer Basic trigger fires, the screen detonates into vibrant sunburst cyan and gold lightning effects, dramatic walkout tunnels, and confetti, revealing the rare Summer Basic card art.
-   - Quick "Open Another Immediately" button enables seamless, rapid-fire pack ripping without reloading.
-2. **My Club Summer Filter & Inspection**:
-   - Navigating to **My Club** and tapping the `☀️ Summer Transfers` pill displays the player's unlocked Summer Basic cards.
-   - Cards display full 644×900 shield art, 3D tilt responsiveness, club badges, and detailed player stats.
-3. **Summer SBC Submissions**:
-   - Players can submit duplicate or surplus base cards from the unlimited hunt into the Summer SBCs to earn guaranteed Summer Vault packs.
-
-#### Visual Identity & Theme
-- **Color Palette**:
-  - Tropical Cyan Accent: `#06b6d4` & `#38bdf8` (representing summer ocean vibes)
-  - Sunburst Gold Foil: `#f59e0b` & `#fbbf24` (transfer prestige and sunlight)
-  - Deep Pitch Void: `#09090b` & `#18181b` (high contrast backdrop)
-- **Typography & Proportions**:
-  - Sharp, sans-serif display headers (`font-black`, `uppercase`, tracking wide).
-  - Clean unboxed metadata discipline: ratings, positions, and club names separated by elegant typographical glyphs.
-  - Zero-pill compliance: Clean, unboxed badges and high-contrast typography.
+### B. Google Authentication Header Component
+- Standard Google branding guidelines: Official Google "G" emblem, clean white/dark badge with user avatar picture, display name, and email.
+- Responsive mobile & desktop integration: Compact avatar dropdown on mobile, full status display on desktop.
+- Unobtrusive state management: If unauthenticated, displays `"Sign in with Google"` with guest progress preservation; once signed in, instantly binds existing club cards and coins to the Google user ID.
 
 ---
 
-### 3. Key Product Decisions & Trade-Offs
+## Section 3: System Architecture & Data Flow
 
-- **Decision 1: Full 125 Player Catalog Architecture**
-  - *Chosen Approach*: Group all 125 new players into structured data modules (`src/data/summerCards.ts` and companion registry) with authentic clubs, leagues, positions, and ratings matching the uploaded cards.
-  - *Why*: Eliminates mock placeholders and ensures full playable chemistry and match-engine simulation across all 125 players.
-  - *Alternatives Considered*: Lazy-loading only 10 players; rejected because the user explicitly requested adding all cards.
+### A. Authentication & Profile Persistence
+- **Client-Side Google Auth Engine** (`src/utils/googleAuth.ts`):
+  - Integrates Google Identity Services (GIS) / Client OAuth token flow.
+  - Manages session lifecycle (`GoogleUser` state: `uid`, `name`, `email`, `picture`, `signedInAt`).
+  - Automatically merges existing club cards, active squads, and coin balance with the authenticated Google profile in `safeStorage`.
+- **Top Navigation Integration** (`src/components/GoogleAuthButton.tsx` & `src/App.tsx`):
+  - Positioned prominently in the top header alongside audio and coin counters.
+  - Provides a user profile modal with account statistics (Total Club Value, Cards Owned, Matches Played, Market Sales).
 
-- **Decision 2: Unlimited Hunt Pack Mechanics & Odds Tuning**
-  - *Chosen Approach*: A dedicated 0-coin pack with 1.5% odds per slot (overall ~6% chance across a 4-card pack) of rolling a Summer Basic card, while base cards fill the remaining slots.
-  - *Why*: Satisfies the user requirement ("unlimited open but the odds of getting summer card is rarest") while preventing endless empty frustration by pairing with high-tempo replay buttons.
-
-- **Decision 3: Card Graphic Resolution Hierarchy**
-  - *Chosen Approach*: Integrate card rendering so `CardItem` dynamically binds each player's designated card graphic with customized fallback SVG shield styling.
-  - *Why*: Ensures crisp rendering across mobile, desktop, pack walkouts, and match engine avatars.
+### B. Permanent Timer-Free Market Engine
+- **Type Definitions** (`src/types/card.ts`):
+  - Deprecate `expiresAt` urgency requirement on `TransferListing`; introduce `marketTrend: 'rising' | 'stable' | 'dipping' | 'high_demand'`.
+  - Add `demandMultiplier: number` and `isPermanent: boolean`.
+- **Market State & Replenishment** (`src/data/initialMarketListings.ts` & `src/components/TransferMarket.tsx`):
+  - Remove expiration purge timeouts and countdown intervals.
+  - Cards remain persistently listed until bought or canceled.
+  - Allow manual user-driven restocking via the **"Refresh Market"** button or when the active listings pool falls below inventory threshold.
+  - Add Play-to-Earn quick jump shortcuts ("Need Coins? Play Mini-Games or Simulate Match").
 
 ---
 
-### 4. Technical Architecture & Data Strategy
+## Section 4: Step-by-Step Execution Plan
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Store & Pack Opening                     │
-│  ┌──────────────────────┐        ┌───────────────────────┐  │
-│  │ Unlimited Hunt Pack  │        │ Summer Transfers Vault│  │
-│  │ (0 Cost / Inf. Opens)│        │ (Guaranteed 85+ Pull) │  │
-│  │ (1.5% Rare Odds)     │        └───────────────────────┘  │
-│  └──────────┬───────────┘                                   │
-└─────────────┼───────────────────────────────────────────────┘
-              │  Pulls from
-              ▼
-┌─────────────────────────────────────────────────────────────┐
-│             SUMMER_BASIC_CARDS (133 Players)                │
-│  • 8 Initial Stars (Mbappé, Olise, Álvarez, Olmo...)        │
-│  • 125 Uploaded Signings (Vlahović, Tonali, Savinho,         │
-│    Garnacho, Martinelli, ter Stegen, Thiago Silva, etc.)    │
-│    Each with exact rating, position, club & flag            │
-└─────────────┬───────────────────────────────────────────────┘
-              │  Feeds into
-              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  App State & Components                     │
-│  ┌──────────────────┐  ┌────────────────┐  ┌─────────────┐  │
-│  │    ClubGallery   │  │   CardItem     │  │   SBCView   │  │
-│  │ (Summer Filter)  │  │(644x900 Art+3D)│  │(Vault SBCs) │  │
-│  └──────────────────┘  └────────────────┘  └─────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-```
+### Step 1: Client Google Authentication Service
+- Create `src/utils/googleAuth.ts` with Google Identity Services SDK initialization, Google OAuth client sign-in handler, and persistent profile storage.
+- Create `src/components/GoogleAuthButton.tsx` with Google sign-in button, profile dropdown menu, and account details modal.
 
-#### Key Technical Modifications:
-1. **`src/data/summerCards.ts`**:
-   - Register all 125 uploaded players with their authentic ratings, positions, clubs, nations, and stats.
-   - Export comprehensive `SUMMER_BASIC_CARDS` array (133 total cards).
-2. **`src/data/packs.ts`**:
-   - Add `pack-summer-unlimited-hunt`: Cost 0, 4 cards, `theme: 'summer_pack'`, `isUnlimited: true`, `summerCardChance: 0.015`.
-   - Update `PACKS` catalog to prominently feature the Unlimited Hunt at the top of the Summer section.
-3. **`src/components/PackOpening.tsx`**:
-   - Support `isUnlimited` packs with zero-cost deductions, instant re-open ("⚡ Rip Again") controls, and ultra-rare walkout celebration triggers when a Summer Basic card is struck.
-4. **`src/components/CardItem.tsx` & `src/types/card.ts`**:
-   - Ensure seamless display and badge rendering across all 125 new cards.
+### Step 2: Refactor Market Types & Storage
+- Update `TransferListing` in `src/types/card.ts` to make expiration optional/permanent and add market trend properties.
+- Update `src/data/initialMarketListings.ts` to assign realistic market trends and permanent statuses to all generated listings.
+
+### Step 3: Upgrade TransferMarket Component
+- Remove countdown timers (`timeRemaining`, clock badges, auto-expiring hooks) from `src/components/TransferMarket.tsx`.
+- Render dynamic price trends and permanent listing badges (`💎 Permanent Listing · Always Available`).
+- Add a Play-to-Earn banner and quick coin acquisition options (`Grind Matches · Earn Coins · Cash In`).
+- Enhance "Buy Now" and "Place Bid" modals with transparent coin check and direct earn/cash shortcuts.
+
+### Step 4: Header & App Integration
+- Mount `GoogleAuthButton` in `src/App.tsx` header with real-time profile state.
+- Wire user profile syncing so club progress and achievements are tied to the Google account.
+
+### Step 5: Verification & Compilation
+- Run `compile_applet` and `lint_applet` to verify clean build without TypeScript or syntax errors.
+- Test sign-in flow, market navigation, permanent listing purchases, and coin balance synchronization.
