@@ -1,5 +1,5 @@
 import { SoccerCard, Position, PlayStylePlusBadge } from '../types/card';
-import { generateUserCardSvg, PLAYSTYLE_PRESETS } from './defaultCards';
+import { generateUserCardSvg, PLAYSTYLE_PRESETS } from './cardSvgGenerator';
 
 // Compact player tuple: [id, name, shortName, rating, pos, nation, flag, club, league, pac, sho, pas, dri, def, phy, psKey]
 type RawSummerPlayerData = [

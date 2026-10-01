@@ -1,5 +1,5 @@
 import { SoccerCard } from '../types/card';
-import { generateUserCardSvg } from './defaultCards';
+import { generateUserCardSvg } from './cardSvgGenerator';
 import { GENERATED_125_SUMMER_CARDS } from './summerTransfersRoster';
 
 /**

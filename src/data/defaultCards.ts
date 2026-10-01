@@ -1,71 +1,7 @@
 import { SoccerCard, CardStyle, PlayStylePlusBadge } from '../types/card';
 import { INTERNATIONAL_MOMENTS_CARDS } from './internationalMoments';
-
-export const PLAYSTYLE_PRESETS: Record<string, PlayStylePlusBadge> = {
-  quick_step: {
-    id: 'quick_step',
-    name: 'Quick Step+',
-    shortDesc: '+12 Pace burst & explosive breakaways in transitions',
-    iconSymbol: '⚡',
-    statBoost: { attribute: 'pac', bonus: 12 },
-  },
-  finesse_shot: {
-    id: 'finesse_shot',
-    name: 'Finesse Shot+',
-    shortDesc: '+15 Curve & lethal top-corner curling finishes',
-    iconSymbol: '🎯',
-    statBoost: { attribute: 'sho', bonus: 15 },
-  },
-  anticipate: {
-    id: 'anticipate',
-    name: 'Anticipate+',
-    shortDesc: '+15 Standing tackle precision & instant turnover rate',
-    iconSymbol: '🛡️',
-    statBoost: { attribute: 'def', bonus: 15 },
-  },
-  bruiser: {
-    id: 'bruiser',
-    name: 'Bruiser+',
-    shortDesc: '+12 Physical strength & dominant shoulder duels',
-    iconSymbol: '💪',
-    statBoost: { attribute: 'phy', bonus: 12 },
-  },
-  whipped_pass: {
-    id: 'whipped_pass',
-    name: 'Whipped Pass+',
-    shortDesc: '+14 Crossing accuracy & pinpoint set-piece assists',
-    iconSymbol: '📐',
-    statBoost: { attribute: 'pas', bonus: 14 },
-  },
-  dead_ball: {
-    id: 'dead_ball',
-    name: 'Dead Ball+',
-    shortDesc: '+20 Free kick & corner accuracy with dipping curl',
-    iconSymbol: '☄️',
-    statBoost: { attribute: 'pas', bonus: 20 },
-  },
-  rapid: {
-    id: 'rapid',
-    name: 'Rapid+',
-    shortDesc: '+10 Sprint dribble speed without losing ball control',
-    iconSymbol: '💨',
-    statBoost: { attribute: 'dri', bonus: 10 },
-  },
-  cat_reflexes: {
-    id: 'cat_reflexes',
-    name: 'Cat Reflexes+',
-    shortDesc: '+15 Goalkeeper diving speed & point-blank reaction saves',
-    iconSymbol: '🧤',
-    statBoost: { attribute: 'def', bonus: 15 },
-  },
-  relentless: {
-    id: 'relentless',
-    name: 'Relentless+',
-    shortDesc: 'Zero stamina decay & clutch 90th-minute match boost',
-    iconSymbol: '🔋',
-    statBoost: { attribute: 'phy', bonus: 12 },
-  },
-};
+export { PLAYSTYLE_PRESETS } from './cardSvgGenerator';
+import { PLAYSTYLE_PRESETS } from './cardSvgGenerator';
 
 // Helper to create full-card SVG graphics matching the exact custom card shield template
 export function generateUserCardSvg(
