@@ -2,251 +2,238 @@ import { TransferListing, SoccerCard } from '../types/card';
 import { INTERNATIONAL_MOMENTS_CARDS } from './internationalMoments';
 import { HALL_OF_FAME_CARDS, BASE_SOCCER_CARDS, FUTMAS_CARDS } from './defaultCards';
 import { STREET_KINGS_CARDS } from './streetKings';
+import { SUMMER_BASIC_CARDS } from './summerCards';
 
-// Helper to find a card by ID or fallback
-function findCard(id: string): SoccerCard | undefined {
-  return (
-    STREET_KINGS_CARDS.find((c) => c.id === id) ||
-    INTERNATIONAL_MOMENTS_CARDS.find((c) => c.id === id) ||
-    HALL_OF_FAME_CARDS.find((c) => c.id === id) ||
-    FUTMAS_CARDS.find((c) => c.id === id) ||
-    BASE_SOCCER_CARDS.find((c) => c.id === id)
-  );
+const SELLER_NAMES = [
+  'TransferGuru_99',
+  'Madridista_Prime',
+  'SambaKing_BR',
+  'CampNou_Elite',
+  'EPL_Trader_UK',
+  'ApexCollector',
+  'MilanoCalcio',
+  'AjaxAcademy_14',
+  'Anfield_Rock',
+  'TKM_StreetMaster',
+  'FutTrader_London',
+  'BayernMunich_Fan',
+  'LisbonScout_7',
+  'ParisianFlair',
+  'CalcioSpecialist',
+  'DortmundWall_09',
+  'ScoutPro_Global',
+  'UltimateTrader_XI',
+];
+
+/**
+ * Derives a realistic market price based on card attributes and rating
+ */
+export function calculateRealisticMarketPrice(card: SoccerCard): {
+  startBid: number;
+  currentBid: number;
+  buyNowPrice: number;
+  bidsCount: number;
+} {
+  const rating = card.rating || 80;
+  let baseValue = card.price && card.price > 0 ? card.price : 15000;
+
+  if (!card.price || card.price === 0) {
+    if (rating >= 96) baseValue = 350000 + (rating - 96) * 60000;
+    else if (rating >= 92) baseValue = 180000 + (rating - 92) * 35000;
+    else if (rating >= 88) baseValue = 85000 + (rating - 88) * 20000;
+    else if (rating >= 84) baseValue = 32000 + (rating - 84) * 10000;
+    else if (rating >= 80) baseValue = 14000 + (rating - 80) * 4000;
+    else baseValue = 3500 + Math.max(0, (rating - 70) * 800);
+  }
+
+  // Program premium adjustments
+  if (card.program === 'Summer Transfers' || card.rarity === 'summer_transfers') {
+    baseValue = Math.floor(baseValue * 1.15);
+  } else if (card.program === 'Street Kings' || card.rarity === 'street_kings') {
+    baseValue = Math.floor(baseValue * 1.2);
+  } else if (card.program === 'Hall of Fame' || card.rarity === 'hall_of_fame') {
+    baseValue = Math.floor(baseValue * 1.25);
+  }
+
+  // Round to clean thousands or hundreds
+  const roundedBase = Math.round(baseValue / 500) * 500;
+  const startBid = Math.max(1000, Math.round((roundedBase * 0.75) / 500) * 500);
+  const buyNowPrice = Math.max(startBid + 1500, Math.round((roundedBase * 1.15) / 500) * 500);
+
+  // Realistic randomized bids
+  const bidsCount = Math.floor(Math.random() * 7);
+  let currentBid = 0;
+  if (bidsCount > 0) {
+    const spread = buyNowPrice - startBid;
+    const bidProgress = 0.25 + Math.random() * 0.55;
+    currentBid = Math.min(buyNowPrice - 500, Math.round((startBid + spread * bidProgress) / 250) * 250);
+  }
+
+  return { startBid, currentBid, buyNowPrice, bidsCount };
 }
 
-// Generate realistic initial market listings
-export function generateInitialListings(): TransferListing[] {
-  const seedItems: {
-    cardId: string;
-    seller: string;
-    startBid: number;
-    currentBid: number;
-    buyNow: number;
-    expiresInMins: number;
-    bids: number;
-  }[] = [
-    // Street Kings Headline Star
-    {
-      cardId: 'sk-haneen-mustafa-92',
-      seller: 'Tharavaadees_Ultra',
-      startBid: 220000,
-      currentBid: 265000,
-      buyNow: 310000,
-      expiresInMins: 11,
-      bids: 8,
-    },
-    {
-      cardId: 'sk-rashed-cam-90',
-      seller: 'TKMCageMaster',
-      startBid: 130000,
-      currentBid: 155000,
-      buyNow: 190000,
-      expiresInMins: 24,
-      bids: 5,
-    },
+/**
+ * Creates a single TransferListing for a card
+ */
+export function createListingForCard(
+  card: SoccerCard,
+  idx: number,
+  expiresInMins?: number
+): TransferListing {
+  const { startBid, currentBid, buyNowPrice, bidsCount } = calculateRealisticMarketPrice(card);
+  const seller = SELLER_NAMES[(idx + Math.floor(Math.random() * SELLER_NAMES.length)) % SELLER_NAMES.length];
+  const trends: ('up' | 'down' | 'hot' | 'stable')[] = ['up', 'down', 'hot', 'stable'];
+  const trend = trends[idx % trends.length];
+  const trendPercent =
+    trend === 'up'
+      ? Math.floor(Math.random() * 8) + 3
+      : trend === 'down'
+      ? -(Math.floor(Math.random() * 7) + 2)
+      : trend === 'hot'
+      ? Math.floor(Math.random() * 14) + 6
+      : 0;
+
+  const durationMins = expiresInMins ?? Math.floor(Math.random() * 150) + 15; // 15 to 165 minutes
+  const now = Date.now();
+
+  return {
+    id: `listing-${Date.now()}-${idx}-${card.id}`,
+    card,
+    sellerName: seller,
+    isUserListing: false,
+    startBid,
+    currentBid,
+    buyNowPrice,
+    bidsCount,
+    expiresAt: now + durationMins * 60 * 1000,
+    status: 'active',
+    trend,
+    trendPercent,
+  };
+}
+
+/**
+ * Generates an active, diverse transfer market collection featuring:
+ * - ☀️ Summer Transfers (130+ player pool)
+ * - 🌍 International Moments
+ * - 👑 Hall of Fame
+ * - ❄️ Futmas Specials
+ * - ⚡ Street Kings
+ * - ⚽ Base Gold Stars
+ */
+export function generateInitialListings(customPool?: SoccerCard[]): TransferListing[] {
+  // Use provided pool or gather all available card collections
+  const pool =
+    customPool && customPool.length > 0
+      ? customPool
+      : [
+          ...SUMMER_BASIC_CARDS,
+          ...STREET_KINGS_CARDS,
+          ...INTERNATIONAL_MOMENTS_CARDS,
+          ...HALL_OF_FAME_CARDS,
+          ...FUTMAS_CARDS,
+          ...BASE_SOCCER_CARDS,
+        ];
+
+  // Specific high-profile marquee players guaranteed to be listed first
+  const marqueeIds = [
+    // Summer Transfers
+    'ter-stegen',
+    'tonali',
+    'vlahovic',
+    'vicario',
+    'dovbyk',
+    'martinelli',
+    'savinho',
+    'mendy',
+    'ake',
+    'thiago-silva',
+    'garnacho',
+    'adeyemi',
+    // Street Kings
+    'sk-haneen-mustafa-92',
+    'sk-rashed-cam-90',
+    'sk-arjun-lw-89',
     // International Moments
-    {
-      cardId: 'intl-ronaldinho',
-      seller: 'RioSamba_XI',
-      startBid: 180000,
-      currentBid: 215000,
-      buyNow: 280000,
-      expiresInMins: 14,
-      bids: 6,
-    },
-    {
-      cardId: 'intl-de-bruyne',
-      seller: 'BrusselsMaster',
-      startBid: 110000,
-      currentBid: 135000,
-      buyNow: 175000,
-      expiresInMins: 38,
-      bids: 4,
-    },
-    {
-      cardId: 'intl-maradona',
-      seller: 'DiegoAlbiceleste',
-      startBid: 240000,
-      currentBid: 275000,
-      buyNow: 340000,
-      expiresInMins: 8,
-      bids: 11,
-    },
-    {
-      cardId: 'intl-hazard',
-      seller: 'ChelseaClassic',
-      startBid: 95000,
-      currentBid: 112000,
-      buyNow: 145000,
-      expiresInMins: 52,
-      bids: 3,
-    },
-    {
-      cardId: 'intl-pele',
-      seller: 'ORei_Brasil',
-      startBid: 280000,
-      currentBid: 310000,
-      buyNow: 390000,
-      expiresInMins: 22,
-      bids: 8,
-    },
-    {
-      cardId: 'intl-courtois',
-      seller: 'WallOfMadrid',
-      startBid: 70000,
-      currentBid: 78000,
-      buyNow: 98000,
-      expiresInMins: 65,
-      bids: 2,
-    },
-    {
-      cardId: 'intl-messi',
-      seller: 'RosarioMagician',
-      startBid: 320000,
-      currentBid: 360000,
-      buyNow: 420000,
-      expiresInMins: 19,
-      bids: 9,
-    },
-    {
-      cardId: 'intl-kaka',
-      seller: 'Milan22_Legend',
-      startBid: 115000,
-      currentBid: 130000,
-      buyNow: 165000,
-      expiresInMins: 84,
-      bids: 5,
-    },
-    {
-      cardId: 'intl-neymar-jr',
-      seller: 'SantosProdigy',
-      startBid: 160000,
-      currentBid: 185000,
-      buyNow: 230000,
-      expiresInMins: 41,
-      bids: 7,
-    },
+    'intl-pele',
+    'intl-maradona',
+    'intl-messi',
+    'intl-ronaldinho',
+    'intl-de-bruyne',
+    'intl-hazard',
+    'intl-neymar-jr',
+    'intl-kaka',
     // Hall of Fame
-    {
-      cardId: 'hof-zidane',
-      seller: 'LesBleus_10',
-      startBid: 220000,
-      currentBid: 245000,
-      buyNow: 310000,
-      expiresInMins: 29,
-      bids: 5,
-    },
-    {
-      cardId: 'hof-cruyff',
-      seller: 'TotalFootball_14',
-      startBid: 260000,
-      currentBid: 295000,
-      buyNow: 360000,
-      expiresInMins: 47,
-      bids: 8,
-    },
-    {
-      cardId: 'hof-maldini',
-      seller: 'Capitano3_AC',
-      startBid: 150000,
-      currentBid: 175000,
-      buyNow: 220000,
-      expiresInMins: 72,
-      bids: 4,
-    },
-    {
-      cardId: 'hof-henry',
-      seller: 'HighburyKing14',
-      startBid: 190000,
-      currentBid: 210000,
-      buyNow: 265000,
-      expiresInMins: 15,
-      bids: 6,
-    },
+    'hof-ronaldo-98',
+    'hof-cafu-93',
+    'hof-lucio-91',
     // Futmas
-    {
-      cardId: 'futmas-son',
-      seller: 'NorthLondonFrost',
-      startBid: 65000,
-      currentBid: 72000,
-      buyNow: 89000,
-      expiresInMins: 33,
-      bids: 3,
-    },
-    {
-      cardId: 'futmas-bellingham',
-      seller: 'StourbridgeStar',
-      startBid: 85000,
-      currentBid: 98000,
-      buyNow: 125000,
-      expiresInMins: 58,
-      bids: 5,
-    },
+    'futmas-saka',
+    'futmas-gabriel',
+    'futmas-guler',
+    'futmas-isak',
     // Base Stars
-    {
-      cardId: 'base-haaland',
-      seller: 'VikingStriker_9',
-      startBid: 45000,
-      currentBid: 52000,
-      buyNow: 68000,
-      expiresInMins: 12,
-      bids: 4,
-    },
-    {
-      cardId: 'base-debruyne',
-      seller: 'CityPassMaster',
-      startBid: 40000,
-      currentBid: 44000,
-      buyNow: 55000,
-      expiresInMins: 49,
-      bids: 2,
-    },
-    {
-      cardId: 'base-van-dijk',
-      seller: 'AnfieldRock4',
-      startBid: 38000,
-      currentBid: 43000,
-      buyNow: 54000,
-      expiresInMins: 26,
-      bids: 3,
-    },
-    {
-      cardId: 'base-salah',
-      seller: 'EgyptianKing_11',
-      startBid: 39000,
-      currentBid: 45000,
-      buyNow: 56000,
-      expiresInMins: 62,
-      bids: 4,
-    },
+    'base-haaland',
+    'base-debruyne',
+    'base-van-dijk',
+    'base-alisson',
+    'base-valverde',
   ];
 
-  const now = Date.now();
-  const listings: TransferListing[] = [];
+  const selectedCards: SoccerCard[] = [];
+  const addedIds = new Set<string>();
 
-  seedItems.forEach((seed, idx) => {
-    const card = findCard(seed.cardId);
-    if (card) {
-      const trends: ('up' | 'down' | 'hot' | 'stable')[] = ['up', 'down', 'hot', 'stable'];
-      const trend = trends[idx % trends.length];
-      const trendPercent = trend === 'up' ? Math.floor(Math.random() * 8) + 3 : trend === 'down' ? -(Math.floor(Math.random() * 7) + 2) : trend === 'hot' ? Math.floor(Math.random() * 14) + 6 : 0;
-
-      listings.push({
-        id: `listing-seed-${idx + 1}-${seed.cardId}`,
-        card,
-        sellerName: seed.seller,
-        isUserListing: false,
-        startBid: seed.startBid,
-        currentBid: seed.currentBid,
-        buyNowPrice: seed.buyNow,
-        bidsCount: seed.bids,
-        expiresAt: now + seed.expiresInMins * 60 * 1000,
-        status: 'active',
-        trend,
-        trendPercent,
-      });
+  // Add marquee cards
+  marqueeIds.forEach((id) => {
+    const found = pool.find((c) => c.id === id);
+    if (found && !addedIds.has(found.id)) {
+      selectedCards.push(found);
+      addedIds.add(found.id);
     }
   });
 
-  return listings;
+  // Pick an extra diverse selection of Summer Basic cards
+  const summerCards = pool.filter(
+    (c) =>
+      (c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic') &&
+      !addedIds.has(c.id)
+  );
+  // Shuffle & take 10 additional Summer Basic cards
+  const shuffledSummer = [...summerCards].sort(() => 0.5 - Math.random()).slice(0, 12);
+  shuffledSummer.forEach((c) => {
+    selectedCards.push(c);
+    addedIds.add(c.id);
+  });
+
+  // Pick extra random cards across other programs to make up ~35-42 active auctions
+  const otherCards = pool.filter((c) => !addedIds.has(c.id));
+  const shuffledOthers = [...otherCards].sort(() => 0.5 - Math.random()).slice(0, 10);
+  shuffledOthers.forEach((c) => {
+    selectedCards.push(c);
+    addedIds.add(c.id);
+  });
+
+  // If pool was sparse for any reason, fallback to whatever pool cards are available
+  if (selectedCards.length === 0 && pool.length > 0) {
+    selectedCards.push(...pool.slice(0, 25));
+  }
+
+  // Shuffle selected cards so all programs are mixed naturally in market
+  const randomizedList = [...selectedCards].sort(() => 0.5 - Math.random());
+
+  return randomizedList.map((card, idx) => createListingForCard(card, idx));
+}
+
+/**
+ * Replenishes the market with fresh listings when count runs low
+ */
+export function generateMarketBatch(
+  pool: SoccerCard[],
+  count: number = 6
+): TransferListing[] {
+  if (!pool || pool.length === 0) return [];
+
+  // Pick random cards from pool
+  const sample = [...pool].sort(() => 0.5 - Math.random()).slice(0, count);
+  return sample.map((card, idx) => createListingForCard(card, idx + Math.floor(Math.random() * 100)));
 }

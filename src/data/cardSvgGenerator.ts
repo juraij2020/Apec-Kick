@@ -68,16 +68,28 @@ export const PLAYSTYLE_PRESETS: Record<string, PlayStylePlusBadge> = {
 
 // Helper to create full-card SVG graphics matching the exact custom card shield template
 export function generateUserCardSvg(
-  name: string,
-  rating: number,
-  pos: string,
-  stats: { pac: number; sho: number; pas: number; dri: number; def: number; phy: number },
-  nationFlag: string,
-  clubText: string,
+  name: string = 'PLAYER',
+  rating: number = 80,
+  pos: string = 'ST',
+  stats: { pac: number; sho: number; pas: number; dri: number; def: number; phy: number } = { pac: 80, sho: 80, pas: 80, dri: 80, def: 80, phy: 80 },
+  nationFlag: string = '🏳️',
+  clubText: string = 'APEX',
   portraitEmojiOrUrl: string = '⚽',
   cardStyle: CardStyle = 'hof_gold_obsidian',
   playStylePlus?: PlayStylePlusBadge
 ): string {
+  const safeName = (name || 'PLAYER').toUpperCase();
+  const safeClub = (clubText || 'APEX').slice(0, 4).toUpperCase();
+  const safeFlag = nationFlag || '🏳️';
+  const safeStats = {
+    pac: stats?.pac ?? 80,
+    sho: stats?.sho ?? 80,
+    pas: stats?.pas ?? 80,
+    dri: stats?.dri ?? 80,
+    def: stats?.def ?? 80,
+    phy: stats?.phy ?? 80,
+  };
+  const safePortrait = portraitEmojiOrUrl || '⚽';
   const isGK = pos === 'GK';
   const l1 = isGK ? 'DIV' : 'PAC';
   const l2 = isGK ? 'HAN' : 'SHO';
@@ -258,9 +270,9 @@ export function generateUserCardSvg(
         <circle cx="0" cy="0" r="126"/>
       </clipPath>
       <circle cx="0" cy="0" r="128" fill="#18181b" stroke="${isStreetKings ? '#06b6d4' : isHOF ? '#ca8a04' : '#3f3f46'}" stroke-width="${isStreetKings ? '5' : '4'}" filter="${isStreetKings ? 'url(#goldGlow)' : 'none'}"/>
-      ${portraitEmojiOrUrl.startsWith('http') || portraitEmojiOrUrl.startsWith('data:') || portraitEmojiOrUrl.startsWith('/') || portraitEmojiOrUrl.includes('/') || portraitEmojiOrUrl.includes('.') || portraitEmojiOrUrl.length > 10
-        ? `<image href="${portraitEmojiOrUrl}" x="-126" y="-126" width="252" height="252" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarClip)"/>`
-        : `<text x="0" y="35" font-family="system-ui, sans-serif" font-size="110" text-anchor="middle">${portraitEmojiOrUrl}</text>`
+      ${safePortrait.startsWith('http') || safePortrait.startsWith('data:') || safePortrait.startsWith('/') || safePortrait.includes('/') || safePortrait.includes('.') || safePortrait.length > 10
+        ? `<image href="${safePortrait}" x="-126" y="-126" width="252" height="252" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarClip)"/>`
+        : `<text x="0" y="35" font-family="system-ui, sans-serif" font-size="110" text-anchor="middle">${safePortrait}</text>`
       }
     </g>
 
@@ -278,7 +290,7 @@ export function generateUserCardSvg(
 
     <!-- Player Name Banner Plate -->
     <rect x="100" y="565" width="444" height="60" fill="#000000" fill-opacity="${isHOF ? '0.75' : '0.5'}" rx="4" stroke="${isHOF ? '#ca8a04' : 'transparent'}" stroke-width="${isHOF ? '1.5' : '0'}"/>
-    <text x="322" y="610" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="42" fill="${isHOF ? '#ffffff' : '#ffffff'}" text-anchor="middle" letter-spacing="1.5">${name.toUpperCase()}</text>
+    <text x="322" y="610" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="42" fill="${isHOF ? '#ffffff' : '#ffffff'}" text-anchor="middle" letter-spacing="1.5">${safeName}</text>
 
     <!-- Stats Grid Divider Lines -->
     <line x1="110" y1="635" x2="534" y2="635" stroke="${isHOF ? '#eab308' : '#ffffff'}" stroke-opacity="${isHOF ? '0.5' : '0.2'}" stroke-width="2"/>
@@ -292,16 +304,16 @@ export function generateUserCardSvg(
     <text x="504" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isHOF ? '#fef08a' : '#ffffff'}" opacity="0.9" text-anchor="middle">${l6}</text>
 
     <!-- Stats Row 2: Values -->
-    <text x="140" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${stats.pac}</text>
-    <text x="212" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${stats.sho}</text>
-    <text x="284" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${stats.pas}</text>
-    <text x="360" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${stats.dri}</text>
-    <text x="432" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${stats.def}</text>
-    <text x="504" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${stats.phy}</text>
+    <text x="140" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.pac}</text>
+    <text x="212" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.sho}</text>
+    <text x="284" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.pas}</text>
+    <text x="360" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.dri}</text>
+    <text x="432" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.def}</text>
+    <text x="504" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.phy}</text>
 
     <!-- Bottom Badges (Flag, Star/Crown, Club) -->
     <g transform="translate(230, 770)">
-      <text x="0" y="10" font-size="44" text-anchor="middle">${nationFlag}</text>
+      <text x="0" y="10" font-size="44" text-anchor="middle">${safeFlag}</text>
     </g>
     <g transform="translate(322, 775)">
       <circle cx="0" cy="0" r="22" fill="#18181b" stroke="${isHOF ? '#facc15' : '#ca8a04'}" stroke-width="2"/>
@@ -309,7 +321,7 @@ export function generateUserCardSvg(
     </g>
     <g transform="translate(414, 775)">
       <circle cx="0" cy="0" r="24" fill="#18181b" stroke="${isHOF ? '#ca8a04' : '#71717a'}" stroke-width="2"/>
-      <text x="0" y="4" font-size="12" fill="#ffffff" font-weight="700" text-anchor="middle">${clubText.slice(0, 4).toUpperCase()}</text>
+      <text x="0" y="4" font-size="12" fill="#ffffff" font-weight="700" text-anchor="middle">${safeClub}</text>
     </g>
   </svg>`;
 

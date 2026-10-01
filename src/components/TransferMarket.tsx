@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { SoccerCard, TransferListing, TransferFilter } from '../types/card';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
@@ -10,6 +10,7 @@ import {
   Tag,
   ArrowUpDown,
   RotateCcw,
+  RotateCw,
   CheckCircle2,
   AlertCircle,
   Gavel,
@@ -23,6 +24,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { safeSetItem, safeGetItem, sanitizeListingsForStorage } from '../utils/safeStorage';
+import { generateInitialListings, generateMarketBatch } from '../data/initialMarketListings';
 
 interface TransferMarketProps {
   coins: number;
@@ -50,33 +52,83 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
   // Navigation tabs within Transfer Market
   const [activeTab, setActiveTab] = useState<'browse' | 'sell' | 'my_listings' | 'my_bids'>('browse');
 
-  // Load / initialize listings
+  // Hydrates card with complete rich properties from allCardsPool so SVG art, photos & stats are 100% complete
+  const hydrateCard = useCallback((card: SoccerCard): SoccerCard => {
+    if (!card) return card;
+    const match = allCardsPool.find(
+      (c) => c.id === card.id || (c.name.toLowerCase() === card.name?.toLowerCase() && c.rating === card.rating)
+    );
+    return match ? { ...card, ...match } : card;
+  }, [allCardsPool]);
+
+  // Load / initialize listings with auto-recovery for expired non-user listings
   const [listings, setListings] = useState<TransferListing[]>(() => {
     const saved = safeGetItem(STORAGE_MARKET_KEY);
+    const now = Date.now();
     if (saved) {
       try {
         const parsed: TransferListing[] = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          // Keep active listings that haven't expired, plus any user listings
+          const valid = parsed
+            .filter((l) => l.isUserListing || (l.status === 'active' && l.expiresAt > now))
+            .map((l) => ({
+              ...l,
+              card: l.card ? { ...l.card } : l.card,
+            }));
+
+          const activeCount = valid.filter((l) => l.status === 'active' && l.expiresAt > now).length;
+          // If we have at least 15 active listings, use them!
+          if (activeCount >= 15) {
+            return valid;
+          }
+          // Otherwise, generate fresh listings immediately and preserve user items
+          const fresh = generateInitialListings(allCardsPool);
+          const userItems = valid.filter((l) => l.isUserListing);
+          return [...userItems, ...fresh];
         }
       } catch (e) {
-        // Fallback
+        // Fallback to fresh seed
       }
     }
-    // Lazy load initial seed from storage or fallback
-    return [];
+    // Generate fresh initial listings from full pool (including Summer Transfers, Street Kings, etc.)
+    return generateInitialListings(allCardsPool);
   });
 
-  // Ensure initial seed if empty
+  // Re-hydrate card references whenever allCardsPool updates (e.g. after pack opens / custom cards added)
   useEffect(() => {
-    if (listings.length === 0) {
-      import('../data/initialMarketListings').then(({ generateInitialListings }) => {
-        const initial = generateInitialListings();
-        setListings(initial);
-        safeSetItem(STORAGE_MARKET_KEY, JSON.stringify(sanitizeListingsForStorage(initial)));
+    if (allCardsPool.length > 0) {
+      setListings((prevListings) => {
+        let changed = false;
+        const hydrated = prevListings.map((listing) => {
+          if (!listing.card) return listing;
+          const match = allCardsPool.find((c) => c.id === listing.card.id);
+          if (match && (!listing.card.fullCardImage || !listing.card.stats)) {
+            changed = true;
+            return { ...listing, card: { ...listing.card, ...match } };
+          }
+          return listing;
+        });
+        return changed ? hydrated : prevListings;
       });
     }
-  }, [listings.length]);
+  }, [allCardsPool]);
+
+  // Self-healing: Ensure market ALWAYS has at least 18 active listings visible to browse
+  useEffect(() => {
+    const now = Date.now();
+    const activeCount = listings.filter((l) => l.status === 'active' && l.expiresAt > now).length;
+    if (activeCount < 15) {
+      const fresh = generateInitialListings(allCardsPool);
+      setListings((prev) => {
+        const userItems = prev.filter((l) => l.isUserListing);
+        const existingActive = prev.filter((l) => !l.isUserListing && l.status === 'active' && l.expiresAt > now);
+        const updated = [...userItems, ...existingActive, ...fresh].slice(0, 50);
+        safeSetItem(STORAGE_MARKET_KEY, JSON.stringify(sanitizeListingsForStorage(updated)));
+        return updated;
+      });
+    }
+  }, [allCardsPool, listings.length]);
 
   // Persist listings safely
   useEffect(() => {
@@ -121,7 +173,20 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // Simulated market tick (AI bidding and simulated purchases on user items)
+  // Manual Refresh Handler
+  const handleManualRefresh = () => {
+    sound.playClick();
+    const fresh = generateInitialListings(allCardsPool);
+    setListings((prev) => {
+      const userItems = prev.filter((l) => l.isUserListing);
+      const combined = [...userItems, ...fresh];
+      safeSetItem(STORAGE_MARKET_KEY, JSON.stringify(sanitizeListingsForStorage(combined)));
+      return combined;
+    });
+    showToast('Market refreshed with 35+ active live auctions!', 'success');
+  };
+
+  // Simulated live market tick (AI bidding, expiration cleanup, and auto-replenishment)
   useEffect(() => {
     const timer = setInterval(() => {
       setListings((prevListings) => {
@@ -131,7 +196,6 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
         const updated = prevListings.map((listing) => {
           // If user listing is active and priced reasonably, simulate a chance of AI buyer
           if (listing.isUserListing && listing.status === 'active') {
-            // 20% chance per tick to get bought or bid on
             if (Math.random() < 0.22) {
               changed = true;
               return {
@@ -139,6 +203,19 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                 status: 'sold' as const,
                 buyerName: 'FutCollector_' + Math.floor(Math.random() * 899 + 100),
                 currentBid: listing.buyNowPrice,
+              };
+            }
+          }
+
+          // If non-user listing has simulated AI bidding activity
+          if (!listing.isUserListing && listing.status === 'active' && Math.random() < 0.14) {
+            const nextBid = listing.currentBid > 0 ? listing.currentBid + 500 : listing.startBid;
+            if (nextBid < listing.buyNowPrice) {
+              changed = true;
+              return {
+                ...listing,
+                currentBid: nextBid,
+                bidsCount: listing.bidsCount + 1,
               };
             }
           }
@@ -155,12 +232,25 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
           return listing;
         });
 
-        return changed ? updated : prevListings;
+        // Retain all user items, plus only non-user items that are still active or recently expired
+        const cleaned = updated.filter(
+          (l) => l.isUserListing || (l.status === 'active' && l.expiresAt > now)
+        );
+
+        // Auto-replenish if active auctions drop below 20
+        const activeCount = cleaned.filter((l) => l.status === 'active' && l.expiresAt > now).length;
+        if (activeCount < 20 && allCardsPool.length > 0) {
+          changed = true;
+          const freshBatch = generateMarketBatch(allCardsPool, 8);
+          return [...cleaned, ...freshBatch];
+        }
+
+        return changed ? cleaned : prevListings;
       });
-    }, 15000);
+    }, 12000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [allCardsPool]);
 
   // Filtered browse listings
   const filteredListings = useMemo(() => {
@@ -168,13 +258,16 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
       .filter((listing) => {
         if (listing.status !== 'active') return false;
 
-        const card = listing.card;
+        const rawCard = listing.card;
+        if (!rawCard) return false;
+        const card = hydrateCard(rawCard);
+
         // Search query
         if (filter.query.trim()) {
           const q = filter.query.toLowerCase();
-          const matchName = card.name.toLowerCase().includes(q);
-          const matchClub = card.club.toLowerCase().includes(q);
-          const matchNation = card.nation.toLowerCase().includes(q);
+          const matchName = (card.name || '').toLowerCase().includes(q);
+          const matchClub = (card.club || '').toLowerCase().includes(q);
+          const matchNation = (card.nation || '').toLowerCase().includes(q);
           if (!matchName && !matchClub && !matchNation) return false;
         }
 
@@ -187,8 +280,10 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
           if (!['FWD', 'MID', 'DEF', 'GK'].includes(filter.position) && card.position !== filter.position) return false;
         }
 
-        // Program
+        // Program (Support Summer Transfers, Street Kings, Intl, HOF, Futmas, Base, Icon)
         if (filter.program !== 'ALL') {
+          if (filter.program === 'summer' && card.program !== 'Summer Transfers' && card.rarity !== 'summer_transfers' && card.cardStyle !== 'summer_basic') return false;
+          if (filter.program === 'street_kings' && card.program !== 'Street Kings' && card.rarity !== 'street_kings') return false;
           if (filter.program === 'intl' && card.program !== 'International Moments' && card.rarity !== 'international_moments') return false;
           if (filter.program === 'hof' && card.program !== 'Hall of Fame' && card.rarity !== 'hall_of_fame') return false;
           if (filter.program === 'futmas' && card.program !== 'Futmas' && card.rarity !== 'futmas') return false;
@@ -197,17 +292,17 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
         }
 
         // Rating
-        if (filter.minRating > 0 && card.rating < filter.minRating) return false;
-        if (filter.maxRating < 99 && card.rating > filter.maxRating) return false;
+        if (filter.minRating > 0 && (card.rating || 0) < filter.minRating) return false;
+        if (filter.maxRating < 99 && (card.rating || 0) > filter.maxRating) return false;
 
         // Nation
         if (filter.nation && filter.nation !== 'ALL') {
-          if (card.nation.toLowerCase() !== filter.nation.toLowerCase()) return false;
+          if ((card.nation || '').toLowerCase() !== filter.nation.toLowerCase()) return false;
         }
 
         // Quality / Rarity
         if (filter.rarity && filter.rarity !== 'ALL') {
-          if (card.rarity !== filter.rarity) return false;
+          if (card.rarity !== filter.rarity && card.cardStyle !== filter.rarity) return false;
         }
 
         // PlayStyle
@@ -226,15 +321,19 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
 
         return true;
       })
+      .map((listing) => ({
+        ...listing,
+        card: hydrateCard(listing.card),
+      }))
       .sort((a, b) => {
         if (filter.sortBy === 'price_asc') return a.buyNowPrice - b.buyNowPrice;
         if (filter.sortBy === 'price_desc') return b.buyNowPrice - a.buyNowPrice;
-        if (filter.sortBy === 'rating_desc') return b.card.rating - a.card.rating;
-        if (filter.sortBy === 'rating_asc') return a.card.rating - b.card.rating;
+        if (filter.sortBy === 'rating_desc') return (b.card.rating || 0) - (a.card.rating || 0);
+        if (filter.sortBy === 'rating_asc') return (a.card.rating || 0) - (b.card.rating || 0);
         if (filter.sortBy === 'expires_soon') return a.expiresAt - b.expiresAt;
         return 0;
       });
-  }, [listings, filter]);
+  }, [listings, filter, hydrateCard]);
 
   // User listings & bids
   const userListings = useMemo(() => listings.filter((l) => l.isUserListing), [listings]);
@@ -652,6 +751,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
               <span className="text-[10px] uppercase font-black text-slate-500 mr-1">Program:</span>
               {[
                 { id: 'ALL', label: 'All Listings' },
+                { id: 'summer', label: '☀️ Summer Transfers' },
+                { id: 'street_kings', label: '⚡ Street Kings' },
                 { id: 'intl', label: '🌍 Intl Moments' },
                 { id: 'hof', label: '👑 Hall of Fame' },
                 { id: 'futmas', label: '❄️ Futmas' },
@@ -675,6 +776,15 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
               ))}
 
               <div className="ml-auto flex items-center gap-2">
+                <button
+                  onClick={handleManualRefresh}
+                  className="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-emerald-400 border border-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                  title="Generate fresh live market auctions"
+                >
+                  <RotateCw className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Refresh Market</span>
+                </button>
+
                 {(filter.query || filter.program !== 'ALL' || filter.position !== 'ALL' || filter.nation !== 'ALL' || filter.rarity !== 'ALL' || filter.playStyle !== 'ALL' || filter.instantBuyOnly || filter.minRating > 0 || filter.maxPrice < 1000000) && (
                   <button
                     onClick={handleResetFilters}
@@ -747,6 +857,8 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
                       className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:outline-none"
                     >
                       <option value="ALL">All Rarities</option>
+                      <option value="summer_transfers">☀️ Summer Transfers</option>
+                      <option value="street_kings">⚡ Street Kings</option>
                       <option value="international_moments">International Moments</option>
                       <option value="hall_of_fame">Hall of Fame</option>
                       <option value="futmas">Futmas Special</option>

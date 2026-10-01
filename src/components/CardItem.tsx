@@ -66,16 +66,16 @@ export const CardItem: React.FC<CardItemProps> = ({
   const cfg = sizeConfig[size];
 
   // Resolve card graphic: use custom-designed shield SVG or generate dynamically
-  const cardGraphicSrc = card.fullCardImage || generateUserCardSvg(
-    card.name,
-    card.rating,
-    card.position,
-    card.stats,
-    card.nationFlag,
-    card.club,
-    card.photoUrl || '⚽',
-    card.cardStyle || (card.program === 'Street Kings' ? 'street_kings_urban' : card.program === 'Summer Transfers' ? 'summer_basic' : card.program === 'Hall of Fame' ? 'hof_gold_obsidian' : card.program === 'Futmas' ? 'futmas_crimson' : card.rarity === 'base' ? 'classic_gold' : 'hof_gold_obsidian'),
-    card.playStylePlus
+  const cardGraphicSrc = card?.fullCardImage || generateUserCardSvg(
+    card?.name || 'PLAYER',
+    card?.rating || 80,
+    card?.position || 'ST',
+    card?.stats || { pac: 80, sho: 80, pas: 80, dri: 80, def: 80, phy: 80 },
+    card?.nationFlag || '🏳️',
+    card?.club || 'APEX',
+    card?.photoUrl || '⚽',
+    card?.cardStyle || (card?.program === 'Street Kings' ? 'street_kings_urban' : card?.program === 'Summer Transfers' ? 'summer_basic' : card?.program === 'Hall of Fame' ? 'hof_gold_obsidian' : card?.program === 'Futmas' ? 'futmas_crimson' : card?.rarity === 'base' ? 'classic_gold' : 'hof_gold_obsidian'),
+    card?.playStylePlus
   );
 
   return (
@@ -97,7 +97,7 @@ export const CardItem: React.FC<CardItemProps> = ({
         {/* Exact User-Designed Shield Card Vector */}
         <img
           src={cardGraphicSrc}
-          alt={card.name}
+          alt={card?.name || 'Player Card'}
           referrerPolicy="no-referrer"
           className="w-full h-full object-contain pointer-events-none select-none"
         />
