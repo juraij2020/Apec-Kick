@@ -1,174 +1,122 @@
-# Summer Premium Cards: Exact Rating & Transferred Club Alignment
+# Throwback Collection: Green 3D Flashback Cards Integration
 
-Synchronizes the Summer Premium collection to **only and strictly** contain the exact roster provided by the user, with every player assigned their specified rating (97, 98, or 99) and newly transferred club affiliation, complete with 644×900 SVG shield rendering, Summer Vault pack jackpot roll logic, and Transfer Market dynamic valuation.
+Integrates the **27 Throwback (Flashback)** player cards into the game with exact overall ratings, positions, historic clubs, and full 6-attribute stat clusters matching the uploaded images. Implements a dedicated emerald-green vector shield design with 3D flashback chevrons (`<<<`), cybernetic circuit patterns, and bottom "FW" badge, alongside a dedicated **Throwback Vault Pack** and **Transfer Market** integration.
 
 ***
 
-### User Review & Critical Decisions
+### User Decisions & Scope Confirmation
 
 > [!IMPORTANT]
-> **Summary of User's Explicit Specifications**:
-> 1. **Exclusive Roster**: The Summer Premium collection will contain **only** the exact player list provided by the user.
-> 2. **Exact Ratings**: Every player receives their exact rating (97, 98, or 99) as listed by the user.
-> 3. **Exact Transferred Clubs**: Each player is assigned to their newly transferred club (e.g. Lewandowski to Chicago Fire, Griezmann to Orlando City, Rodri to Barcelona, Araújo to Liverpool, Salah to Trabzonspor, etc.).
-> 4. **Pack Naming**: The pack remains titled "Summer Transfers Vault ☀️" (with subtle summer branding so users discover the blockbuster transfer twists).
-> 5. **Chemistry & League Links**: Clubs link directly to their respective official leagues (e.g., MLS for Chicago Fire & Orlando City; Premier League for Liverpool, Chelsea, Arsenal; La Liga for Real Madrid, Barcelona, Atlético; Süper Lig for Trabzonspor, Fenerbahçe, Beşiktaş).
+> **Summary of User Requirements & Preferences**:
+> 1. **27 Throwback Cards**: All 27 uploaded players (Messi 98, Ronaldo 98, Neymar Jr 95, Modrić 94, De Bruyne 94, Lewandowski 93, Benzema 92, Di María 92, Courtois 92, Telles 92, Szczęsny 91, Mané 90, Griezmann 89, Hakimi 89, Jordi Alba 89, Kanté 89, Alberto 89, Ziyech 88, Alonso 88, Delaney 88, Alexander-Arnold 87, Gómez 87, Müller 87, Donnarumma 87, Mahrez 86, Trippier 86, and Beek 85).
+> 2. **Exact Image Stats & Clubs**: Exact numbers from the card images (e.g. Messi at Barcelona, Ronaldo at Juventus, Neymar at PSG, Hakimi at Dortmund, Szczęsny at Arsenal, Telles at Porto, Trippier at Atlético Madrid).
+> 3. **Emerald Green & 3D Flashback Sign**: Card shield vector rendering features radiant emerald/lime borders, cyber circuit traces, prominent 3D green rewind chevrons (`<<<`), lime green typography, and the "FW" badge at the shield notch.
+> 4. **Obtaining Cards**: Players obtain these cards via a **Dedicated Throwback Pack** in the Store and through active **Transfer Market** listings (no clutter on navigation tabs).
 
 ***
 
-## 1. Complete Transferred Player Roster Table
+## 1. Complete Throwback 27-Card Roster Table
 
-Below is the verified 97-player roster mapping with exact user-specified ratings and transferred clubs:
+| # | Player | OVR | Pos | Nation | Flashback Club | League | PAC | SHO | PAS | DRI | DEF | PHY | PlayStyle+ |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Lionel Messi | 98 | RW | 🇦🇷 Argentina | FC Barcelona | La Liga | 93 | 98 | 98 | 99 | 45 | 72 | Finesse Shot+ |
+| 2 | Cristiano Ronaldo | 98 | ST | 🇵🇹 Portugal | Juventus | Serie A | 98 | 99 | 90 | 97 | 43 | 86 | Power Shot+ |
+| 3 | Neymar Jr | 95 | LW | 🇧🇷 Brazil | Paris Saint-Germain | Ligue 1 | 99 | 93 | 95 | 99 | 40 | 66 | Trickster+ |
+| 4 | Kevin De Bruyne | 94 | CAM | 🇧🇪 Belgium | Manchester City | Premier League | 84 | 94 | 99 | 95 | 69 | 86 | Incisive Pass+ |
+| 5 | Luka Modrić | 94 | CM | 🇭🇷 Croatia | Real Madrid | La Liga | 80 | 82 | 95 | 96 | 78 | 72 | Trivela+ |
+| 6 | Robert Lewandowski | 93 | ST | 🇵🇱 Poland | Bayern Munich | Bundesliga | 81 | 92 | 78 | 90 | 45 | 86 | Poacher+ |
+| 7 | Karim Benzema | 92 | ST | 🇫🇷 France | Real Madrid | La Liga | 85 | 92 | 89 | 95 | 49 | 86 | Finesse Shot+ |
+| 8 | Ángel Di María | 92 | RW | 🇦🇷 Argentina | Paris Saint-Germain | Ligue 1 | 92 | 87 | 92 | 95 | 56 | 76 | Trickster+ |
+| 9 | Thibaut Courtois | 92 | GK | 🇧🇪 Belgium | Real Madrid | La Liga | 90* | 94* | 77* | 92* | 53* | 90* | Cat Reflexes+ |
+| 10 | Alex Telles | 92 | LB | 🇧🇷 Brazil | FC Porto | Liga Portugal | 95 | 83 | 94 | 91 | 90 | 86 | Whipped Pass+ |
+| 11 | Wojciech Szczęsny | 91 | GK | 🇵🇱 Poland | Arsenal | Premier League | 91* | 88* | 79* | 94* | 53* | 92* | Far Reach+ |
+| 12 | Sadio Mané | 90 | LW | 🇸🇳 Senegal | Liverpool | Premier League | 96 | 88 | 81 | 92 | 48 | 78 | Rapid+ |
+| 13 | Luis Alberto | 89 | CM | 🇪🇸 Spain | Lazio | Serie A | 74 | 79 | 89 | 89 | 57 | 67 | Tiki Taka+ |
+| 14 | Antoine Griezmann | 89 | LW | 🇫🇷 France | FC Barcelona | La Liga | 83 | 88 | 86 | 91 | 59 | 76 | Finesse Shot+ |
+| 15 | Achraf Hakimi | 89 | RM | 🇲🇦 Morocco | Borussia Dortmund | Bundesliga | 99 | 85 | 88 | 93 | 85 | 88 | Quick Step+ |
+| 16 | Jordi Alba | 89 | LB | 🇪🇸 Spain | FC Barcelona | La Liga | 95 | 74 | 86 | 88 | 84 | 78 | Whipped Pass+ |
+| 17 | N'Golo Kanté | 89 | CDM | 🇫🇷 France | Chelsea | Premier League | 82 | 68 | 80 | 84 | 90 | 86 | Intercept+ |
+| 18 | Marcos Alonso | 88 | LWB | 🇪🇸 Spain | Chelsea | Premier League | 76 | 84 | 88 | 87 | 89 | 88 | Dead Ball+ |
+| 19 | Thomas Delaney | 88 | CDM | 🇩🇰 Denmark | Borussia Dortmund | Bundesliga | 83 | 79 | 81 | 81 | 89 | 88 | Bruiser+ |
+| 20 | Hakim Ziyech | 88 | CAM | 🇲🇦 Morocco | Ajax | Eredivisie | 86 | 81 | 92 | 89 | 56 | 72 | Whipped Pass+ |
+| 21 | Trent Alexander-Arnold | 87 | RB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Liverpool | Premier League | 86 | 71 | 89 | 83 | 85 | 76 | Long Ball Pass+ |
+| 22 | Gianluigi Donnarumma | 87 | GK | 🇮🇹 Italy | AC Milan | Serie A | 93* | 84* | 77* | 93* | 52* | 84* | Cat Reflexes+ |
+| 23 | Alejandro Gómez | 87 | CAM | 🇦🇷 Argentina | Atalanta | Serie A | 94 | 83 | 86 | 91 | 44 | 60 | Technical+ |
+| 24 | Thomas Müller | 87 | CM | 🇩🇪 Germany | Bayern Munich | Bundesliga | 73 | 84 | 80 | 79 | 56 | 72 | Relentless+ |
+| 25 | Riyad Mahrez | 86 | RW | 🇩🇿 Algeria | Manchester City | Premier League | 87 | 82 | 83 | 91 | 41 | 62 | Finesse Shot+ |
+| 26 | Kieran Trippier | 86 | RB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Atlético Madrid | La Liga | 90 | 79 | 87 | 82 | 84 | 78 | Whipped Pass+ |
+| 27 | Donny van de Beek | 85 | CDM | 🇳🇱 Netherlands | Ajax | Eredivisie | 77 | 84 | 82 | 84 | 76 | 84 | Anticipate+ |
 
-| # | Player | OVR | Pos | Nation | Transferred Club | League | Primary PlayStyle+ |
-|---|---|---|---|---|---|---|---|
-| 1 | Maghnes Akliouche | 99 | CAM | 🇫🇷 France | Paris Saint-Germain | Ligue 1 | Finesse Shot+ |
-| 2 | Kerim Alajbegović | 99 | LW | 🇧🇦 Bosnia | Juventus | Serie A | Rapid+ |
-| 3 | Thiago Almada | 99 | CAM | 🇦🇷 Argentina | River Plate | Primera División | Finesse Shot+ |
-| 4 | Ronald Araújo | 99 | CB | 🇺🇾 Uruguay | Liverpool | Premier League | Bruiser+ |
-| 5 | Pierre-Emerick Aubameyang | 97 | ST | 🇬🇦 Gabon | Deportivo La Coruña | La Liga 2 | Quick Step+ |
-| 6 | Valentín Barco | 99 | LB | 🇦🇷 Argentina | Chelsea | Premier League | Whipped Pass+ |
-| 7 | Bradley Barcola | 99 | LW | 🇫🇷 France | Liverpool | Premier League | Rapid+ |
-| 8 | Sebastian Berhalter | 99 | CM | 🇺🇸 USA | Middlesbrough | Championship | Dead Ball+ |
-| 9 | Bernardo Silva | 98 | CM | 🇵🇹 Portugal | Real Madrid | La Liga | Finesse Shot+ |
-| 10 | Bruno Guimarães | 99 | CM | 🇧🇷 Brazil | Arsenal | Premier League | Anticipate+ |
-| 11 | Ayyoub Bouaddi | 99 | CM | 🇫🇷 France | Manchester City | Premier League | Anticipate+ |
-| 12 | Casemiro | 98 | CDM | 🇧🇷 Brazil | Inter Miami | MLS | Bruiser+ |
-| 13 | Jonathan David | 99 | ST | 🇨🇦 Canada | Atlético Madrid | La Liga | Quick Step+ |
-| 14 | Amar Dedić | 98 | RB | 🇧🇦 Bosnia | Newcastle United | Premier League | Quick Step+ |
-| 15 | Lucas Digne | 99 | LB | 🇫🇷 France | Paris Saint-Germain | Ligue 1 | Whipped Pass+ |
-| 16 | Moussa Diaby | 99 | RW | 🇫🇷 France | Bayer Leverkusen | Bundesliga | Quick Step+ |
-| 17 | Issa Diop | 99 | CB | 🇫🇷 France | Ipswich Town | Premier League | Bruiser+ |
-| 18 | Marko Dragojević | 99 | GK | 🇲🇪 Montenegro | Rangers | Scottish Premiership | Cat Reflexes+ |
-| 19 | Denzel Dumfries | 98 | RB | 🇳🇱 Netherlands | Real Madrid | La Liga | Bruiser+ |
-| 20 | Breel Embolo | 99 | ST | 🇨🇭 Switzerland | Atlanta United | MLS | Bruiser+ |
-| 21 | Abdul Fatawu | 99 | RW | 🇬🇭 Ghana | Ipswich Town | Premier League | Rapid+ |
-| 22 | Enzo Fernández | 99 | CM | 🇦🇷 Argentina | Manchester City | Premier League | Whipped Pass+ |
-| 23 | Ferran Torres | 99 | LW | 🇪🇸 Spain | Paris Saint-Germain | Ligue 1 | Finesse Shot+ |
-| 24 | Konstantinos Fortounis | 99 | CAM | 🇬🇷 Greece | Olympiacos | Super League Greece | Dead Ball+ |
-| 25 | Gabriel Jesus | 99 | ST | 🇧🇷 Brazil | FC Barcelona | La Liga | Finesse Shot+ |
-| 26 | Lutsharel Geertruida | 97 | RB | 🇳🇱 Netherlands | PSV Eindhoven | Eredivisie | Anticipate+ |
-| 27 | Mika Godts | 99 | LW | 🇧🇪 Belgium | Paris Saint-Germain | Ligue 1 | Rapid+ |
-| 28 | Gonçalo Ramos | 99 | ST | 🇵🇹 Portugal | AC Milan | Serie A | Bruiser+ |
-| 29 | Anthony Gordon | 99 | LW | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | FC Barcelona | La Liga | Rapid+ |
-| 30 | Leon Goretzka | 99 | CM | 🇩🇪 Germany | Aston Villa | Premier League | Bruiser+ |
-| 31 | Antoine Griezmann | 99 | ST | 🇫🇷 France | Orlando City | MLS | Finesse Shot+ |
-| 32 | Álex Grimaldo | 97 | LWB | 🇪🇸 Spain | Atlético Madrid | La Liga | Whipped Pass+ |
-| 33 | Hayden Hackney | 99 | CM | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Everton | Premier League | Relentless+ |
-| 34 | Lucas Herrington | 98 | CB | 🇦🇺 Australia | Hull City | Championship | Anticipate+ |
-| 35 | Hwang In-Beom | 97 | CM | 🇰🇷 South Korea | FC Porto | Liga Portugal | Whipped Pass+ |
-| 36 | Christ Inao Oulaï | 98 | CB | 🇨🇮 Ivory Coast | Fiorentina | Serie A | Bruiser+ |
-| 37 | Nicolas Jackson | 99 | ST | 🇸🇳 Senegal | Aston Villa | Premier League | Quick Step+ |
-| 38 | Raúl Jiménez | 98 | ST | 🇲🇽 Mexico | Wolves | Premier League | Finesse Shot+ |
-| 39 | Hervé Koffi | 99 | GK | 🇧🇫 Burkina Faso | Union Saint-Gilloise | Pro League | Cat Reflexes+ |
-| 40 | Randal Kolo Muani | 99 | ST | 🇫🇷 France | Juventus | Serie A | Rapid+ |
-| 41 | Ezri Konsa | 99 | CB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Arsenal | Premier League | Anticipate+ |
-| 42 | Maxence Lacroix | 99 | CB | 🇫🇷 France | Chelsea | Premier League | Anticipate+ |
-| 43 | Lee Kang-In | 99 | CAM | 🇰🇷 South Korea | Atlético Madrid | La Liga | Finesse Shot+ |
-| 44 | Robert Lewandowski | 99 | ST | 🇵🇱 Poland | Chicago Fire | MLS | Finesse Shot+ |
-| 45 | Mateusz Lis | 97 | GK | 🇵🇱 Poland | Lech Poznań | Ekstraklasa | Cat Reflexes+ |
-| 46 | Romelu Lukaku | 99 | ST | 🇧🇪 Belgium | Fenerbahçe | Süper Lig | Bruiser+ |
-| 47 | Daizen Maeda | 98 | LW | 🇯🇵 Japan | Ipswich Town | Premier League | Rapid+ |
-| 48 | Siyabonga Makhanya | 97 | CB | 🇿🇦 South Africa | Rangers | Scottish Premiership | Bruiser+ |
-| 49 | Johan Manzambi | 99 | CAM | 🇨🇭 Switzerland | Aston Villa | Premier League | Quick Step+ |
-| 50 | Marc Cucurella | 98 | LB | 🇪🇸 Spain | Real Madrid | La Liga | Anticipate+ |
-| 51 | Omar Marmoush | 99 | ST | 🇪🇬 Egypt | Tottenham Hotspur | Premier League | Rapid+ |
-| 52 | Emiliano Martínez | 99 | GK | 🇦🇷 Argentina | Chelsea | Premier League | Cat Reflexes+ |
-| 53 | Franco Mastantuono | 99 | CAM | 🇦🇷 Argentina | Fiorentina | Serie A | Finesse Shot+ |
-| 54 | Ibrahim Mbaye | 99 | RW | 🇫🇷 France | Aston Villa | Premier League | Rapid+ |
-| 55 | Thomas Meunier | 97 | RB | 🇧🇪 Belgium | Sunderland | Championship | Bruiser+ |
-| 56 | Vedat Muriqi | 99 | ST | 🇽🇰 Kosovo | Fenerbahçe | Süper Lig | Bruiser+ |
-| 57 | Iliman Ndiaye | 99 | CAM | 🇸🇳 Senegal | Manchester City | Premier League | Quick Step+ |
-| 58 | Nico González | 99 | CM | 🇪🇸 Spain | Newcastle United | Premier League | Anticipate+ |
-| 59 | Christopher Nkunku | 99 | CAM | 🇫🇷 France | RB Leipzig | Bundesliga | Finesse Shot+ |
-| 60 | Loïs Openda | 98 | ST | 🇧🇪 Belgium | Lyon | Ligue 1 | Rapid+ |
-| 61 | Marco Palestra | 98 | RWB | 🇮🇹 Italy | Chelsea | Premier League | Relentless+ |
-| 62 | Deshane Payne | 98 | RB | 🇭🇳 Honduras | CD Olimpia | Liga Nacional | Quick Step+ |
-| 63 | Orbelín Pineda | 99 | CAM | 🇲🇽 Mexico | CF Monterrey | Liga MX | Finesse Shot+ |
-| 64 | Rafael Leão | 99 | LW | 🇵🇹 Portugal | Galatasaray | Süper Lig | Rapid+ |
-| 65 | Fabian Reese | 97 | LM | 🇩🇪 Germany | VfL Wolfsburg | Bundesliga | Rapid+ |
-| 66 | Tijjani Reijnders | 99 | CM | 🇳🇱 Netherlands | Al Qadsiah | Saudi Pro League | Relentless+ |
-| 67 | Andy Robertson | 98 | LB | 🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland | Tottenham Hotspur | Premier League | Whipped Pass+ |
-| 68 | Rodri | 99 | CDM | 🇪🇸 Spain | FC Barcelona | La Liga | Anticipate+ |
-| 69 | Morgan Rogers | 99 | CAM | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Chelsea | Premier League | Quick Step+ |
-| 70 | Cristian Romero | 99 | CB | 🇦🇷 Argentina | Atlético Madrid | La Liga | Bruiser+ |
-| 71 | Sohaib Saad | 97 | ST | 🇲🇦 Morocco | Nashville SC | MLS | Quick Step+ |
-| 72 | Ismaël Saibari | 99 | CM | 🇲🇦 Morocco | Bayern Munich | Bundesliga | Finesse Shot+ |
-| 73 | Allan Saint-Maximin | 97 | LW | 🇫🇷 France | Charlotte FC | MLS | Trickster+ |
-| 74 | Mohamed Salah | 99 | RW | 🇪🇬 Egypt | Trabzonspor | Süper Lig | Finesse Shot+ |
-| 75 | Ibrahim Sangaré | 99 | CDM | 🇨🇮 Ivory Coast | Brentford | Premier League | Bruiser+ |
-| 76 | Kodai Sano | 99 | CM | 🇯🇵 Japan | PSV Eindhoven | Eredivisie | Relentless+ |
-| 77 | Xaver Schlager | 99 | CM | 🇦🇹 Austria | Nottingham Forest | Premier League | Anticipate+ |
-| 78 | Djibril Sow | 99 | CM | 🇨🇭 Switzerland | Genoa | Serie A | Relentless+ |
-| 79 | Djed Spence | 99 | RB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Inter Milan | Serie A | Rapid+ |
-| 80 | John Stones | 99 | CB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Inter Milan | Serie A | Anticipate+ |
-| 81 | Jack Stroud | 99 | RM | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Hull City | Championship | Quick Step+ |
-| 82 | Crysencio Summerville | 99 | LW | 🇳🇱 Netherlands | Al Hilal | Saudi Pro League | Rapid+ |
-| 83 | Zion Suzuki | 99 | GK | 🇯🇵 Japan | Aston Villa | Premier League | Cat Reflexes+ |
-| 84 | Haris Tabaković | 98 | ST | 🇧🇦 Bosnia | RB Salzburg | Austrian Bundesliga | Bruiser+ |
-| 85 | Youri Tielemans | 99 | CM | 🇧🇪 Belgium | Manchester United | Premier League | Finesse Shot+ |
-| 86 | Kieran Trippier | 97 | RB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Wolves | Premier League | Whipped Pass+ |
-| 87 | Leandro Trossard | 99 | LW | 🇧🇪 Belgium | Beşiktaş | Süper Lig | Finesse Shot+ |
-| 88 | Christos Tzolis | 97 | LW | 🇬🇷 Greece | Arsenal | Premier League | Rapid+ |
-| 89 | Joey Veerman | 99 | CM | 🇳🇱 Netherlands | Borussia Dortmund | Bundesliga | Whipped Pass+ |
-| 90 | Vozinha | 99 | GK | 🇨🇻 Cape Verde | Colo-Colo | Primera División | Cat Reflexes+ |
-| 91 | Luka Vušković | 99 | CB | 🇭🇷 Croatia | Brighton | Premier League | Bruiser+ |
-| 92 | Ollie Watkins | 99 | ST | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Al Hilal | Saudi Pro League | Quick Step+ |
-| 93 | Danny Welbeck | 97 | ST | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Chelsea | Premier League | Bruiser+ |
-| 94 | Patrick Wimmer | 97 | RW | 🇦🇹 Austria | Hoffenheim | Bundesliga | Rapid+ |
-| 95 | Nick Woltemade | 99 | ST | 🇩🇪 Germany | Juventus | Serie A | Bruiser+ |
-| 96 | Yan Diomande | 99 | LW | 🇨🇮 Ivory Coast | Real Madrid | La Liga | Rapid+ |
-| 97 | Rodrigo Zalazar | 99 | CAM | 🇺🇾 Uruguay | Sporting CP | Liga Portugal | Dead Ball+ |
+*\*For GKs, stats represent DIV, HAN, KIC, REF, SPE, and POS as shown on the cards.*
 
 ***
 
-## 2. Technical Architecture & File Changes
+## 2. Card Design: Emerald Green with 3D Flashback Sign
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                   Summer Premium Image Data Sync                       │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-          ┌─────────────────────────┼─────────────────────────┐
-          ▼                         ▼                         ▼
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│  Image-Exact     │      │  Full SVG Shield │      │ Transfer Market  │
-│  Ratings & Clubs │      │  Generator 644x900│     │ Dynamic Pricing  │
-│ (summerPremium)  │      │  (cardSvgGen)    │      │ (initialListings)│
-└─────────┬────────┘      └─────────┬────────┘      └─────────┬────────┘
-          │                         │                         │
-          └─────────────────────────┼─────────────────────────┘
-                                    ▼
-                     ┌──────────────────────────────┐
-                     │   In-Game Card Experience    │
-                     │  - Summer Transfers Vault    │
-                     │  - Squad Builder & Chem      │
-                     │  - Pack Walkout Suspense     │
-                     └──────────────────────────────┘
-```
-
-1. **`src/data/summerPremiumCards.ts`**:
-   - Reconstruct `RAW_SUMMER_PREMIUM_ROSTER` containing **exclusively** the 97 user-provided players with their exact assigned rating and transferred club.
-   - Vector shield generation via `generateUserCardSvg` with the `summer_premium` shield style, exact ratings, dual PlayStyle+ traits, and transferred club acronyms.
-2. **`src/data/initialMarketListings.ts`**:
-   - Calibrate luxury market prices:
-     - 99 OVR cards: 3,400,000 – 3,950,000 coins
-     - 98 OVR cards: 2,500,000 – 2,900,000 coins
-     - 97 OVR cards: 1,500,000 – 1,900,000 coins
-   - Update marquee listings with notable transfers (e.g. Rodri to Barcelona, Lewandowski to Chicago Fire, Griezmann to Orlando City, Salah to Trabzonspor, Araújo to Liverpool).
-3. **`src/components/PackOpening.tsx`**:
-   - Verify that the Summer Transfers Vault pack walkout sequence reveals the player's nation, position, and newly transferred club badge before triggering the animated walkout card.
-4. **`src/components/SquadBuilder.tsx` & Chemistry Engine**:
-   - Verify club and league chemistry linking with the newly transferred clubs.
+In `src/data/cardSvgGenerator.ts`, a dedicated card style `'throwback'` / `'flashback'` will be introduced:
+- **Card Frame & Borders**: Deep forest-emerald to vibrant neon lime (`#052e16` -> `#16a34a` -> `#4ade80` -> `#22c55e`).
+- **Cybernetic Circuit Overlay**: Subtle circuit board PCB traces etched across the top half with green luminescence.
+- **3D Flashback Sign**: Distinctive multi-layered green chevron arrows (`<<<`) positioned behind the player figure, matching the 3D depth of the source images.
+- **Notch "FW" Emblem**: The circular badge with the green border and "FW" glyph at the bottom apex.
+- **Lime Typography**: High-legibility condensed green typography (`#22c55e` / `#4ade80`) for the OVR number, position label, player name header, and 6-stat attribute column.
 
 ***
 
-## 3. Step-by-Step Execution Plan
+## 3. Dedicated Pack & Transfer Market Implementation
 
-1. **Update `src/data/summerPremiumCards.ts`**:
-   - Replace the roster with all 97 exact players, ratings, and transferred clubs.
-   - Ensure vector generation outputs pristine 644×900 shields with the transferred club abbreviations and custom badges.
-2. **Update `src/data/initialMarketListings.ts`**:
-   - Refresh marquee Transfer Market listings with the newly transferred Summer Premium stars and accurate pricing.
-3. **Build & Lint Verification**:
-   - Execute `lint_applet` and `compile_applet` to confirm zero TypeScript errors and successful production build.
+1. **Dedicated Store Pack (`src/data/packs.ts`)**:
+   - **Pack Name**: `Throwback Rewind Pack ⏳`
+   - **Cost**: 35,000 Coins / 500 FP
+   - **Contents**: 5 Cards, guaranteed 1+ Throwback item (rating 85–98), featuring high odds for iconic throwback versions of Messi, Ronaldo, Neymar, De Bruyne, and Modrić.
+   - **Walkout Animation (`src/components/PackOpening.tsx`)**:
+     - Special glowing green stage lighting with emerald lasers.
+     - Flashback walkout banner: `⏳ THROWBACK FLASHBACK MASTERCLASS WALKOUT! ⏳`.
+     - Suspense sequence showing the player's nation flag, position, and historic club crest before the 3D card walkout.
+2. **Transfer Market (`src/components/TransferMarket.tsx` & `src/data/initialMarketListings.ts`)**:
+   - Add `throwback` to the program filter list (`⏳ Throwback`).
+   - Seed initial auction listings with marquee Throwback cards (e.g., Messi 98 at Barcelona, Ronaldo 98 at Juventus, Neymar 95 at PSG).
+   - Dynamic price calculation scaled to ratings:
+     - 98 OVR: 3,200,000 – 3,750,000 coins
+     - 94–95 OVR: 1,800,000 – 2,400,000 coins
+     - 90–93 OVR: 850,000 – 1,400,000 coins
+     - 85–89 OVR: 250,000 – 650,000 coins
+
+***
+
+## 4. Technical Architecture & File Plan
+
+- **`src/types/card.ts`**:
+  - Add `'throwback'` to `CardRarity` and `CardStyle` union types.
+- **`src/data/cardSvgGenerator.ts`**:
+  - Implement the `throwback` card frame, cybernetic background, 3D flashback chevron elements, FW bottom insignia, and green typography styling.
+- **`src/data/throwbackCards.ts` (NEW)**:
+  - Create the complete 27-player dataset with exact image stats, positions, clubs, nations, and pre-rendered vector card shields.
+- **`src/data/packs.ts`**:
+  - Add the `pack-throwback-rewind` store pack with Throwback program filters and guaranteed drop rates.
+- **`src/data/initialMarketListings.ts`**:
+  - Include Throwback cards in the initial listings pool and marquee featured cards.
+- **`src/components/TransferMarket.tsx`**:
+  - Add the quick filter button for `⏳ Throwback` cards.
+- **`src/components/PackOpening.tsx`**:
+  - Add Throwback walkout banner and emerald stadium visual effects.
+- **`src/App.tsx`**:
+  - Mount `THROWBACK_CARDS` in `allCardsPool` so all packs, squads, and chemistry calculations resolve seamlessly.
+
+***
+
+## 5. Step-by-Step Execution Plan
+
+1. **Update Types & Vector Generator**:
+   - Add `'throwback'` rarity and style to `src/types/card.ts`.
+   - Implement emerald green theme, 3D flashback chevrons (`<<<`), cyber traces, and FW badge in `src/data/cardSvgGenerator.ts`.
+2. **Build `src/data/throwbackCards.ts`**:
+   - Encode all 27 players with exact ratings, stats, and clubs from the images.
+3. **Add Throwback Pack in `src/data/packs.ts`**:
+   - Define `pack-throwback-rewind` with guaranteed Throwback player odds.
+4. **Update Pack Opening & Market**:
+   - Wire walkout banner and green FX in `src/components/PackOpening.tsx`.
+   - Add `⏳ Throwback` filter in `src/components/TransferMarket.tsx`.
+   - Seed marquee listings in `src/data/initialMarketListings.ts`.
+5. **App Integration & Verification**:
+   - Register cards in `src/App.tsx`.
+   - Run `lint_applet` and `compile_applet` to confirm zero errors and successful production build.

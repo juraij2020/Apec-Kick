@@ -8,6 +8,7 @@ import { SoccerCard, SBCChallenge, PackDefinition } from './types/card';
 import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS, HANEEN_MUSTAFA_CARD, HALL_OF_FAME_CARDS, FUTMAS_CARDS } from './data/defaultCards';
 import { STREET_KINGS_CARDS } from './data/streetKings';
 import { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS } from './data/summerCards';
+import { THROWBACK_CARDS } from './data/throwbackCards';
 import { INTERNATIONAL_MOMENTS_CARDS } from './data/internationalMoments';
 import { INITIAL_SBCS } from './data/sbcs';
 import { PACKS } from './data/packs';
@@ -307,6 +308,7 @@ export default function App() {
     STREET_KINGS_CARDS.forEach((c) => cardMap.set(c.id, c));
     SUMMER_BASIC_CARDS.forEach((c) => cardMap.set(c.id, c));
     SUMMER_PREMIUM_CARDS.forEach((c) => cardMap.set(c.id, c));
+    THROWBACK_CARDS.forEach((c) => cardMap.set(c.id, c));
     INTERNATIONAL_MOMENTS_CARDS.forEach((c) => cardMap.set(c.id, c));
     HALL_OF_FAME_CARDS.forEach((c) => cardMap.set(c.id, c));
     FUTMAS_CARDS.forEach((c) => cardMap.set(c.id, c));

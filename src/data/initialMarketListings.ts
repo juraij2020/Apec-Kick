@@ -3,6 +3,7 @@ import { INTERNATIONAL_MOMENTS_CARDS } from './internationalMoments';
 import { HALL_OF_FAME_CARDS, BASE_SOCCER_CARDS, FUTMAS_CARDS } from './defaultCards';
 import { STREET_KINGS_CARDS } from './streetKings';
 import { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS } from './summerCards';
+import { THROWBACK_CARDS } from './throwbackCards';
 
 const SELLER_NAMES = [
   'TransferGuru_99',
@@ -147,6 +148,7 @@ export function generateInitialListings(customPool?: SoccerCard[]): TransferList
       : [
           ...SUMMER_PREMIUM_CARDS,
           ...SUMMER_BASIC_CARDS,
+          ...THROWBACK_CARDS,
           ...STREET_KINGS_CARDS,
           ...INTERNATIONAL_MOMENTS_CARDS,
           ...HALL_OF_FAME_CARDS,
@@ -156,6 +158,12 @@ export function generateInitialListings(customPool?: SoccerCard[]): TransferList
 
   // Specific high-profile marquee players guaranteed to be listed first
   const marqueeIds = [
+    // Throwback Flashback Apex Icons
+    'throwback-messi-98',
+    'throwback-ronaldo-98',
+    'throwback-neymar-95',
+    'throwback-debruyne-94',
+    'throwback-modric-94',
     // Summer Premium 97-99 Transferred Apex Cards
     'summer-prem-lewandowski-99',
     'summer-prem-griezmann-99',

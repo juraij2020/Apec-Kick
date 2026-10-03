@@ -1,6 +1,6 @@
 {
-  "summary":  "Revised implementation plan strictly implementing the user's exact roster of 97 Summer Premium transferred players with their specified ratings (97, 98, 99) and newly transferred clubs. Details card generation, Summer Vault pack odds, dynamic Transfer Market luxury pricing, and squad chemistry integration.",
-  "updatedAt":  "2026-10-03T05:35:45.340276200Z",
+  "summary":  "Comprehensive implementation plan to introduce the new Throwback (Flashback) collection of 27 cards, featuring exact ratings, positions, clubs, and stats from the user's uploaded images, custom green 3D flashback shield styling with rewind chevrons and FW badge, dedicated Throwback store pack, and full Transfer Market integration.",
+  "updatedAt":  "2026-10-03T05:50:40.311778002Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

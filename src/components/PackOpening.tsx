@@ -282,6 +282,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
     setPulledCards(safeCards);
 
     const topCard = safeCards[0];
+    const hasThrowbackCard = safeCards.some(
+      (c) => c.program === 'Throwback' || c.rarity === 'throwback' || c.cardStyle === 'throwback'
+    );
     const hasSummerCard = safeCards.some(
       (c) => c.program === 'Summer Transfers' || c.program === 'Summer Premium' || c.rarity === 'summer_transfers' || c.rarity === 'summer_premium' || c.cardStyle === 'summer_basic' || c.cardStyle === 'summer_premium'
     );
@@ -290,6 +293,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
     );
     const isWalkout =
       pack.guaranteedWalkout ||
+      hasThrowbackCard ||
       hasSummerCard ||
       hasStreetKingsCard ||
       (topCard ? topCard.rating >= 78 : false) ||
@@ -1001,8 +1005,13 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/20 via-transparent to-transparent pointer-events-none" />
             <div className="absolute -top-24 w-96 h-96 bg-amber-400/20 blur-3xl rounded-full pointer-events-none animate-flare" />
 
-            {/* Summer Premium, Summer Transfers, Street Kings, International Moments, Hall of Fame, Futmas & Program One Walkout Announcement */}
-            {walkoutCard.program === 'Summer Premium' || walkoutCard.rarity === 'summer_premium' || walkoutCard.cardStyle === 'summer_premium' || (walkoutCard.program === 'Summer Transfers' && walkoutCard.rating >= 97) ? (
+            {/* Throwback, Summer Premium, Summer Transfers, Street Kings, International Moments, Hall of Fame, Futmas & Program One Walkout Announcement */}
+            {walkoutCard.program === 'Throwback' || walkoutCard.rarity === 'throwback' || walkoutCard.cardStyle === 'throwback' ? (
+              <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-950 via-slate-950 to-green-950 border-2 border-emerald-400 text-emerald-300 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_50px_rgba(34,197,94,0.9)] animate-pulse">
+                <Sparkles className="w-5 h-5 text-emerald-400 animate-spin" />
+                <span>⏳ THROWBACK FLASHBACK MASTERCLASS WALKOUT! ⏳</span>
+              </div>
+            ) : walkoutCard.program === 'Summer Premium' || walkoutCard.rarity === 'summer_premium' || walkoutCard.cardStyle === 'summer_premium' || (walkoutCard.program === 'Summer Transfers' && walkoutCard.rating >= 97) ? (
               <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-950 via-amber-950 to-pink-950 border-2 border-amber-300 text-amber-200 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_50px_rgba(251,191,36,0.9)] animate-pulse">
                 <Sparkles className="w-5 h-5 text-yellow-300 animate-spin" />
                 <span>☀️ 97-99 APEX SUMMER PREMIUM MYTHIC WALKOUT! 👑</span>

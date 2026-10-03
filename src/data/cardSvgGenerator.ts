@@ -98,6 +98,7 @@ export function generateUserCardSvg(
   const l5 = isGK ? 'SPD' : 'DEF';
   const l6 = isGK ? 'POS' : 'PHY';
 
+  const isThrowback = cardStyle === 'throwback';
   const isSummerPremium = cardStyle === 'summer_premium';
   const isObjectiveExclusive = cardStyle === 'objective_obsidian_gold' || (cardStyle as string) === 'objective_exclusive';
   const isSummerBasic = cardStyle === 'summer_basic' || (cardStyle as string) === 'summer_transfers';
@@ -106,7 +107,13 @@ export function generateUserCardSvg(
   const isGold = cardStyle === 'classic_gold';
   const isHOF = cardStyle === 'hof_gold_obsidian';
 
-  const borderStops = isSummerPremium
+  const borderStops = isThrowback
+    ? `<stop offset="0%" stop-color="#4ade80"/>
+       <stop offset="25%" stop-color="#22c55e"/>
+       <stop offset="50%" stop-color="#16a34a"/>
+       <stop offset="75%" stop-color="#15803d"/>
+       <stop offset="100%" stop-color="#4ade80"/>`
+    : isSummerPremium
     ? `<stop offset="0%" stop-color="#38bdf8"/>
        <stop offset="20%" stop-color="#06b6d4"/>
        <stop offset="45%" stop-color="#fef08a"/>
@@ -156,7 +163,12 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isSummerPremium
+  const shieldStops = isThrowback
+    ? `<stop offset="0%" stop-color="#022c22"/>
+       <stop offset="30%" stop-color="#064e3b"/>
+       <stop offset="65%" stop-color="#052e16"/>
+       <stop offset="100%" stop-color="#020d06"/>`
+    : isSummerPremium
     ? `<stop offset="0%" stop-color="#082f49"/>
        <stop offset="25%" stop-color="#0c4a6e"/>
        <stop offset="55%" stop-color="#164e63"/>
@@ -237,6 +249,20 @@ export function generateUserCardSvg(
       <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
         <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#eab308" flood-opacity="0.6"/>
       </filter>
+      <filter id="greenGlow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22c55e" flood-opacity="0.8"/>
+      </filter>
+      <linearGradient id="flashbackChevron" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#86efac"/>
+        <stop offset="30%" stop-color="#4ade80"/>
+        <stop offset="70%" stop-color="#22c55e"/>
+        <stop offset="100%" stop-color="#14532d"/>
+      </linearGradient>
+      <pattern id="cyberCircuit" width="36" height="36" patternUnits="userSpaceOnUse">
+        <path d="M 0 18 L 14 18 L 18 14 L 36 14 M 14 36 L 14 22 L 18 18 M 28 0 L 28 8 L 32 12" stroke="#16a34a" stroke-width="1.2" stroke-opacity="0.4" fill="none"/>
+        <circle cx="18" cy="14" r="2" fill="#22c55e" fill-opacity="0.6"/>
+        <circle cx="14" cy="22" r="2" fill="#4ade80" fill-opacity="0.6"/>
+      </pattern>
       <clipPath id="cardClip">
         <path d="M 322 108 C 300 128 275 140 252 118 C 220 95 105 170 85 220 L 85 710 C 85 790 250 865 322 885 C 394 865 559 790 559 710 L 559 220 C 539 170 424 95 392 118 C 369 140 344 128 322 108 Z"/>
       </clipPath>
@@ -250,6 +276,26 @@ export function generateUserCardSvg(
     <path d="M 322 108 C 300 128 275 140 252 118 C 220 95 105 170 85 220 L 85 710 C 85 790 250 865 322 885 C 394 865 559 790 559 710 L 559 220 C 539 170 424 95 392 118 C 369 140 344 128 322 108 Z" 
       fill="url(#cardShield)"/>
 
+    ${isThrowback ? `
+    <!-- Throwback Cybernetic Circuit Board & 3D Flashback Chevron Pattern -->
+    <g clip-path="url(#cardClip)">
+      <rect x="85" y="108" width="474" height="420" fill="url(#cyberCircuit)" opacity="0.65"/>
+      <!-- Glowing 3D Rewind Flashback Chevrons (<<<) -->
+      <g filter="url(#greenGlow)" transform="translate(345, 230)">
+        <!-- Layer 1 Deep Shadow Chevron -->
+        <path d="M 50 10 L -5 65 L 50 120 L 80 120 L 25 65 L 80 10 Z" fill="#022c22" opacity="0.9"/>
+        <!-- Layer 2 Front 3D Metallic Chevron -->
+        <path d="M 40 5 L -15 60 L 40 115 L 70 115 L 15 60 L 70 5 Z" fill="url(#flashbackChevron)" stroke="#86efac" stroke-width="3"/>
+        <path d="M 40 5 L -15 60 L -10 60 L 45 5 Z" fill="#ffffff" opacity="0.5"/>
+
+        <!-- Layer 3 Second 3D Chevron -->
+        <path d="M 100 5 L 45 60 L 100 115 L 130 115 L 75 60 L 130 5 Z" fill="url(#flashbackChevron)" stroke="#4ade80" stroke-width="2.5" opacity="0.85"/>
+        
+        <!-- Layer 4 Third 3D Chevron -->
+        <path d="M 160 5 L 105 60 L 160 115 L 190 115 L 135 60 L 190 5 Z" fill="url(#flashbackChevron)" stroke="#22c55e" stroke-width="2" opacity="0.7"/>
+      </g>
+    </g>
+    ` : `
     <!-- Gold Geometry Pattern & Carbon Textures -->
     <g opacity="${isHOF ? '0.55' : isSummerPremium ? '0.6' : '0.4'}" clip-path="url(#cardClip)">
       <polygon points="410,160 520,270 470,320 360,210" fill="url(#cardLines)" />
@@ -264,8 +310,12 @@ export function generateUserCardSvg(
       <line x1="150" y1="160" x2="330" y2="340" stroke="#facc15" stroke-width="2" stroke-opacity="0.3"/>
       ` : ''}
     </g>
+    `}
 
-    ${isSummerPremium ? `
+    ${isThrowback ? `
+    <!-- Throwback Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#4ade80" letter-spacing="3" text-anchor="middle" filter="url(#greenGlow)">⏳ THROWBACK FLASHBACK ⏳</text>
+    ` : isSummerPremium ? `
     <!-- Summer Premium Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#fde047" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">☀️ SUMMER PREMIUM ☀️</text>
     ` : isSummerBasic ? `
@@ -282,16 +332,29 @@ export function generateUserCardSvg(
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#fef08a" letter-spacing="4" text-anchor="middle" filter="url(#goldGlow)">HALL OF FAME</text>
     ` : ''}
 
+    ${isThrowback ? `
+    <!-- Top Left Rating & Position Stack for Throwback -->
+    <text x="135" y="240" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="78" fill="#22c55e" text-anchor="middle" filter="url(#greenGlow)">${rating}</text>
+    <text x="135" y="280" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="32" fill="#22c55e" text-anchor="middle">${pos}</text>
+    <g transform="translate(135, 335)">
+      <text x="0" y="4" font-size="34" text-anchor="middle">${safeFlag}</text>
+    </g>
+    <g transform="translate(135, 415)">
+      <circle cx="0" cy="0" r="24" fill="#022c22" stroke="#22c55e" stroke-width="2"/>
+      <text x="0" y="4" font-size="11" font-weight="900" fill="#86efac" text-anchor="middle">${safeClub}</text>
+    </g>
+    ` : `
     <!-- Top Left Rating & Position Stack -->
     <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isSummerPremium ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isHOF || isSummerPremium ? 'url(#goldGlow)' : 'none'}">${rating}</text>
     <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isHOF ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
+    `}
 
     <!-- Center Player Face Silhouette / Avatar placeholder -->
     <g transform="translate(322, 380)">
       <clipPath id="avatarClip">
         <circle cx="0" cy="0" r="126"/>
       </clipPath>
-      <circle cx="0" cy="0" r="128" fill="#18181b" stroke="${isStreetKings ? '#06b6d4' : isHOF ? '#ca8a04' : '#3f3f46'}" stroke-width="${isStreetKings ? '5' : '4'}" filter="${isStreetKings ? 'url(#goldGlow)' : 'none'}"/>
+      <circle cx="0" cy="0" r="128" fill="#18181b" stroke="${isThrowback ? '#22c55e' : isStreetKings ? '#06b6d4' : isHOF ? '#ca8a04' : '#3f3f46'}" stroke-width="${isThrowback ? '4' : isStreetKings ? '5' : '4'}" filter="${isThrowback ? 'url(#greenGlow)' : isStreetKings ? 'url(#goldGlow)' : 'none'}"/>
       ${safePortrait.startsWith('http') || safePortrait.startsWith('data:') || safePortrait.startsWith('/') || safePortrait.includes('/') || safePortrait.includes('.') || safePortrait.length > 10
         ? `<image href="${safePortrait}" x="-126" y="-126" width="252" height="252" preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarClip)"/>`
         : `<text x="0" y="35" font-family="system-ui, sans-serif" font-size="110" text-anchor="middle">${safePortrait}</text>`
@@ -300,17 +363,55 @@ export function generateUserCardSvg(
 
     <!-- PlayStyle Plus Crest on Card (if active) -->
     ${playStylePlus ? `
-    <g transform="translate(322, 516)" filter="url(#goldGlow)">
-      <polygon points="0,-18 18,0 0,18 -18,0" fill="#09090b" stroke="#facc15" stroke-width="2.5"/>
-      <polygon points="0,-14 14,0 0,14 -14,0" fill="#ca8a04" fill-opacity="0.35"/>
+    <g transform="translate(322, 516)" filter="${isThrowback ? 'url(#greenGlow)' : 'url(#goldGlow)'}">
+      <polygon points="0,-18 18,0 0,18 -18,0" fill="#09090b" stroke="${isThrowback ? '#4ade80' : '#facc15'}" stroke-width="2.5"/>
+      <polygon points="0,-14 14,0 0,14 -14,0" fill="${isThrowback ? '#16a34a' : '#ca8a04'}" fill-opacity="0.35"/>
       <text x="0" y="6" font-size="15" text-anchor="middle">${playStylePlus.iconSymbol}</text>
       <!-- Mini PS+ pill badge -->
-      <rect x="-18" y="20" width="36" height="11" rx="3" fill="#000000" stroke="#ca8a04" stroke-width="1"/>
-      <text x="0" y="29" font-family="system-ui, sans-serif" font-weight="900" font-size="8" fill="#fef08a" text-anchor="middle" letter-spacing="0.5">PS+</text>
+      <rect x="-18" y="20" width="36" height="11" rx="3" fill="#000000" stroke="${isThrowback ? '#22c55e' : '#ca8a04'}" stroke-width="1"/>
+      <text x="0" y="29" font-family="system-ui, sans-serif" font-weight="900" font-size="8" fill="${isThrowback ? '#86efac' : '#fef08a'}" text-anchor="middle" letter-spacing="0.5">PS+</text>
     </g>
     ` : ''}
 
-    <!-- Player Name Banner Plate -->
+    ${isThrowback ? `
+    <!-- Player Name Banner Plate for Throwback -->
+    <rect x="100" y="555" width="444" height="46" fill="#000000" fill-opacity="0.7" rx="4"/>
+    <text x="322" y="590" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="36" fill="#22c55e" text-anchor="middle" letter-spacing="2" filter="url(#greenGlow)">${safeName}</text>
+    <line x1="150" y1="605" x2="494" y2="605" stroke="#16a34a" stroke-width="1.8"/>
+
+    <!-- Stats 2-Column Exact Layout for Throwback -->
+    <g transform="translate(0, 625)">
+      <!-- Left Column: PAC, SHO, PAS (or DIV, HAN, KIC for GK) -->
+      <text x="210" y="32" font-family="sans-serif" font-weight="900" font-size="32" fill="#22c55e" text-anchor="end">${safeStats.pac}</text>
+      <text x="225" y="32" font-family="sans-serif" font-weight="800" font-size="28" fill="#22c55e" text-anchor="start">${l1}</text>
+      
+      <text x="210" y="72" font-family="sans-serif" font-weight="900" font-size="32" fill="#22c55e" text-anchor="end">${safeStats.sho}</text>
+      <text x="225" y="72" font-family="sans-serif" font-weight="800" font-size="28" fill="#22c55e" text-anchor="start">${l2}</text>
+      
+      <text x="210" y="112" font-family="sans-serif" font-weight="900" font-size="32" fill="#22c55e" text-anchor="end">${safeStats.pas}</text>
+      <text x="225" y="112" font-family="sans-serif" font-weight="800" font-size="28" fill="#22c55e" text-anchor="start">${l3}</text>
+
+      <!-- Center Divider Line -->
+      <line x1="322" y1="6" x2="322" y2="124" stroke="#16a34a" stroke-width="2" stroke-opacity="0.6"/>
+
+      <!-- Right Column: DRI, DEF, PHY (or REF, SPE, POS for GK) -->
+      <text x="430" y="32" font-family="sans-serif" font-weight="900" font-size="32" fill="#22c55e" text-anchor="end">${safeStats.dri}</text>
+      <text x="445" y="32" font-family="sans-serif" font-weight="800" font-size="28" fill="#22c55e" text-anchor="start">${l4}</text>
+      
+      <text x="430" y="72" font-family="sans-serif" font-weight="900" font-size="32" fill="#22c55e" text-anchor="end">${safeStats.def}</text>
+      <text x="445" y="72" font-family="sans-serif" font-weight="800" font-size="28" fill="#22c55e" text-anchor="start">${l5}</text>
+      
+      <text x="430" y="112" font-family="sans-serif" font-weight="900" font-size="32" fill="#22c55e" text-anchor="end">${safeStats.phy}</text>
+      <text x="445" y="112" font-family="sans-serif" font-weight="800" font-size="28" fill="#22c55e" text-anchor="start">${l6}</text>
+    </g>
+
+    <!-- Bottom FW / Flashback Emblem -->
+    <g transform="translate(322, 792)">
+      <circle cx="0" cy="0" r="22" fill="#022c22" stroke="#22c55e" stroke-width="2"/>
+      <text x="0" y="6" font-family="sans-serif" font-weight="900" font-size="14" fill="#4ade80" text-anchor="middle">FW</text>
+    </g>
+    ` : `
+    <!-- Standard Player Name Banner Plate -->
     <rect x="100" y="565" width="444" height="60" fill="#000000" fill-opacity="${isHOF ? '0.75' : '0.5'}" rx="4" stroke="${isHOF ? '#ca8a04' : 'transparent'}" stroke-width="${isHOF ? '1.5' : '0'}"/>
     <text x="322" y="610" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="42" fill="${isHOF ? '#ffffff' : '#ffffff'}" text-anchor="middle" letter-spacing="1.5">${safeName}</text>
 
@@ -345,6 +446,7 @@ export function generateUserCardSvg(
       <circle cx="0" cy="0" r="24" fill="#18181b" stroke="${isHOF ? '#ca8a04' : '#71717a'}" stroke-width="2"/>
       <text x="0" y="4" font-size="12" fill="#ffffff" font-weight="700" text-anchor="middle">${safeClub}</text>
     </g>
+    `}
   </svg>`;
 
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;

@@ -19,7 +19,8 @@ export type CardRarity =
   | 'custom'
   | 'objective_exclusive'
   | 'summer_transfers'
-  | 'summer_premium';
+  | 'summer_premium'
+  | 'throwback';
 
 export type CardStyle =
   | 'street_kings_urban'
@@ -35,7 +36,8 @@ export type CardStyle =
   | 'emerald_legend'
   | 'objective_obsidian_gold'
   | 'summer_basic'
-  | 'summer_premium';
+  | 'summer_premium'
+  | 'throwback';
 
 export type PackTheme = 
   | 'street_kings'
@@ -53,7 +55,8 @@ export type PackTheme =
   | 'custom' 
   | 'mega' 
   | 'icon'
-  | 'summer_pack';
+  | 'summer_pack'
+  | 'throwback_pack';
 
 export type PlayStylePlusType = 
   | 'quick_step'     // +12 Pace burst & breakaway finishing
