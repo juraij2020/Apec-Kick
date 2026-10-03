@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SoccerCard, PackDefinition } from '../types/card';
 import { CardItem } from './CardItem';
+import { PackDuoGame } from './PackDuoGame';
 import { sound } from '../utils/audio';
 import { HL_REWARD_LADDER, getGuessWhoTierReward } from '../data/rewardPacks';
 import {
@@ -26,6 +27,7 @@ import {
   Info,
   ChevronRight,
   ExternalLink,
+  Swords,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { safeSetItem } from '../utils/safeStorage';
@@ -35,12 +37,12 @@ interface MiniGamesHubProps {
   allCardsPool: SoccerCard[];
   onAddCoins: (amount: number) => void;
   onAddCardsToClub: (cards: SoccerCard[]) => void;
-  onAddUnopenedPack: (pack: PackDefinition, sourceTitle: string, sourceType: 'high_low' | 'guess_who') => void;
+  onAddUnopenedPack: (pack: PackDefinition, sourceTitle: string, sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo') => void;
   onNavigateToMyPacks?: () => void;
   onMiniGamePlayed?: () => void;
 }
 
-type MiniGameMode = 'high_low' | 'guess_who';
+type MiniGameMode = 'high_low' | 'guess_who' | 'pack_duo';
 type HighLowStat = 'rating' | 'pac' | 'sho' | 'pas' | 'dri';
 
 export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
@@ -380,7 +382,22 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             }`}
           >
             <HelpCircle className="w-4 h-4" />
-            <span>Guess Who (Mystery Player)</span>
+            <span>Guess Who</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveGame('pack_duo');
+              sound.playClick();
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              activeGame === 'pack_duo'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-lg scale-105'
+                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Swords className="w-4 h-4" />
+            <span>⚔️ Pack Duo (50-Pack Showdown)</span>
           </button>
         </div>
       </div>
@@ -1053,6 +1070,17 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* GAME 3: PACK DUO 50-PACK SPEED DRAFT, 5 CHECKLISTS & SHOWDOWN */}
+      {/* ========================================================================= */}
+      {activeGame === 'pack_duo' && (
+        <PackDuoGame
+          allCardsPool={allCardsPool}
+          onAddUnopenedPack={onAddUnopenedPack}
+          onNavigateToMyPacks={onNavigateToMyPacks}
+        />
       )}
     </div>
   );

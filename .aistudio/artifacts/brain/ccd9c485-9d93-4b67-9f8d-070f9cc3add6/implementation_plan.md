@@ -1,6 +1,6 @@
-# Throwback Collection: Green 3D Flashback Cards Integration
+# Pack Duo Game Mode: 50-Pack Speed Draft, 5 Checklists & Head-to-Head Showdown
 
-Integrates the **27 Throwback (Flashback)** player cards into the game with exact overall ratings, positions, historic clubs, and full 6-attribute stat clusters matching the uploaded images. Implements a dedicated emerald-green vector shield design with 3D flashback chevrons (`<<<`), cybernetic circuit patterns, and bottom "FW" badge, alongside a dedicated **Throwback Vault Pack** and **Transfer Market** integration.
+Introduces the **Pack Duo** competitive game mode inside the Mini Games Hub. Players compete against either an **Online User** (simulated live multiplayer matchmaking with gamer tags) or an **AI Rival**, opening 50 speed-draft packs while racing to complete 5 dynamic challenge checklists. Players then craft an 11-player squad from their temporary draft pool and enter a dramatic head-to-head showdown comparing Rating, Full Chemistry, League Count, Nationality Count, and Checklists Completed. Winning matches earns **Duo Points**, which can be redeemed in the built-in **Duo Rewards Shop** for premium packs that are deposited directly into the player's permanent **My Packs** vault.
 
 ***
 
@@ -8,115 +8,119 @@ Integrates the **27 Throwback (Flashback)** player cards into the game with exac
 
 > [!IMPORTANT]
 > **Summary of User Requirements & Preferences**:
-> 1. **27 Throwback Cards**: All 27 uploaded players (Messi 98, Ronaldo 98, Neymar Jr 95, Modrić 94, De Bruyne 94, Lewandowski 93, Benzema 92, Di María 92, Courtois 92, Telles 92, Szczęsny 91, Mané 90, Griezmann 89, Hakimi 89, Jordi Alba 89, Kanté 89, Alberto 89, Ziyech 88, Alonso 88, Delaney 88, Alexander-Arnold 87, Gómez 87, Müller 87, Donnarumma 87, Mahrez 86, Trippier 86, and Beek 85).
-> 2. **Exact Image Stats & Clubs**: Exact numbers from the card images (e.g. Messi at Barcelona, Ronaldo at Juventus, Neymar at PSG, Hakimi at Dortmund, Szczęsny at Arsenal, Telles at Porto, Trippier at Atlético Madrid).
-> 3. **Emerald Green & 3D Flashback Sign**: Card shield vector rendering features radiant emerald/lime borders, cyber circuit traces, prominent 3D green rewind chevrons (`<<<`), lime green typography, and the "FW" badge at the shield notch.
-> 4. **Obtaining Cards**: Players obtain these cards via a **Dedicated Throwback Pack** in the Store and through active **Transfer Market** listings (no clutter on navigation tabs).
+> 1. **50 Instant Packs**: 50 packs are granted immediately at match start, openable via fast single, batch (5x/10x), or instant auto-rip controls.
+> 2. **5 In-Pack Challenge Checklists**: 5 randomized target checklists per match (e.g. Real Madrid 87+, specific league with OVR requirement, specific collection/program with OVR requirement, specific nationality with OVR requirement, and 92+ Apex walkout).
+> 3. **Matchmaking Modes**: Option to click **"Compete Against AI"** or **"Compete Against Online Users"** with real-time simulated rival drafts.
+> 4. **Squad Building Phase**: Build a starting 11 using solely the players pulled from the 50 packs (best squad auto-builder + manual adjustments). These cards do **not** enter the player's permanent club inventory (temporary draft pool).
+> 5. **5-Pillar Head-to-Head Comparison**:
+>    - **Overall Rating**
+>    - **Full Chemistry (0–33)**
+>    - **Distinct Leagues Count**
+>    - **Distinct Nationalities Count**
+>    - **Checklists Completed Count (0–5)**
+>    - Each category awards showdown points; the winner of the total score claims the match and earns **Duo Points**.
+> 6. **Duo Rewards Shop (Small Tab inside Pack Duo)**: Buy packs across tiered Duo Point costs (from 50 pts to 1400 pts); purchased packs are deposited into **My Packs** (`StoredRewardPack`) to be opened and kept in the real club!
 
 ***
 
-## 1. Complete Throwback 27-Card Roster Table
+## 1. Game Flow Architecture
 
-| # | Player | OVR | Pos | Nation | Flashback Club | League | PAC | SHO | PAS | DRI | DEF | PHY | PlayStyle+ |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | Lionel Messi | 98 | RW | 🇦🇷 Argentina | FC Barcelona | La Liga | 93 | 98 | 98 | 99 | 45 | 72 | Finesse Shot+ |
-| 2 | Cristiano Ronaldo | 98 | ST | 🇵🇹 Portugal | Juventus | Serie A | 98 | 99 | 90 | 97 | 43 | 86 | Power Shot+ |
-| 3 | Neymar Jr | 95 | LW | 🇧🇷 Brazil | Paris Saint-Germain | Ligue 1 | 99 | 93 | 95 | 99 | 40 | 66 | Trickster+ |
-| 4 | Kevin De Bruyne | 94 | CAM | 🇧🇪 Belgium | Manchester City | Premier League | 84 | 94 | 99 | 95 | 69 | 86 | Incisive Pass+ |
-| 5 | Luka Modrić | 94 | CM | 🇭🇷 Croatia | Real Madrid | La Liga | 80 | 82 | 95 | 96 | 78 | 72 | Trivela+ |
-| 6 | Robert Lewandowski | 93 | ST | 🇵🇱 Poland | Bayern Munich | Bundesliga | 81 | 92 | 78 | 90 | 45 | 86 | Poacher+ |
-| 7 | Karim Benzema | 92 | ST | 🇫🇷 France | Real Madrid | La Liga | 85 | 92 | 89 | 95 | 49 | 86 | Finesse Shot+ |
-| 8 | Ángel Di María | 92 | RW | 🇦🇷 Argentina | Paris Saint-Germain | Ligue 1 | 92 | 87 | 92 | 95 | 56 | 76 | Trickster+ |
-| 9 | Thibaut Courtois | 92 | GK | 🇧🇪 Belgium | Real Madrid | La Liga | 90* | 94* | 77* | 92* | 53* | 90* | Cat Reflexes+ |
-| 10 | Alex Telles | 92 | LB | 🇧🇷 Brazil | FC Porto | Liga Portugal | 95 | 83 | 94 | 91 | 90 | 86 | Whipped Pass+ |
-| 11 | Wojciech Szczęsny | 91 | GK | 🇵🇱 Poland | Arsenal | Premier League | 91* | 88* | 79* | 94* | 53* | 92* | Far Reach+ |
-| 12 | Sadio Mané | 90 | LW | 🇸🇳 Senegal | Liverpool | Premier League | 96 | 88 | 81 | 92 | 48 | 78 | Rapid+ |
-| 13 | Luis Alberto | 89 | CM | 🇪🇸 Spain | Lazio | Serie A | 74 | 79 | 89 | 89 | 57 | 67 | Tiki Taka+ |
-| 14 | Antoine Griezmann | 89 | LW | 🇫🇷 France | FC Barcelona | La Liga | 83 | 88 | 86 | 91 | 59 | 76 | Finesse Shot+ |
-| 15 | Achraf Hakimi | 89 | RM | 🇲🇦 Morocco | Borussia Dortmund | Bundesliga | 99 | 85 | 88 | 93 | 85 | 88 | Quick Step+ |
-| 16 | Jordi Alba | 89 | LB | 🇪🇸 Spain | FC Barcelona | La Liga | 95 | 74 | 86 | 88 | 84 | 78 | Whipped Pass+ |
-| 17 | N'Golo Kanté | 89 | CDM | 🇫🇷 France | Chelsea | Premier League | 82 | 68 | 80 | 84 | 90 | 86 | Intercept+ |
-| 18 | Marcos Alonso | 88 | LWB | 🇪🇸 Spain | Chelsea | Premier League | 76 | 84 | 88 | 87 | 89 | 88 | Dead Ball+ |
-| 19 | Thomas Delaney | 88 | CDM | 🇩🇰 Denmark | Borussia Dortmund | Bundesliga | 83 | 79 | 81 | 81 | 89 | 88 | Bruiser+ |
-| 20 | Hakim Ziyech | 88 | CAM | 🇲🇦 Morocco | Ajax | Eredivisie | 86 | 81 | 92 | 89 | 56 | 72 | Whipped Pass+ |
-| 21 | Trent Alexander-Arnold | 87 | RB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Liverpool | Premier League | 86 | 71 | 89 | 83 | 85 | 76 | Long Ball Pass+ |
-| 22 | Gianluigi Donnarumma | 87 | GK | 🇮🇹 Italy | AC Milan | Serie A | 93* | 84* | 77* | 93* | 52* | 84* | Cat Reflexes+ |
-| 23 | Alejandro Gómez | 87 | CAM | 🇦🇷 Argentina | Atalanta | Serie A | 94 | 83 | 86 | 91 | 44 | 60 | Technical+ |
-| 24 | Thomas Müller | 87 | CM | 🇩🇪 Germany | Bayern Munich | Bundesliga | 73 | 84 | 80 | 79 | 56 | 72 | Relentless+ |
-| 25 | Riyad Mahrez | 86 | RW | 🇩🇿 Algeria | Manchester City | Premier League | 87 | 82 | 83 | 91 | 41 | 62 | Finesse Shot+ |
-| 26 | Kieran Trippier | 86 | RB | 🏴󠁧󠁢󠁥󠁮󠁧󠁿 England | Atlético Madrid | La Liga | 90 | 79 | 87 | 82 | 84 | 78 | Whipped Pass+ |
-| 27 | Donny van de Beek | 85 | CDM | 🇳🇱 Netherlands | Ajax | Eredivisie | 77 | 84 | 82 | 84 | 76 | 84 | Anticipate+ |
-
-*\*For GKs, stats represent DIV, HAN, KIC, REF, SPE, and POS as shown on the cards.*
-
-***
-
-## 2. Card Design: Emerald Green with 3D Flashback Sign
-
-In `src/data/cardSvgGenerator.ts`, a dedicated card style `'throwback'` / `'flashback'` will be introduced:
-- **Card Frame & Borders**: Deep forest-emerald to vibrant neon lime (`#052e16` -> `#16a34a` -> `#4ade80` -> `#22c55e`).
-- **Cybernetic Circuit Overlay**: Subtle circuit board PCB traces etched across the top half with green luminescence.
-- **3D Flashback Sign**: Distinctive multi-layered green chevron arrows (`<<<`) positioned behind the player figure, matching the 3D depth of the source images.
-- **Notch "FW" Emblem**: The circular badge with the green border and "FW" glyph at the bottom apex.
-- **Lime Typography**: High-legibility condensed green typography (`#22c55e` / `#4ade80`) for the OVR number, position label, player name header, and 6-stat attribute column.
+```
+[Mini Games Hub -> Pack Duo Tab]
+       │
+       ├─► [Duo Rewards Shop Tab] ──► Spend Duo Points ──► Pack sent to "My Packs" vault
+       │
+       └─► [Lobby: Select Opponent]
+             ├── 🤖 Compete Against AI
+             └── 🌐 Compete Against Online Users (Simulated Live Matchmaking)
+                   │
+                   ▼
+             [Phase 1: 50-Pack Speed Rip & 5 Checklists]
+             ├── Open 50 packs (Quick Rip 1x, 5x, 10x, All)
+             ├── Complete 5 dynamic checklists (e.g. Real Madrid 87+, Premier League 88+, etc.)
+             ├── Live opponent draft progress simulation
+             └── Cards stored in temporary draft pool (Club remains clean)
+                   │
+                   ▼
+             [Phase 2: Squad Construction (Draft 11)]
+             ├── 4-3-3 / 4-4-2 Tactical Pitch
+             ├── ⚡ Auto-Build Best Squad (Max Chemistry & Rating)
+             ├── Manual bench swap / position optimization
+             └── Opponent locks in squad concurrently
+                   │
+                   ▼
+             [Phase 3: Head-to-Head Duo Showdown]
+             ├── Rating Comparison (+250 pts)
+             ├── Full Chemistry Comparison (+250 pts)
+             ├── Leagues Diversity Comparison (+200 pts)
+             ├── Nationalities Diversity Comparison (+200 pts)
+             ├── Checklists Completed Score (up to +500 pts)
+             └── Winner Celebrated ──► Award Duo Points (+350 on Win)
+```
 
 ***
 
-## 3. Dedicated Pack & Transfer Market Implementation
+## 2. Dynamic 5-Checklist Generator
 
-1. **Dedicated Store Pack (`src/data/packs.ts`)**:
-   - **Pack Name**: `Throwback Rewind Pack ⏳`
-   - **Cost**: 35,000 Coins / 500 FP
-   - **Contents**: 5 Cards, guaranteed 1+ Throwback item (rating 85–98), featuring high odds for iconic throwback versions of Messi, Ronaldo, Neymar, De Bruyne, and Modrić.
-   - **Walkout Animation (`src/components/PackOpening.tsx`)**:
-     - Special glowing green stage lighting with emerald lasers.
-     - Flashback walkout banner: `⏳ THROWBACK FLASHBACK MASTERCLASS WALKOUT! ⏳`.
-     - Suspense sequence showing the player's nation flag, position, and historic club crest before the 3D card walkout.
-2. **Transfer Market (`src/components/TransferMarket.tsx` & `src/data/initialMarketListings.ts`)**:
-   - Add `throwback` to the program filter list (`⏳ Throwback`).
-   - Seed initial auction listings with marquee Throwback cards (e.g., Messi 98 at Barcelona, Ronaldo 98 at Juventus, Neymar 95 at PSG).
-   - Dynamic price calculation scaled to ratings:
-     - 98 OVR: 3,200,000 – 3,750,000 coins
-     - 94–95 OVR: 1,800,000 – 2,400,000 coins
-     - 90–93 OVR: 850,000 – 1,400,000 coins
-     - 85–89 OVR: 250,000 – 650,000 coins
+Each match generates 5 unique objectives dynamically:
+1. **Club & OVR Target**: e.g., "Pull an 87+ Real Madrid player" (or Barcelona, Man City, Bayern Munich, Liverpool, PSG, Chelsea, Juventus, Arsenal).
+2. **League & OVR Target**: e.g., "Pull an 88+ player from Premier League" (or La Liga, Serie A, Bundesliga, Ligue 1).
+3. **Program / Collection Target**: e.g., "Pull an 86+ Throwback or Summer Transfers card".
+4. **Nationality & OVR Target**: e.g., "Pull an 86+ player from France, Brazil, Argentina, or England".
+5. **Apex / Mythic Pull**: e.g., "Pull any 92+ Apex Legend, Icon, or Walkout card".
+
+Each checklist card item has an interactive progress badge that lights up with a green checkmark and audio chime the instant a qualifying card is opened in the 50 packs.
 
 ***
 
-## 4. Technical Architecture & File Plan
+## 3. Pack Duo Rewards Shop (Duo Vault)
 
-- **`src/types/card.ts`**:
-  - Add `'throwback'` to `CardRarity` and `CardStyle` union types.
-- **`src/data/cardSvgGenerator.ts`**:
-  - Implement the `throwback` card frame, cybernetic background, 3D flashback chevron elements, FW bottom insignia, and green typography styling.
-- **`src/data/throwbackCards.ts` (NEW)**:
-  - Create the complete 27-player dataset with exact image stats, positions, clubs, nations, and pre-rendered vector card shields.
-- **`src/data/packs.ts`**:
-  - Add the `pack-throwback-rewind` store pack with Throwback program filters and guaranteed drop rates.
-- **`src/data/initialMarketListings.ts`**:
-  - Include Throwback cards in the initial listings pool and marquee featured cards.
-- **`src/components/TransferMarket.tsx`**:
-  - Add the quick filter button for `⏳ Throwback` cards.
-- **`src/components/PackOpening.tsx`**:
-  - Add Throwback walkout banner and emerald stadium visual effects.
-- **`src/App.tsx`**:
-  - Mount `THROWBACK_CARDS` in `allCardsPool` so all packs, squads, and chemistry calculations resolve seamlessly.
+Integrated within a dedicated sub-tab in Pack Duo:
+- **Bronze Duo Pack** (50 Duo Pts): 3 Players, 75+ OVR floor.
+- **Silver Duo Pack** (120 Duo Pts): 4 Players, 80+ OVR floor.
+- **Gold Duo Pack** (250 Duo Pts): 5 Players, 83+ OVR floor, elevated TOTW odds.
+- **Street Kings Booster** (450 Duo Pts): 5 Players, guaranteed 85+ Street Kings item.
+- **Summer Transfers Vault** (700 Duo Pts): 5 Players, guaranteed 85+ Summer Transfers card with 97–99 Mythic odds.
+- **Throwback Rewind Pack** (950 Duo Pts): 5 Players, guaranteed 85+ Throwback card with 98 Messi & Ronaldo odds.
+- **Mythic Apex 95+ Player Pack** (1400 Duo Pts): 1 Guaranteed 95–99 Apex Icon or Premium card.
+
+When purchased, packs are pushed to `unopenedPacks` via `onAddUnopenedPack(packDef, 'Pack Duo Victory Vault', 'pack_duo')` and persisted in `localStorage`.
 
 ***
 
-## 5. Step-by-Step Execution Plan
+## 4. Technical File Plan
 
-1. **Update Types & Vector Generator**:
-   - Add `'throwback'` rarity and style to `src/types/card.ts`.
-   - Implement emerald green theme, 3D flashback chevrons (`<<<`), cyber traces, and FW badge in `src/data/cardSvgGenerator.ts`.
-2. **Build `src/data/throwbackCards.ts`**:
-   - Encode all 27 players with exact ratings, stats, and clubs from the images.
-3. **Add Throwback Pack in `src/data/packs.ts`**:
-   - Define `pack-throwback-rewind` with guaranteed Throwback player odds.
-4. **Update Pack Opening & Market**:
-   - Wire walkout banner and green FX in `src/components/PackOpening.tsx`.
-   - Add `⏳ Throwback` filter in `src/components/TransferMarket.tsx`.
-   - Seed marquee listings in `src/data/initialMarketListings.ts`.
-5. **App Integration & Verification**:
-   - Register cards in `src/App.tsx`.
-   - Run `lint_applet` and `compile_applet` to confirm zero errors and successful production build.
+1. **`src/types/card.ts`**:
+   - Update `sourceType` in `StoredRewardPack` to include `'pack_duo'`.
+   - Add types for `PackDuoChecklist`, `PackDuoOpponent`, and `PackDuoMatchResult`.
+2. **`src/components/PackDuoGame.tsx` (NEW)**:
+   - Full implementation of the Pack Duo experience:
+     - Matchmaking selection (AI vs Online Users).
+     - 50-pack quick opening engine with batching and instant reveal.
+     - 5 dynamic checklist evaluation engine.
+     - Squad builder pitch with 11 slots and best-squad auto-solver.
+     - 5-pillar showdown comparison screen with animated scores.
+     - Sub-tab Duo Rewards Shop with live Duo Points balance and redemption logic.
+3. **`src/components/MiniGamesHub.tsx`**:
+   - Add `'pack_duo'` to `MiniGameMode`.
+   - Add `⚔️ Pack Duo` tab button in the header nav.
+   - Mount `<PackDuoGame />` when active.
+   - Pass through `onAddUnopenedPack`.
+4. **`src/data/rewardPacks.ts`**:
+   - Define dedicated Duo Shop pack definitions (`DUO_SHOP_PACKS`).
+
+***
+
+## 5. Verification Plan
+
+1. **Lint Verification**:
+   - Run `lint_applet` (`tsc --noEmit`) to verify zero type mismatches or missing imports.
+2. **Compilation Verification**:
+   - Run `compile_applet` to confirm Vite production build compiles with no errors.
+3. **Functional Testing**:
+   - Test AI matchmaking and Online simulated matchmaking.
+   - Verify 50 packs rip smoothly with single, batch (5x/10x), and all-open buttons.
+   - Check that checklist items correctly detect matching cards (e.g. Real Madrid 87+).
+   - Test squad auto-builder and manual swaps.
+   - Verify showdown scoring, winner declaration, and Duo Points award.
+   - Test purchasing a pack from the Duo Shop and verifying it shows up in "My Packs".

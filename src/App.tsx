@@ -488,7 +488,7 @@ export default function App() {
   const handleAddUnopenedPack = (
     pack: PackDefinition,
     sourceTitle: string,
-    sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc'
+    sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo'
   ) => {
     const newStoredPack: StoredRewardPack = {
       instanceId: `pack_reward_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,

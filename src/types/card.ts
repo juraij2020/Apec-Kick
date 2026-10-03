@@ -241,7 +241,7 @@ export interface StoredRewardPack {
   packDefinition: PackDefinition;
   earnedAt: number;
   sourceTitle: string;
-  sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc';
+  sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo';
 }
 
 export interface RewardLadderTier {
@@ -250,6 +250,39 @@ export interface RewardLadderTier {
   pack: PackDefinition;
   title: string;
   description: string;
+}
+
+export interface PackDuoChecklist {
+  id: string;
+  title: string;
+  description: string;
+  type: 'club' | 'league' | 'program' | 'nation' | 'apex';
+  targetValue: string;
+  minRating: number;
+  completed: boolean;
+  completedByCard?: SoccerCard;
+}
+
+export interface PackDuoOpponent {
+  id: string;
+  name: string;
+  avatar: string;
+  type: 'ai' | 'online';
+  skillRating: number;
+  country: string;
+  tag: string;
+}
+
+export interface PackDuoCategoryScore {
+  category: 'rating' | 'chemistry' | 'leagues' | 'nations' | 'checklists';
+  label: string;
+  userValue: number;
+  userDisplay: string;
+  oppValue: number;
+  oppDisplay: string;
+  userPoints: number;
+  oppPoints: number;
+  winner: 'user' | 'opponent' | 'tie';
 }
 
 
