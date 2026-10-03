@@ -2,7 +2,7 @@ import { TransferListing, SoccerCard } from '../types/card';
 import { INTERNATIONAL_MOMENTS_CARDS } from './internationalMoments';
 import { HALL_OF_FAME_CARDS, BASE_SOCCER_CARDS, FUTMAS_CARDS } from './defaultCards';
 import { STREET_KINGS_CARDS } from './streetKings';
-import { SUMMER_BASIC_CARDS } from './summerCards';
+import { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS } from './summerCards';
 
 const SELLER_NAMES = [
   'TransferGuru_99',
@@ -47,7 +47,21 @@ export function calculateRealisticMarketPrice(card: SoccerCard): {
   }
 
   // Program premium adjustments
-  if (card.program === 'Summer Transfers' || card.rarity === 'summer_transfers') {
+  if (
+    card.program === 'Summer Premium' ||
+    card.rarity === 'summer_premium' ||
+    card.cardStyle === 'summer_premium' ||
+    (card.program === 'Summer Transfers' && rating >= 97)
+  ) {
+    // Summer Premium 97-99 high-roller luxury valuation
+    if (!card.price || card.price < 1000000) {
+      if (rating >= 99) baseValue = 3750000;
+      else if (rating >= 98) baseValue = 2750000;
+      else baseValue = 1750000;
+    } else {
+      baseValue = card.price;
+    }
+  } else if (card.program === 'Summer Transfers' || card.rarity === 'summer_transfers') {
     baseValue = Math.floor(baseValue * 1.15);
   } else if (card.program === 'Street Kings' || card.rarity === 'street_kings') {
     baseValue = Math.floor(baseValue * 1.2);
@@ -131,6 +145,7 @@ export function generateInitialListings(customPool?: SoccerCard[]): TransferList
     customPool && customPool.length > 0
       ? customPool
       : [
+          ...SUMMER_PREMIUM_CARDS,
           ...SUMMER_BASIC_CARDS,
           ...STREET_KINGS_CARDS,
           ...INTERNATIONAL_MOMENTS_CARDS,
@@ -141,6 +156,19 @@ export function generateInitialListings(customPool?: SoccerCard[]): TransferList
 
   // Specific high-profile marquee players guaranteed to be listed first
   const marqueeIds = [
+    // Summer Premium 97-99 Transferred Apex Cards
+    'summer-prem-lewandowski-99',
+    'summer-prem-griezmann-99',
+    'summer-prem-salah-99',
+    'summer-prem-rodri-99',
+    'summer-prem-martinez-99',
+    'summer-prem-araujo-99',
+    'summer-prem-bernardo-silva-98',
+    'summer-prem-barcola-99',
+    'summer-prem-watkins-99',
+    'summer-prem-akliouche-99',
+    'summer-prem-leao-99',
+    'summer-prem-marmoush-99',
     // Summer Transfers
     'ter-stegen',
     'tonali',

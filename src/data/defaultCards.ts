@@ -2949,16 +2949,17 @@ export const PROGRAM_ONE_CARDS: SoccerCard[] = HALL_OF_FAME_CARDS;
 export { INTERNATIONAL_MOMENTS_CARDS };
 export { STREET_KINGS_CARDS, HANEEN_MUSTAFA_CARD } from './streetKings';
 import { STREET_KINGS_CARDS } from './streetKings';
-export { SUMMER_BASIC_CARDS } from './summerCards';
-import { SUMMER_BASIC_CARDS } from './summerCards';
+export { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS, ALL_SUMMER_CARDS } from './summerCards';
+import { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS } from './summerCards';
 
-// ALL INITIAL CARDS: Street Kings, International Moments, Hall of Fame, Futmas & Summer Transfers
+// ALL INITIAL CARDS: Street Kings, International Moments, Hall of Fame, Futmas & Summer Transfers (Basic & Premium 97-99)
 export const INITIAL_CUSTOM_CARDS: SoccerCard[] = [
   ...STREET_KINGS_CARDS,
   ...INTERNATIONAL_MOMENTS_CARDS,
   ...HALL_OF_FAME_CARDS,
   ...FUTMAS_CARDS,
   ...SUMMER_BASIC_CARDS,
+  ...SUMMER_PREMIUM_CARDS,
 ];
 
 export const BASE_SOCCER_CARDS: SoccerCard[] = [

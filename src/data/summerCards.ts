@@ -531,3 +531,11 @@ export const SUMMER_BASIC_CARDS: SoccerCard[] = [
   ...INITIAL_MARQUEE_SUMMER_CARDS,
   ...GENERATED_125_SUMMER_CARDS,
 ];
+
+export { SUMMER_PREMIUM_CARDS } from './summerPremiumCards';
+import { SUMMER_PREMIUM_CARDS } from './summerPremiumCards';
+
+export const ALL_SUMMER_CARDS: SoccerCard[] = [
+  ...SUMMER_BASIC_CARDS,
+  ...SUMMER_PREMIUM_CARDS,
+];

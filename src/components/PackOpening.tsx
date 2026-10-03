@@ -151,7 +151,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
       return cards;
     } else if (pack.programFilter === 'Summer Transfers' || pack.theme === 'summer_pack') {
       const summerPool = allCardsPool.filter(
-        (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
+        (c) => c.program === 'Summer Transfers' || c.program === 'Summer Premium' || c.rarity === 'summer_transfers' || c.rarity === 'summer_premium' || c.cardStyle === 'summer_basic' || c.cardStyle === 'summer_premium'
       );
       candidatePool = summerPool.length > 0 ? summerPool : allCardsPool;
     } else if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
@@ -218,9 +218,29 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
     const validPool = minRatingCandidates.length > 0 ? minRatingCandidates : candidatePool;
 
     for (let i = 0; i < pack.cardCount; i++) {
-      // Guaranteed walkout on first card if enabled
       let picked: SoccerCard | undefined;
-      if (i === 0 && (pack.guaranteedWalkout || (pack.guaranteedRating && pack.guaranteedRating >= 78))) {
+
+      // Summer Transfers Vault jackpot roll for 97-99 Summer Premium cards
+      if (pack.id === 'pack-summer-transfers-vault') {
+        const premiumPool = allCardsPool.filter(
+          (c) => c.program === 'Summer Premium' || c.rarity === 'summer_premium' || (c.rating >= 97 && (c.program === 'Summer Transfers' || c.cardStyle === 'summer_premium'))
+        );
+        const regularSummerPool = validPool.filter((c) => c.rating < 97);
+        const summerBase = regularSummerPool.length > 0 ? regularSummerPool : validPool;
+
+        // Rare jackpot chance for a 97-99 Summer Premium card on top walkout slot (~5%)
+        const isJackpotHit = i === 0 && Math.random() < 0.05 && premiumPool.length > 0;
+        if (isJackpotHit) {
+          picked = premiumPool[Math.floor(Math.random() * premiumPool.length)];
+        } else if (i === 0 && (pack.guaranteedRating && pack.guaranteedRating >= 78)) {
+          const threshold = pack.guaranteedRating || 78;
+          const topCandidates = summerBase.filter((c) => c.rating >= threshold);
+          const poolToUse = topCandidates.length > 0 ? topCandidates : summerBase;
+          picked = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+        } else {
+          picked = summerBase[Math.floor(Math.random() * summerBase.length)];
+        }
+      } else if (i === 0 && (pack.guaranteedWalkout || (pack.guaranteedRating && pack.guaranteedRating >= 78))) {
         const threshold = pack.guaranteedRating || 78;
         const topCandidates = validPool.filter((c) => c.rating >= threshold);
         const poolToUse = topCandidates.length > 0 ? topCandidates : validPool;
@@ -263,7 +283,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
     const topCard = safeCards[0];
     const hasSummerCard = safeCards.some(
-      (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
+      (c) => c.program === 'Summer Transfers' || c.program === 'Summer Premium' || c.rarity === 'summer_transfers' || c.rarity === 'summer_premium' || c.cardStyle === 'summer_basic' || c.cardStyle === 'summer_premium'
     );
     const hasStreetKingsCard = safeCards.some(
       (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
@@ -443,20 +463,20 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase">
-                Summer Basic <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-cyan-300 to-sky-400">Blockbuster Signings</span>
+                Summer Transfers &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-cyan-300">Mythic 97-99 Premium Cards</span>
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-                Celebrate the biggest summer moves: <strong>Mbappé (92 ST)</strong> to Real Madrid, <strong>Olise (86 RM)</strong> to Bayern Munich, <strong>Álvarez (87 ST)</strong> to Atlético Madrid, <strong>Calafiori (85 CB)</strong> to Arsenal &amp; <strong>Olmo (88 CAM)</strong> to Barcelona. Available in Store Packs &amp; Summer SBCs!
+                Open the <strong>Summer Transfers Vault</strong> for guaranteed summer stars plus an ultra-rare jackpot chance for <strong>Summer Premium 97–99 OVR</strong> transferred blockbusters: <strong>Lewandowski (99 Chicago Fire)</strong>, <strong>Griezmann (99 Orlando City)</strong>, <strong>Salah (99 Trabzonspor)</strong>, <strong>Rodri (99 Barcelona)</strong>, <strong>Araújo (99 Liverpool)</strong> &amp; more!
               </p>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
-                <span className="text-[11px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded">
-                  ☀️ Summer Basic Edition
+                <span className="text-[11px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/50 px-2 py-0.5 rounded font-bold">
+                  👑 97-99 Summer Premium Jackpot
                 </span>
-                <span className="text-[11px] font-mono bg-slate-900 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded">
-                  New Clubs &amp; Chem Links
+                <span className="text-[11px] font-mono bg-cyan-950/80 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded">
+                  ☀️ Summer Transfers Collection
                 </span>
                 <span className="text-[11px] font-mono bg-slate-900 text-sky-300 border border-sky-500/40 px-2 py-0.5 rounded">
-                  Sunburst Gold &amp; Cyan Styling
+                  Sunburst Gold &amp; Cyan Shields
                 </span>
               </div>
             </div>
@@ -981,8 +1001,13 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/20 via-transparent to-transparent pointer-events-none" />
             <div className="absolute -top-24 w-96 h-96 bg-amber-400/20 blur-3xl rounded-full pointer-events-none animate-flare" />
 
-            {/* Street Kings, International Moments, Hall of Fame, Futmas & Program One Walkout Announcement */}
-            {walkoutCard.program === 'Summer Transfers' || walkoutCard.rarity === 'summer_transfers' || walkoutCard.cardStyle === 'summer_basic' ? (
+            {/* Summer Premium, Summer Transfers, Street Kings, International Moments, Hall of Fame, Futmas & Program One Walkout Announcement */}
+            {walkoutCard.program === 'Summer Premium' || walkoutCard.rarity === 'summer_premium' || walkoutCard.cardStyle === 'summer_premium' || (walkoutCard.program === 'Summer Transfers' && walkoutCard.rating >= 97) ? (
+              <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-950 via-amber-950 to-pink-950 border-2 border-amber-300 text-amber-200 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_50px_rgba(251,191,36,0.9)] animate-pulse">
+                <Sparkles className="w-5 h-5 text-yellow-300 animate-spin" />
+                <span>☀️ 97-99 APEX SUMMER PREMIUM MYTHIC WALKOUT! 👑</span>
+              </div>
+            ) : (walkoutCard.program === 'Summer Transfers' || walkoutCard.rarity === 'summer_transfers' || walkoutCard.cardStyle === 'summer_basic') ? (
               <div className="mb-6 px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-950 via-[#042f2e] to-amber-950 border-2 border-cyan-400 text-cyan-200 text-xs sm:text-sm font-black tracking-widest uppercase flex items-center gap-2.5 shadow-[0_0_35px_rgba(6,182,212,0.7)] animate-pulse">
                 <Sparkles className="w-5 h-5 text-amber-400 animate-spin" />
                 <span>☀️ ULTRA-RARE SUMMER TRANSFERS WALKOUT! ☀️</span>

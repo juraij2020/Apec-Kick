@@ -245,9 +245,28 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
           if (!['FWD', 'MID', 'DEF', 'GK'].includes(filter.position) && card.position !== filter.position) return false;
         }
 
-        // Program (Summer Transfers, Street Kings, Intl, HOF, Futmas, Base, Icon)
+        // Program (Summer Transfers, Summer Premium, Street Kings, Intl, HOF, Futmas, Base, Icon)
         if (filter.program !== 'ALL') {
-          if (filter.program === 'summer' && card.program !== 'Summer Transfers' && card.rarity !== 'summer_transfers' && card.cardStyle !== 'summer_basic') return false;
+          if (
+            filter.program === 'summer_premium' &&
+            card.program !== 'Summer Premium' &&
+            card.rarity !== 'summer_premium' &&
+            card.cardStyle !== 'summer_premium' &&
+            !(card.program === 'Summer Transfers' && card.rating >= 97)
+          ) {
+            return false;
+          }
+          if (
+            filter.program === 'summer' &&
+            card.program !== 'Summer Transfers' &&
+            card.program !== 'Summer Premium' &&
+            card.rarity !== 'summer_transfers' &&
+            card.rarity !== 'summer_premium' &&
+            card.cardStyle !== 'summer_basic' &&
+            card.cardStyle !== 'summer_premium'
+          ) {
+            return false;
+          }
           if (filter.program === 'street_kings' && card.program !== 'Street Kings' && card.rarity !== 'street_kings') return false;
           if (filter.program === 'intl' && card.program !== 'International Moments' && card.rarity !== 'international_moments') return false;
           if (filter.program === 'hof' && card.program !== 'Hall of Fame' && card.rarity !== 'hall_of_fame') return false;
@@ -813,6 +832,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
               {[
                 { id: 'ALL', label: 'All Players' },
+                { id: 'summer_premium', label: '👑 97-99 Summer Premium' },
                 { id: 'summer', label: '☀️ Summer Transfers' },
                 { id: 'street_kings', label: '⚡ Street Kings' },
                 { id: 'intl', label: '🌍 Intl Moments' },

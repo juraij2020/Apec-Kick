@@ -18,7 +18,8 @@ export type CardRarity =
   | 'tots'
   | 'custom'
   | 'objective_exclusive'
-  | 'summer_transfers';
+  | 'summer_transfers'
+  | 'summer_premium';
 
 export type CardStyle =
   | 'street_kings_urban'
@@ -33,7 +34,8 @@ export type CardStyle =
   | 'custom_neon'
   | 'emerald_legend'
   | 'objective_obsidian_gold'
-  | 'summer_basic';
+  | 'summer_basic'
+  | 'summer_premium';
 
 export type PackTheme = 
   | 'street_kings'

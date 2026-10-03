@@ -98,6 +98,7 @@ export function generateUserCardSvg(
   const l5 = isGK ? 'SPD' : 'DEF';
   const l6 = isGK ? 'POS' : 'PHY';
 
+  const isSummerPremium = cardStyle === 'summer_premium';
   const isObjectiveExclusive = cardStyle === 'objective_obsidian_gold' || (cardStyle as string) === 'objective_exclusive';
   const isSummerBasic = cardStyle === 'summer_basic' || (cardStyle as string) === 'summer_transfers';
   const isStreetKings = cardStyle === 'street_kings_urban' || (cardStyle as string) === 'street_kings';
@@ -105,7 +106,14 @@ export function generateUserCardSvg(
   const isGold = cardStyle === 'classic_gold';
   const isHOF = cardStyle === 'hof_gold_obsidian';
 
-  const borderStops = isSummerBasic
+  const borderStops = isSummerPremium
+    ? `<stop offset="0%" stop-color="#38bdf8"/>
+       <stop offset="20%" stop-color="#06b6d4"/>
+       <stop offset="45%" stop-color="#fef08a"/>
+       <stop offset="68%" stop-color="#f59e0b"/>
+       <stop offset="85%" stop-color="#ec4899"/>
+       <stop offset="100%" stop-color="#0891b2"/>`
+    : isSummerBasic
     ? `<stop offset="0%" stop-color="#06b6d4"/>
        <stop offset="28%" stop-color="#38bdf8"/>
        <stop offset="55%" stop-color="#fbbf24"/>
@@ -148,7 +156,13 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isSummerBasic
+  const shieldStops = isSummerPremium
+    ? `<stop offset="0%" stop-color="#082f49"/>
+       <stop offset="25%" stop-color="#0c4a6e"/>
+       <stop offset="55%" stop-color="#164e63"/>
+       <stop offset="80%" stop-color="#78350f"/>
+       <stop offset="100%" stop-color="#3b0764"/>`
+    : isSummerBasic
     ? `<stop offset="0%" stop-color="#083344"/>
        <stop offset="25%" stop-color="#0e7490"/>
        <stop offset="55%" stop-color="#0891b2"/>
@@ -181,7 +195,12 @@ export function generateUserCardSvg(
        <stop offset="50%" stop-color="#09090b"/>
        <stop offset="100%" stop-color="#000000"/>`;
 
-  const lineStops = isSummerBasic
+  const lineStops = isSummerPremium
+    ? `<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95"/>
+       <stop offset="35%" stop-color="#fef08a" stop-opacity="0.9"/>
+       <stop offset="70%" stop-color="#ec4899" stop-opacity="0.8"/>
+       <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.25"/>`
+    : isSummerBasic
     ? `<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95"/>
        <stop offset="45%" stop-color="#fbbf24" stop-opacity="0.85"/>
        <stop offset="100%" stop-color="#0891b2" stop-opacity="0.2"/>`
@@ -202,7 +221,7 @@ export function generateUserCardSvg(
     : `<stop offset="0%" stop-color="#eab308" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#a16207" stop-opacity="0.1"/>`;
 
-  const starSymbol = isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
+  const starSymbol = isSummerPremium ? '👑' : isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 900" width="100%" height="100%">
     <defs>
@@ -232,21 +251,24 @@ export function generateUserCardSvg(
       fill="url(#cardShield)"/>
 
     <!-- Gold Geometry Pattern & Carbon Textures -->
-    <g opacity="${isHOF ? '0.55' : '0.4'}" clip-path="url(#cardClip)">
+    <g opacity="${isHOF ? '0.55' : isSummerPremium ? '0.6' : '0.4'}" clip-path="url(#cardClip)">
       <polygon points="410,160 520,270 470,320 360,210" fill="url(#cardLines)" />
       <polygon points="460,190 560,290 520,330 420,230" fill="url(#cardLines)" />
       <polygon points="370,220 440,290 410,320 340,250" fill="url(#cardLines)" />
       <line x1="330" y1="210" x2="550" y2="430" stroke="#facc15" stroke-width="4" stroke-opacity="0.45"/>
       <line x1="350" y1="230" x2="570" y2="450" stroke="#facc15" stroke-width="3" stroke-opacity="0.45"/>
       <line x1="310" y1="240" x2="490" y2="420" stroke="#facc15" stroke-width="2" stroke-opacity="0.35"/>
-      ${isHOF ? `
-      <!-- Additional Hall of Fame Radiance Rays -->
-      <line x1="120" y1="180" x2="300" y2="360" stroke="#eab308" stroke-width="2" stroke-opacity="0.25"/>
-      <line x1="150" y1="160" x2="330" y2="340" stroke="#ca8a04" stroke-width="1.5" stroke-opacity="0.2"/>
+      ${isHOF || isSummerPremium ? `
+      <!-- Additional High-Tier Radiance Rays -->
+      <line x1="120" y1="180" x2="300" y2="360" stroke="#38bdf8" stroke-width="2" stroke-opacity="0.3"/>
+      <line x1="150" y1="160" x2="330" y2="340" stroke="#facc15" stroke-width="2" stroke-opacity="0.3"/>
       ` : ''}
     </g>
 
-    ${isSummerBasic ? `
+    ${isSummerPremium ? `
+    <!-- Summer Premium Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#fde047" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">☀️ SUMMER PREMIUM ☀️</text>
+    ` : isSummerBasic ? `
     <!-- Summer Transfers Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#38bdf8" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">☀️ SUMMER TRANSFERS ☀️</text>
     ` : isObjectiveExclusive ? `
@@ -261,8 +283,8 @@ export function generateUserCardSvg(
     ` : ''}
 
     <!-- Top Left Rating & Position Stack -->
-    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="#ffffff" text-anchor="middle" filter="${isHOF ? 'url(#goldGlow)' : 'none'}">${rating}</text>
-    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isHOF ? '#fef08a' : '#ffffff'}" text-anchor="middle">${pos}</text>
+    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isSummerPremium ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isHOF || isSummerPremium ? 'url(#goldGlow)' : 'none'}">${rating}</text>
+    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isHOF ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
 
     <!-- Center Player Face Silhouette / Avatar placeholder -->
     <g transform="translate(322, 380)">

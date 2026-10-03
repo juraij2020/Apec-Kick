@@ -23,7 +23,7 @@ export const PACKS: PackDefinition[] = [
   {
     id: 'pack-summer-transfers-vault',
     name: 'Summer Transfers Vault ☀️',
-    tagline: 'Guaranteed 85+ Summer Transfers player featuring Mbappé, Olise, Álvarez, Olmo & Calafiori',
+    tagline: 'Guaranteed 85+ Summer Transfers player with rare jackpot chance for Mythic 97–99 Summer Premium cards (Lewandowski, Griezmann, Martínez & more)',
     cost: 26000,
     cardCount: 5,
     minRating: 84,
