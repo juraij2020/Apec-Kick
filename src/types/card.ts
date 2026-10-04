@@ -22,6 +22,8 @@ export type CardRarity =
   | 'objective_exclusive'
   | 'summer_transfers'
   | 'summer_premium'
+  | 'evolution_emerald'
+  | 'evolution_gold_apex'
   | 'throwback';
 
 export type CardStyle =
@@ -30,6 +32,8 @@ export type CardStyle =
   | 'hof_gold_obsidian'
   | 'hall_of_fut_base'
   | 'hall_of_fut_upgrade'
+  | 'evolution_emerald'
+  | 'evolution_gold_apex'
   | 'totw_black'
   | 'classic_gold'
   | 'futmas_crimson'

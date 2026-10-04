@@ -108,8 +108,22 @@ export function generateUserCardSvg(
   const isHOF = cardStyle === 'hof_gold_obsidian';
   const isHallOfFutBase = cardStyle === 'hall_of_fut_base';
   const isHallOfFutUpgrade = cardStyle === 'hall_of_fut_upgrade';
+  const isEvolutionGoldApex = cardStyle === 'evolution_gold_apex';
+  const isEvolutionEmerald = cardStyle === 'evolution_emerald';
 
-  const borderStops = isHallOfFutUpgrade
+  const borderStops = isEvolutionGoldApex
+    ? `<stop offset="0%" stop-color="#34d399"/>
+       <stop offset="25%" stop-color="#fbbf24"/>
+       <stop offset="50%" stop-color="#10b981"/>
+       <stop offset="75%" stop-color="#f59e0b"/>
+       <stop offset="100%" stop-color="#059669"/>`
+    : isEvolutionEmerald
+    ? `<stop offset="0%" stop-color="#a7f3d0"/>
+       <stop offset="25%" stop-color="#34d399"/>
+       <stop offset="50%" stop-color="#10b981"/>
+       <stop offset="75%" stop-color="#059669"/>
+       <stop offset="100%" stop-color="#047857"/>`
+    : isHallOfFutUpgrade
     ? `<stop offset="0%" stop-color="#fef08a"/>
        <stop offset="20%" stop-color="#ef4444"/>
        <stop offset="45%" stop-color="#f59e0b"/>
@@ -178,7 +192,17 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isHallOfFutUpgrade
+  const shieldStops = isEvolutionGoldApex
+    ? `<stop offset="0%" stop-color="#022c22"/>
+       <stop offset="35%" stop-color="#064e3b"/>
+       <stop offset="70%" stop-color="#042f2e"/>
+       <stop offset="100%" stop-color="#02140e"/>`
+    : isEvolutionEmerald
+    ? `<stop offset="0%" stop-color="#03251c"/>
+       <stop offset="35%" stop-color="#064e3b"/>
+       <stop offset="70%" stop-color="#022c22"/>
+       <stop offset="100%" stop-color="#01150f"/>`
+    : isHallOfFutUpgrade
     ? `<stop offset="0%" stop-color="#450a0a"/>
        <stop offset="30%" stop-color="#7f1d1d"/>
        <stop offset="65%" stop-color="#2a0505"/>

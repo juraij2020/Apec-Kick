@@ -76,6 +76,7 @@ interface DailyObjectivesProps {
   miniGamesPlayedToday: number;
   marketTradesToday: number;
   clubCards: SoccerCard[];
+  onAddEvoPoints?: (points: number) => void;
 }
 
 export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
@@ -91,6 +92,7 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
   miniGamesPlayedToday,
   marketTradesToday,
   clubCards,
+  onAddEvoPoints,
 }) => {
   const getTodayDateStr = () => new Date().toISOString().split('T')[0];
   const todayStr = getTodayDateStr();
@@ -304,6 +306,9 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
   const handleClaimTask = (taskId: 'open_packs' | 'win_match' | 'submit_sbc' | 'play_minigame' | 'market_trade', reward: number) => {
     sound.playGoalCheer();
     onAddCoins(reward);
+    if (onAddEvoPoints) {
+      onAddEvoPoints(100);
+    }
 
     setState((prev) => {
       const updated: DailyObjectivesStateV3 = {
@@ -329,6 +334,9 @@ export const DailyObjectives: React.FC<DailyObjectivesProps> = ({
 
     sound.playWalkoutFanfare();
     onAddCoins(2500);
+    if (onAddEvoPoints) {
+      onAddEvoPoints(300);
+    }
 
     if (isPlayerDay && todayPlayerReward) {
       // Award the exclusive card to club

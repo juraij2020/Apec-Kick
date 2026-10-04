@@ -32,9 +32,11 @@ import { MiniGamesHub } from './components/MiniGamesHub';
 import { MyPacksHub } from './components/MyPacksHub';
 import { DailyObjectives } from './components/DailyObjectives';
 import { SetRewardsHub } from './components/SetRewardsHub';
+import { EvolutionHub } from './components/EvolutionHub';
 import { GoogleAuthButton } from './components/GoogleAuthButton';
-import { StoredRewardPack } from './types/card';
+import { StoredRewardPack, CardStats } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
+import { buildEvolvedSakaCard } from './data/evolutionSaka';
 
 import { 
   Volume2, 
@@ -55,14 +57,18 @@ import {
   Layers,
   Swords,
   Package,
-  Trophy
+  Trophy,
+  Dna
 } from 'lucide-react';
 import { safeSetItem, safeGetItem, sanitizeCardsListForStorage } from './utils/safeStorage';
 
-type NavTab = 'intl' | 'hof' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives' | 'set_rewards';
+type NavTab = 'intl' | 'hof' | 'evolution' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives' | 'set_rewards';
 
 const STORAGE_KEYS = {
   COINS: 'apex_fut_coins_v2',
+  EVO_POINTS: 'apex_fut_evo_points_v1',
+  SAKA_STAGE: 'apex_fut_saka_stage_v1',
+  SAKA_STATS: 'apex_fut_saka_stats_v1',
   USER_CARDS: 'apex_fut_user_cards_v2',
   CLUB_CARDS: 'apex_fut_club_cards_v2',
   SQUAD_SLOTS: 'apex_fut_squad_slots_v2',
@@ -81,6 +87,29 @@ export default function App() {
   const [coins, setCoins] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.COINS);
     return saved !== null ? parseInt(saved, 10) : 50000;
+  });
+
+  // Evolution Points State (starts with 100 starter points to test upgrades immediately)
+  const [evoPoints, setEvoPoints] = useState<number>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.EVO_POINTS);
+    return saved !== null ? parseInt(saved, 10) : 100;
+  });
+
+  // Saka Evolution Stage Index (starts at 0 = 75 OVR LB)
+  const [sakaStageIndex, setSakaStageIndex] = useState<number>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SAKA_STAGE);
+    return saved !== null ? parseInt(saved, 10) : 0;
+  });
+
+  // Saka Live Attributes
+  const [sakaStats, setSakaStats] = useState<CardStats>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.SAKA_STATS);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (_) {}
+    }
+    return { pac: 75, sho: 75, pas: 73, dri: 75, def: 64, phy: 63 };
   });
 
   const [hasClaimedGift, setHasClaimedGift] = useState<boolean>(() => {
@@ -231,6 +260,7 @@ export default function App() {
   }, [dailyStats]);
 
   const handleIncrementPacksOpened = () => {
+    setEvoPoints((prev) => prev + 5);
     setDailyStats((prev) => ({
       ...prev,
       date: getTodayDateStr(),
@@ -239,6 +269,7 @@ export default function App() {
   };
 
   const handleIncrementMatchesWon = () => {
+    setEvoPoints((prev) => prev + 35);
     setDailyStats((prev) => ({
       ...prev,
       date: getTodayDateStr(),
@@ -247,6 +278,7 @@ export default function App() {
   };
 
   const handleIncrementSBCsSubmitted = () => {
+    setEvoPoints((prev) => prev + 20);
     setDailyStats((prev) => ({
       ...prev,
       date: getTodayDateStr(),
@@ -255,6 +287,7 @@ export default function App() {
   };
 
   const handleIncrementMiniGamesPlayed = () => {
+    setEvoPoints((prev) => prev + 25);
     setDailyStats((prev) => ({
       ...prev,
       date: getTodayDateStr(),
@@ -274,6 +307,32 @@ export default function App() {
   useEffect(() => {
     safeSetItem(STORAGE_KEYS.COINS, coins.toString());
   }, [coins]);
+
+  useEffect(() => {
+    safeSetItem(STORAGE_KEYS.EVO_POINTS, evoPoints.toString());
+  }, [evoPoints]);
+
+  useEffect(() => {
+    safeSetItem(STORAGE_KEYS.SAKA_STAGE, sakaStageIndex.toString());
+  }, [sakaStageIndex]);
+
+  useEffect(() => {
+    safeSetItem(STORAGE_KEYS.SAKA_STATS, JSON.stringify(sakaStats));
+  }, [sakaStats]);
+
+  // Synchronize evolved Saka into clubCards collection
+  useEffect(() => {
+    const activeEvoCard = buildEvolvedSakaCard(sakaStageIndex, sakaStats);
+    setClubCards((prev) => {
+      const idx = prev.findIndex((c) => c.id === 'evo-saka-active');
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = activeEvoCard;
+        return next;
+      }
+      return [activeEvoCard, ...prev];
+    });
+  }, [sakaStageIndex, sakaStats]);
 
   useEffect(() => {
     safeSetItem(STORAGE_KEYS.USER_CARDS, JSON.stringify(sanitizeCardsListForStorage(userCreatedCards)));
@@ -348,6 +407,21 @@ export default function App() {
 
   const handleAddCardsToClub = (newCards: SoccerCard[]) => {
     setClubCards((prev) => [...newCards, ...prev]);
+  };
+
+  const handleDeductEvoPoints = (amount: number): boolean => {
+    if (evoPoints < amount) return false;
+    setEvoPoints((prev) => prev - amount);
+    return true;
+  };
+
+  const handleAddEvoPoints = (amount: number) => {
+    setEvoPoints((prev) => prev + amount);
+  };
+
+  const handleUpdateSakaStatsAndStage = (newStats: CardStats, newStageIndex: number) => {
+    setSakaStats(newStats);
+    setSakaStageIndex(newStageIndex);
   };
 
   const handleRemoveCardFromClub = (cardId: string) => {
@@ -610,6 +684,22 @@ export default function App() {
                 </span>
               </button>
 
+              {/* Card Evolutions Tab */}
+              <button
+                onClick={() => { setCurrentTab('evolution'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                  currentTab === 'evolution'
+                    ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.35)]'
+                    : 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 text-emerald-300 border-emerald-500/40 hover:border-emerald-400 hover:bg-emerald-500/20'
+                }`}
+              >
+                <Dna className="w-4 h-4 text-emerald-400 animate-pulse" />
+                <span>Evolutions</span>
+                <span className="text-[9px] bg-emerald-400 text-slate-950 font-black px-1.5 py-0.2 rounded-full uppercase">
+                  Saka 98
+                </span>
+              </button>
+
               {/* Open Packs */}
               <button
                 onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
@@ -807,6 +897,16 @@ export default function App() {
               onAddCoins={handleAddCoins}
             />
 
+            {/* Evolution Points Indicator */}
+            <button
+              onClick={() => { setCurrentTab('evolution'); sound.playClick(); }}
+              title="Evolution Points - Earned via matches, objectives, mini-games & packs! Click to open Evolutions"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-500/50 rounded-xl text-emerald-300 shadow-sm select-none transition-all active:scale-95"
+            >
+              <Dna className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400 animate-pulse" />
+              <span className="text-xs font-black tabular-nums tracking-wide">{evoPoints.toLocaleString()}</span>
+            </button>
+
             {/* Coins Balance Indicator (Display-only · Earned only via matches, SBCs, objectives & mini-games) */}
             <div
               title="Earn coins by winning matches, completing SBCs, and Daily Objectives!"
@@ -863,6 +963,18 @@ export default function App() {
             >
               <Trophy className="w-3.5 h-3.5 text-amber-400" />
               <span>Set Rewards</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('evolution'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1.5 flex-shrink-0 border ${
+                currentTab === 'evolution' 
+                  ? 'bg-emerald-500/25 text-emerald-200 border-emerald-400 font-bold shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                  : 'bg-slate-900/60 border-emerald-500/40 text-emerald-300 font-bold'
+              }`}
+            >
+              <Dna className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span>Evolutions</span>
             </button>
 
             <button
@@ -1139,6 +1251,22 @@ export default function App() {
           />
         )}
 
+        {currentTab === 'evolution' && (
+          <EvolutionHub
+            evoPoints={evoPoints}
+            onDeductEvoPoints={handleDeductEvoPoints}
+            onAddEvoPoints={handleAddEvoPoints}
+            currentStageIndex={sakaStageIndex}
+            currentStats={sakaStats}
+            onUpdateStatsAndStage={handleUpdateSakaStatsAndStage}
+            clubCards={clubCards}
+            onNavigateToTab={(tab) => {
+              setCurrentTab(tab);
+              sound.playClick();
+            }}
+          />
+        )}
+
         {currentTab === 'minigames' && (
           <MiniGamesHub
             coins={coins}
@@ -1269,6 +1397,7 @@ export default function App() {
             miniGamesPlayedToday={dailyStats.miniGamesPlayed}
             marketTradesToday={dailyStats.marketTrades}
             clubCards={clubCards}
+            onAddEvoPoints={handleAddEvoPoints}
           />
         )}
       </main>
