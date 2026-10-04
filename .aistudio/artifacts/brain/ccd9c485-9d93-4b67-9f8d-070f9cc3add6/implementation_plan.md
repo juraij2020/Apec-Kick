@@ -1,126 +1,102 @@
-# Pack Duo Game Mode: 50-Pack Speed Draft, 5 Checklists & Head-to-Head Showdown
+# Set Rewards & Hall of FUT Collection Implementation Plan
 
-Introduces the **Pack Duo** competitive game mode inside the Mini Games Hub. Players compete against either an **Online User** (simulated live multiplayer matchmaking with gamer tags) or an **AI Rival**, opening 50 speed-draft packs while racing to complete 5 dynamic challenge checklists. Players then craft an 11-player squad from their temporary draft pool and enter a dramatic head-to-head showdown comparing Rating, Full Chemistry, League Count, Nationality Count, and Checklists Completed. Winning matches earns **Duo Points**, which can be redeemed in the built-in **Duo Rewards Shop** for premium packs that are deposited directly into the player's permanent **My Packs** vault.
+Introduces a brand new **Set Rewards** feature and the **Hall of FUT** collection. Players collect 18 distinct Hall of FUT players (combining the **Grey Base** and **Red Upgrade** designs) in their Club to unlock the exclusive **99 ST Harry Kane** Set Reward player card.
 
 ***
 
-### User Decisions & Scope Confirmation
+### 1. User Requirements & Specifications
 
 > [!IMPORTANT]
-> **Summary of User Requirements & Preferences**:
-> 1. **50 Instant Packs**: 50 packs are granted immediately at match start, openable via fast single, batch (5x/10x), or instant auto-rip controls.
-> 2. **5 In-Pack Challenge Checklists**: 5 randomized target checklists per match (e.g. Real Madrid 87+, specific league with OVR requirement, specific collection/program with OVR requirement, specific nationality with OVR requirement, and 92+ Apex walkout).
-> 3. **Matchmaking Modes**: Option to click **"Compete Against AI"** or **"Compete Against Online Users"** with real-time simulated rival drafts.
-> 4. **Squad Building Phase**: Build a starting 11 using solely the players pulled from the 50 packs (best squad auto-builder + manual adjustments). These cards do **not** enter the player's permanent club inventory (temporary draft pool).
-> 5. **5-Pillar Head-to-Head Comparison**:
->    - **Overall Rating**
->    - **Full Chemistry (0–33)**
->    - **Distinct Leagues Count**
->    - **Distinct Nationalities Count**
->    - **Checklists Completed Count (0–5)**
->    - Each category awards showdown points; the winner of the total score claims the match and earns **Duo Points**.
-> 6. **Duo Rewards Shop (Small Tab inside Pack Duo)**: Buy packs across tiered Duo Point costs (from 50 pts to 1400 pts); purchased packs are deposited into **My Packs** (`StoredRewardPack`) to be opened and kept in the real club!
+> - **Collection Identity**: **Hall of FUT** (distinct from *Hall of Fame*).
+> - **Card Designs**:
+>   - **Grey Design**: **Hall of FUT Base** (81–88 OVR).
+>   - **Red Design**: **Hall of FUT Upgrade** (90–98 OVR).
+> - **Set Objective**: Collect **18 unique Hall of FUT players** across Base and Upgrade.
+> - **Duplicate Rule**: Duplicates do **not** count towards the 18 total. You must collect 18 distinct individual players in your Club.
+> - **Set Reward**: **Harry Kane 99 ST** (Bayern Munich / Bundesliga, 99 OVR, 99 SHO, 92 PAS, 91 DRI, 92 PHY).
+> - **Exclusive Reward Condition**: Harry Kane is **only** obtainable through Set Rewards. He cannot be packed, bought on the market, or drafted.
+> - **New Dedicated Tab**: **Set Rewards** in the main navigation.
 
 ***
 
-## 1. Game Flow Architecture
+### 2. Player Roster Breakdown (From User Uploaded Cards)
 
-```
-[Mini Games Hub -> Pack Duo Tab]
-       │
-       ├─► [Duo Rewards Shop Tab] ──► Spend Duo Points ──► Pack sent to "My Packs" vault
-       │
-       └─► [Lobby: Select Opponent]
-             ├── 🤖 Compete Against AI
-             └── 🌐 Compete Against Online Users (Simulated Live Matchmaking)
-                   │
-                   ▼
-             [Phase 1: 50-Pack Speed Rip & 5 Checklists]
-             ├── Open 50 packs (Quick Rip 1x, 5x, 10x, All)
-             ├── Complete 5 dynamic checklists (e.g. Real Madrid 87+, Premier League 88+, etc.)
-             ├── Live opponent draft progress simulation
-             └── Cards stored in temporary draft pool (Club remains clean)
-                   │
-                   ▼
-             [Phase 2: Squad Construction (Draft 11)]
-             ├── 4-3-3 / 4-4-2 Tactical Pitch
-             ├── ⚡ Auto-Build Best Squad (Max Chemistry & Rating)
-             ├── Manual bench swap / position optimization
-             └── Opponent locks in squad concurrently
-                   │
-                   ▼
-             [Phase 3: Head-to-Head Duo Showdown]
-             ├── Rating Comparison (+250 pts)
-             ├── Full Chemistry Comparison (+250 pts)
-             ├── Leagues Diversity Comparison (+200 pts)
-             ├── Nationalities Diversity Comparison (+200 pts)
-             ├── Checklists Completed Score (up to +500 pts)
-             └── Winner Celebrated ──► Award Duo Points (+350 on Win)
-```
+#### A. Hall of FUT Base (Grey Design - 9 Players)
+1. **Walton** - 81 GK (Ipswich Town / Premier League / England)
+2. **Grimes** - 83 CDM (Coventry City / Premier League / England)
+3. **Butland** - 84 GK (Hull City / Premier League / England)
+4. **Hackney** - 85 CM (Everton / Premier League / England)
+5. **Hudson-Odoi** - 85 LM (Nottingham Forest / Premier League / England)
+6. **Pope** - 86 GK (Newcastle United / Premier League / England)
+7. **Welbeck** - 87 ST (Chelsea / Premier League / England)
+8. **Calvert-Lewin** - 88 ST (Leeds United / Premier League / England)
+9. **Solanke** - 88 ST (Tottenham Hotspur / Premier League / England)
+
+#### B. Hall of FUT Upgrade (Red Design - 9 Players)
+10. **Rashford** - 90 LW (Manchester United / Premier League / England)
+11. **Wharton** - 91 CM (Crystal Palace / Premier League / England)
+12. **Foden** - 92 CAM (Manchester City / Premier League / England)
+13. **Haynes** - 92 CAM (Fulham / Premier League / England)
+14. **Beckham** - 94 RM (Manchester United / Premier League / England)
+15. **Konsa** - 94 CB (Arsenal / Premier League / England)
+16. **Rogers** - 94 CAM (Chelsea / Premier League / England)
+17. **Owen** - 97 ST (Liverpool / Premier League / England)
+18. **Clough** - 98 ST (Sunderland / Premier League / England)
+
+#### C. The Grand Set Completion Reward (1 Player)
+19. **Harry Kane** - **99 ST** (FC Bayern Munich / Bundesliga / England)
+    - *Stats*: 71 PAC | 99 SHO | 92 PAS | 91 DRI | 58 DEF | 92 PHY
+    - *Exclusivity*: `isSetRewardOnly: true` (strictly excluded from pack pools and market).
 
 ***
 
-## 2. Dynamic 5-Checklist Generator
+### 3. Architecture & Feature Modules
 
-Each match generates 5 unique objectives dynamically:
-1. **Club & OVR Target**: e.g., "Pull an 87+ Real Madrid player" (or Barcelona, Man City, Bayern Munich, Liverpool, PSG, Chelsea, Juventus, Arsenal).
-2. **League & OVR Target**: e.g., "Pull an 88+ player from Premier League" (or La Liga, Serie A, Bundesliga, Ligue 1).
-3. **Program / Collection Target**: e.g., "Pull an 86+ Throwback or Summer Transfers card".
-4. **Nationality & OVR Target**: e.g., "Pull an 86+ player from France, Brazil, Argentina, or England".
-5. **Apex / Mythic Pull**: e.g., "Pull any 92+ Apex Legend, Icon, or Walkout card".
+#### A. Card Generation & Styling (`src/data/cardSvgGenerator.ts` & `src/data/hallOfFutCards.ts`)
+- Implement custom SVG generators for:
+  - `hall_of_fut_base`: Sleek brushed-metallic grey and shattered crystal shield design with angular dark chrome borders.
+  - `hall_of_fut_upgrade`: Crimson red and liquid shattered gold shield design with obsidian trim matching the uploaded cards.
+- Add full player statistics, clubs, positions, nations, and playstyles for all 19 cards.
+- Integrate the 18 collectible cards into `allCardsPool` with `program: 'Hall of FUT'`. Exclude Kane 99 from standard random pack distribution.
 
-Each checklist card item has an interactive progress badge that lights up with a green checkmark and audio chime the instant a qualifying card is opened in the 50 packs.
+#### B. Set Rewards Hub Component (`src/components/SetRewardsHub.tsx`)
+- **Header Overview**: Set banner, active collection status, completion progress bar (`X / 18 Players Collected`), and claim status.
+- **Featured Reward Showcase**:
+  - Grand 3D showcase of Harry Kane 99 ST with stats, PlayStyle+ badge, and "Exclusive Set Reward" shield.
+  - Interactive "Claim Set Reward" button that unlocks only when 18 unique players are detected in `clubCards`.
+  - Claim flow: awards Kane to `clubCards`, triggers walkout celebration fanfare and confetti, and marks the set completed.
+- **18-Card Collector Album Grid**:
+  - Filter toggle: `All (18)` / `Owned (X)` / `Missing (Y)` / `Base (9)` / `Upgrade (9)`.
+  - Owned cards: Full color, glowing holographic border, and "In Club" badge.
+  - Missing cards: Darkened silhouette card with player name, position, rating target, and "Need to Collect" badge.
+  - Duplicate detection: Clear explanation showing that duplicates do not count toward set completion.
+
+#### C. Navigation & Store Integration (`src/App.tsx` & `src/data/packs.ts`)
+- Add `'set_rewards'` tab in top navigation and mobile nav bar with a trophy icon and live completion indicator (e.g. `12/18`).
+- Add a **Hall of FUT Booster Pack** in the Pack Store so players can acquire Hall of FUT cards.
+- Add `'Hall of FUT'` option to Transfer Market and My Club filters.
 
 ***
 
-## 3. Pack Duo Rewards Shop (Duo Vault)
-
-Integrated within a dedicated sub-tab in Pack Duo:
-- **Bronze Duo Pack** (50 Duo Pts): 3 Players, 75+ OVR floor.
-- **Silver Duo Pack** (120 Duo Pts): 4 Players, 80+ OVR floor.
-- **Gold Duo Pack** (250 Duo Pts): 5 Players, 83+ OVR floor, elevated TOTW odds.
-- **Street Kings Booster** (450 Duo Pts): 5 Players, guaranteed 85+ Street Kings item.
-- **Summer Transfers Vault** (700 Duo Pts): 5 Players, guaranteed 85+ Summer Transfers card with 97–99 Mythic odds.
-- **Throwback Rewind Pack** (950 Duo Pts): 5 Players, guaranteed 85+ Throwback card with 98 Messi & Ronaldo odds.
-- **Mythic Apex 95+ Player Pack** (1400 Duo Pts): 1 Guaranteed 95–99 Apex Icon or Premium card.
-
-When purchased, packs are pushed to `unopenedPacks` via `onAddUnopenedPack(packDef, 'Pack Duo Victory Vault', 'pack_duo')` and persisted in `localStorage`.
-
-***
-
-## 4. Technical File Plan
+### 4. Step-by-Step Implementation Flow
 
 1. **`src/types/card.ts`**:
-   - Update `sourceType` in `StoredRewardPack` to include `'pack_duo'`.
-   - Add types for `PackDuoChecklist`, `PackDuoOpponent`, and `PackDuoMatchResult`.
-2. **`src/components/PackDuoGame.tsx` (NEW)**:
-   - Full implementation of the Pack Duo experience:
-     - Matchmaking selection (AI vs Online Users).
-     - 50-pack quick opening engine with batching and instant reveal.
-     - 5 dynamic checklist evaluation engine.
-     - Squad builder pitch with 11 slots and best-squad auto-solver.
-     - 5-pillar showdown comparison screen with animated scores.
-     - Sub-tab Duo Rewards Shop with live Duo Points balance and redemption logic.
-3. **`src/components/MiniGamesHub.tsx`**:
-   - Add `'pack_duo'` to `MiniGameMode`.
-   - Add `⚔️ Pack Duo` tab button in the header nav.
-   - Mount `<PackDuoGame />` when active.
-   - Pass through `onAddUnopenedPack`.
-4. **`src/data/rewardPacks.ts`**:
-   - Define dedicated Duo Shop pack definitions (`DUO_SHOP_PACKS`).
-
-***
-
-## 5. Verification Plan
-
-1. **Lint Verification**:
-   - Run `lint_applet` (`tsc --noEmit`) to verify zero type mismatches or missing imports.
-2. **Compilation Verification**:
-   - Run `compile_applet` to confirm Vite production build compiles with no errors.
-3. **Functional Testing**:
-   - Test AI matchmaking and Online simulated matchmaking.
-   - Verify 50 packs rip smoothly with single, batch (5x/10x), and all-open buttons.
-   - Check that checklist items correctly detect matching cards (e.g. Real Madrid 87+).
-   - Test squad auto-builder and manual swaps.
-   - Verify showdown scoring, winner declaration, and Duo Points award.
-   - Test purchasing a pack from the Duo Shop and verifying it shows up in "My Packs".
+   - Add `CardStyle` values: `'hall_of_fut_base'` and `'hall_of_fut_upgrade'`.
+   - Add `isSetRewardOnly?: boolean` to `SoccerCard`.
+   - Define `CardSetReward` and `SetCollectionProgress` interfaces.
+2. **`src/data/cardSvgGenerator.ts`**:
+   - Add SVG styling generators for `hall_of_fut_base` (grey geometric shattered shield) and `hall_of_fut_upgrade` (crimson & gold shattered crystal).
+3. **`src/data/hallOfFutCards.ts` (NEW)**:
+   - Define all 18 collectible players + Kane 99 Set Reward with exact stats and metadata.
+4. **`src/data/defaultCards.ts`**:
+   - Export and include the 18 collectible cards into the main card pool.
+5. **`src/components/SetRewardsHub.tsx` (NEW)**:
+   - Build the interactive Set Rewards Collector Hub with progress tracking, 18-card album, Kane 99 reward modal, and claim handler.
+6. **`src/data/packs.ts`**:
+   - Add "Hall of FUT Special Pack" to the store.
+7. **`src/App.tsx`**:
+   - Mount the `Set Rewards` tab and handle reward claiming into `clubCards`.
+8. **Verification & Testing**:
+   - Verify linting (`lint_applet`) and production compilation (`compile_applet`).
+   - Validate duplicate handling (collecting 2 of the same card only counts as 1 towards the 18).
+   - Verify Harry Kane is strictly awarded upon completing the 18 unique cards.

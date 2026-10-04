@@ -8,6 +8,8 @@ export type CardRarity =
   | 'street_kings'
   | 'international_moments'
   | 'hall_of_fame'
+  | 'hall_of_fut_base'
+  | 'hall_of_fut_upgrade'
   | 'program_one'
   | 'base'
   | 'futmas'
@@ -26,6 +28,8 @@ export type CardStyle =
   | 'street_kings_urban'
   | 'intl_moments_gold'
   | 'hof_gold_obsidian'
+  | 'hall_of_fut_base'
+  | 'hall_of_fut_upgrade'
   | 'totw_black'
   | 'classic_gold'
   | 'futmas_crimson'
@@ -46,6 +50,7 @@ export type PackTheme =
   | 'brazil'
   | 'belgium'
   | 'hof_gold'
+  | 'hall_of_fut'
   | 'gold' 
   | 'black' 
   | 'ruby' 
@@ -124,6 +129,7 @@ export interface SoccerCard {
   hofLegacyQuote?: string;
   isCustom?: boolean;
   creatorTag?: string;
+  isSetRewardOnly?: boolean; // Strictly exclusive to Set Rewards completion (cannot be packed or bought on market)
   stats: CardStats;
   weakFoot?: number;
   skillMoves?: number;
@@ -284,5 +290,18 @@ export interface PackDuoCategoryScore {
   oppPoints: number;
   winner: 'user' | 'opponent' | 'tie';
 }
+
+export interface CardSetDefinition {
+  id: string;
+  title: string;
+  badge: string;
+  subtitle: string;
+  description: string;
+  program: string;
+  requiredPlayerIds: string[]; // 18 unique players
+  rewardPlayer: SoccerCard;
+  bonusCoins?: number;
+}
+
 
 

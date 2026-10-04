@@ -106,8 +106,23 @@ export function generateUserCardSvg(
   const isFutmas = cardStyle === 'futmas_crimson';
   const isGold = cardStyle === 'classic_gold';
   const isHOF = cardStyle === 'hof_gold_obsidian';
+  const isHallOfFutBase = cardStyle === 'hall_of_fut_base';
+  const isHallOfFutUpgrade = cardStyle === 'hall_of_fut_upgrade';
 
-  const borderStops = isThrowback
+  const borderStops = isHallOfFutUpgrade
+    ? `<stop offset="0%" stop-color="#fef08a"/>
+       <stop offset="20%" stop-color="#ef4444"/>
+       <stop offset="45%" stop-color="#f59e0b"/>
+       <stop offset="70%" stop-color="#991b1b"/>
+       <stop offset="85%" stop-color="#fbbf24"/>
+       <stop offset="100%" stop-color="#b91c1c"/>`
+    : isHallOfFutBase
+    ? `<stop offset="0%" stop-color="#f8fafc"/>
+       <stop offset="25%" stop-color="#94a3b8"/>
+       <stop offset="50%" stop-color="#e2e8f0"/>
+       <stop offset="75%" stop-color="#475569"/>
+       <stop offset="100%" stop-color="#cbd5e1"/>`
+    : isThrowback
     ? `<stop offset="0%" stop-color="#4ade80"/>
        <stop offset="25%" stop-color="#22c55e"/>
        <stop offset="50%" stop-color="#16a34a"/>
@@ -163,7 +178,17 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isThrowback
+  const shieldStops = isHallOfFutUpgrade
+    ? `<stop offset="0%" stop-color="#450a0a"/>
+       <stop offset="30%" stop-color="#7f1d1d"/>
+       <stop offset="65%" stop-color="#2a0505"/>
+       <stop offset="100%" stop-color="#050202"/>`
+    : isHallOfFutBase
+    ? `<stop offset="0%" stop-color="#0f172a"/>
+       <stop offset="35%" stop-color="#1e293b"/>
+       <stop offset="70%" stop-color="#0f172a"/>
+       <stop offset="100%" stop-color="#020617"/>`
+    : isThrowback
     ? `<stop offset="0%" stop-color="#022c22"/>
        <stop offset="30%" stop-color="#064e3b"/>
        <stop offset="65%" stop-color="#052e16"/>
@@ -327,6 +352,12 @@ export function generateUserCardSvg(
     ` : isStreetKings ? `
     <!-- Street Kings Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#22d3ee" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">⚡ STREET KINGS ⚡</text>
+    ` : isHallOfFutUpgrade ? `
+    <!-- Hall of FUT Upgrade Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#fef08a" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">HALL OF FUT UPGRADE</text>
+    ` : isHallOfFutBase ? `
+    <!-- Hall of FUT Base Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#cbd5e1" letter-spacing="3" text-anchor="middle">HALL OF FUT</text>
     ` : isHOF ? `
     <!-- Hall of Fame Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#fef08a" letter-spacing="4" text-anchor="middle" filter="url(#goldGlow)">HALL OF FAME</text>
@@ -345,8 +376,8 @@ export function generateUserCardSvg(
     </g>
     ` : `
     <!-- Top Left Rating & Position Stack -->
-    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isSummerPremium ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isHOF || isSummerPremium ? 'url(#goldGlow)' : 'none'}">${rating}</text>
-    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isHOF ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
+    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isSummerPremium || isHallOfFutUpgrade ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isHOF || isSummerPremium || isHallOfFutUpgrade ? 'url(#goldGlow)' : 'none'}">${rating}</text>
+    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isHOF || isHallOfFutUpgrade ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
     `}
 
     <!-- Center Player Face Silhouette / Avatar placeholder -->

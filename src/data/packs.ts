@@ -5,6 +5,20 @@ import streetKingsPackImg from '../assets/images/street_kings_pack_1790668484887
 
 export const PACKS: PackDefinition[] = [
   {
+    id: 'pack-hall-of-fut-special',
+    name: 'Hall of FUT Master Pack 🏆',
+    tagline: 'Guaranteed 85+ Hall of FUT player with high odds for 90–98 Upgrade superstars (Clough 98, Owen 97, Beckham 94, Foden 92). Collect all 18 for Harry Kane 99!',
+    cost: 30000,
+    cardCount: 5,
+    minRating: 84,
+    programFilter: 'Hall of FUT',
+    customCardChance: 1.0,
+    guaranteedRating: 85,
+    guaranteedWalkout: true,
+    theme: 'hall_of_fut',
+    imageAsset: iconPackImg,
+  },
+  {
     id: 'pack-summer-unlimited-hunt',
     name: 'Unlimited Summer Hunt ☀️',
     tagline: '♾️ FREE & UNLIMITED OPENS! Ultra-rare jackpot odds (~1.5%) for 133 Summer Basic transfer cards!',

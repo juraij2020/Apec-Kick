@@ -171,6 +171,10 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
         intlPool = intlPool.filter((c) => c.nation === 'Belgium');
       }
       candidatePool = intlPool.length > 0 ? intlPool : allCardsPool;
+    } else if (pack.programFilter === 'Hall of FUT' || pack.theme === 'hall_of_fut') {
+      candidatePool = allCardsPool.filter(
+        (c) => (c.program === 'Hall of FUT' || c.rarity === 'hall_of_fut_base' || c.rarity === 'hall_of_fut_upgrade') && !c.isSetRewardOnly
+      );
     } else if (pack.programFilter === 'Hall of Fame' || pack.theme === 'hof_gold') {
       candidatePool = allCardsPool.filter(
         (c) => c.program === 'Hall of Fame' || c.rarity === 'hall_of_fame' || c.program === 'Program One' || c.rarity === 'program_one'
@@ -190,6 +194,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
     } else {
       candidatePool = [...allCardsPool];
     }
+
+    // Strictly ensure set-reward-only cards (like Harry Kane 99) can never be pulled from packs
+    candidatePool = candidatePool.filter((c) => !c.isSetRewardOnly);
 
     // Fallback card if pool is empty or rating threshold too restrictive
     const fallbackCard: SoccerCard = allCardsPool[0] || {

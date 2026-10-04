@@ -4,6 +4,7 @@ import { HALL_OF_FAME_CARDS, BASE_SOCCER_CARDS, FUTMAS_CARDS } from './defaultCa
 import { STREET_KINGS_CARDS } from './streetKings';
 import { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS } from './summerCards';
 import { THROWBACK_CARDS } from './throwbackCards';
+import { HALL_OF_FUT_COLLECTIBLE_CARDS } from './hallOfFutCards';
 
 const SELLER_NAMES = [
   'TransferGuru_99',
@@ -149,12 +150,13 @@ export function generateInitialListings(customPool?: SoccerCard[]): TransferList
           ...SUMMER_PREMIUM_CARDS,
           ...SUMMER_BASIC_CARDS,
           ...THROWBACK_CARDS,
+          ...HALL_OF_FUT_COLLECTIBLE_CARDS,
           ...STREET_KINGS_CARDS,
           ...INTERNATIONAL_MOMENTS_CARDS,
           ...HALL_OF_FAME_CARDS,
           ...FUTMAS_CARDS,
           ...BASE_SOCCER_CARDS,
-        ];
+        ].filter((c) => !c.isSetRewardOnly);
 
   // Specific high-profile marquee players guaranteed to be listed first
   const marqueeIds = [

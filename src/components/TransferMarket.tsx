@@ -267,6 +267,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
           ) {
             return false;
           }
+          if (filter.program === 'hall_of_fut' && card.program !== 'Hall of FUT' && card.rarity !== 'hall_of_fut_base' && card.rarity !== 'hall_of_fut_upgrade') return false;
           if (filter.program === 'throwback' && card.program !== 'Throwback' && card.rarity !== 'throwback' && card.cardStyle !== 'throwback') return false;
           if (filter.program === 'street_kings' && card.program !== 'Street Kings' && card.rarity !== 'street_kings') return false;
           if (filter.program === 'intl' && card.program !== 'International Moments' && card.rarity !== 'international_moments') return false;
@@ -833,6 +834,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
               {[
                 { id: 'ALL', label: 'All Players' },
+                { id: 'hall_of_fut', label: '🏆 Hall of FUT' },
                 { id: 'throwback', label: '⏳ Throwback Flashback' },
                 { id: 'summer_premium', label: '👑 97-99 Summer Premium' },
                 { id: 'summer', label: '☀️ Summer Transfers' },

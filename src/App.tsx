@@ -29,6 +29,7 @@ import { TransferMarket } from './components/TransferMarket';
 import { MiniGamesHub } from './components/MiniGamesHub';
 import { MyPacksHub } from './components/MyPacksHub';
 import { DailyObjectives } from './components/DailyObjectives';
+import { SetRewardsHub } from './components/SetRewardsHub';
 import { GoogleAuthButton } from './components/GoogleAuthButton';
 import { StoredRewardPack } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
@@ -51,11 +52,12 @@ import {
   Users,
   Layers,
   Swords,
-  Package
+  Package,
+  Trophy
 } from 'lucide-react';
 import { safeSetItem, safeGetItem, sanitizeCardsListForStorage } from './utils/safeStorage';
 
-type NavTab = 'intl' | 'hof' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives';
+type NavTab = 'intl' | 'hof' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives' | 'set_rewards';
 
 const STORAGE_KEYS = {
   COINS: 'apex_fut_coins_v2',
@@ -588,6 +590,22 @@ export default function App() {
                 </span>
               </button>
 
+              {/* Set Rewards Tab */}
+              <button
+                onClick={() => { setCurrentTab('set_rewards'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                  currentTab === 'set_rewards'
+                    ? 'bg-amber-500/25 text-amber-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.35)]'
+                    : 'bg-gradient-to-r from-red-500/10 to-amber-500/10 text-amber-300 border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/20'
+                }`}
+              >
+                <Trophy className="w-4 h-4 text-amber-400" />
+                <span>Set Rewards</span>
+                <span className="text-[9px] bg-gradient-to-r from-red-500 to-amber-500 text-white font-black px-1.5 py-0.2 rounded-full uppercase">
+                  Kane 99
+                </span>
+              </button>
+
               {/* Open Packs */}
               <button
                 onClick={() => { setCurrentTab('packs'); sound.playClick(); }}
@@ -829,6 +847,18 @@ export default function App() {
             >
               <Target className="w-3.5 h-3.5 text-amber-400" />
               <span>Objectives</span>
+            </button>
+
+            <button
+              onClick={() => { setCurrentTab('set_rewards'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1.5 flex-shrink-0 border ${
+                currentTab === 'set_rewards' 
+                  ? 'bg-amber-500/25 text-amber-200 border-amber-400 font-bold shadow-[0_0_10px_rgba(245,158,11,0.3)]' 
+                  : 'bg-slate-900/60 border-amber-500/40 text-amber-300 font-bold'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-400" />
+              <span>Set Rewards</span>
             </button>
 
             <button
@@ -1084,6 +1114,21 @@ export default function App() {
             }}
             onNavigateToObjectives={() => {
               setCurrentTab('objectives');
+              sound.playClick();
+            }}
+          />
+        )}
+
+        {currentTab === 'set_rewards' && (
+          <SetRewardsHub
+            clubCards={clubCards}
+            onAddCardsToClub={handleAddCardsToClub}
+            onNavigateToStore={(_filter?: string) => {
+              setCurrentTab('packs');
+              sound.playClick();
+            }}
+            onNavigateToMarket={() => {
+              setCurrentTab('market');
               sound.playClick();
             }}
           />
