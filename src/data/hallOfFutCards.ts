@@ -447,3 +447,8 @@ export const HALL_OF_FUT_SET_DEFINITION: CardSetDefinition = {
   rewardPlayer: HARRY_KANE_SET_REWARD,
   bonusCoins: 50000,
 };
+
+export const AVAILABLE_CARD_SETS: CardSetDefinition[] = [
+  HALL_OF_FUT_SET_DEFINITION,
+];
+

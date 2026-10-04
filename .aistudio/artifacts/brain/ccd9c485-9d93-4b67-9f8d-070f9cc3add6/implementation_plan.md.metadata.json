@@ -1,6 +1,6 @@
 {
-  "summary":  "Comprehensive implementation plan for the new 'Set Rewards' system and the 'Hall of FUT' collection featuring 18 unique collectible players (Grey Base & Red Upgrade) and an exclusive 99 ST Harry Kane completion reward.",
-  "updatedAt":  "2026-10-04T05:02:49.460474649Z",
+  "summary":  "Architecture plan to transform the Set Rewards Hub into a vertical expandable list of set collections, supporting seamless future set additions while keeping the active Hall of FUT set at center stage.",
+  "updatedAt":  "2026-10-04T06:20:51.274133578Z",
   "requestFeedback":  true,
   "userFacing":  true
 }
