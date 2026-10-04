@@ -1153,6 +1153,8 @@ export default function App() {
           <MyPacksHub
             unopenedPacks={unopenedPacks}
             allCardsPool={allCardsPool}
+            clubCards={clubCards}
+            onAddCoins={handleAddCoins}
             onOpenRewardPack={handleOpenRewardPack}
             onAddCardsToClub={handleAddCardsToClub}
             onQuickSellCard={handleQuickSellCard}
