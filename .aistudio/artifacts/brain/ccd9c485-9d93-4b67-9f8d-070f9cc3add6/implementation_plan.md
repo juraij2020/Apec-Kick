@@ -1,77 +1,74 @@
-# Implementation Plan: Card Evolutions Hub (Bukayo Saka 75 ➔ 98 OVR)
+# Implementation Plan: Signature Series Collection & Grand Set Rewards
 
-Create a dedicated **Evolutions** tab featuring a **free starter 75 OVR Bukayo Saka** card, an **Evolution Points** economy earned across the entire game (Daily Objectives, Matches, Mini-Games, and Packs), and a **random stat training system** that progressively upgrades Saka through all 14 stages up to his supreme **98 OVR** card.
+Introduce the official **Signature Series** card program featuring authentic golden **autograph script replacing player names**, a progressive milestone system unlocking 99-rated stars, and the grand culmination granting the **Final Four 99 Legends: Messi, Cristiano Ronaldo, Pelé, and Ronaldo Nazário**.
 
 ---
 
-## User Specifications & Answers
-- **New Tab**: Dedicated "Evolutions" navigation tab with custom DNA icon.
-- **Starting Card**: Free **75 OVR LB Bukayo Saka** automatically granted to the user.
-- **Point Earning**:
-  - Daily Objectives (+100 Evo Points per objective claimed)
-  - Match Simulator / Clash (+35 Evo Points per win, +15 per match played)
-  - Mini-Games (+25 Evo Points per successful game)
-  - Pack Openings (+5 Evo Points per rip)
-- **Upgrade Mechanic**:
-  - Spend Evolution Points to **roll random attribute upgrades** (+1 to a random stat that has not yet reached the next stage target).
-  - When all 6 attributes reach the target threshold of the next tier, the card **automatically evolves** to the next OVR stage (triggering fanfare, confetti, updated card visual, and position adjustments).
-- **Evolution Stages (14 Total)**:
-  1. Stage 0 (Starter): **75 LB** (75 PAC · 75 SHO · 73 PAS · 75 DRI · 64 DEF · 63 PHY)
-  2. Stage 1: **84 LB** (84 PAC · 84 SHO · 82 PAS · 84 DRI · 73 DEF · 72 PHY)
-  3. Stage 2: **85 RM** (85 PAC · 85 SHO · 83 PAS · 85 DRI · 74 DEF · 73 PHY)
-  4. Stage 3: **86 RW** (86 PAC · 86 SHO · 83 PAS · 86 DRI · 75 DEF · 72 PHY)
-  5. Stage 4: **87 RW** (87 PAC · 87 SHO · 85 PAS · 87 DRI · 76 DEF · 75 PHY)
-  6. Stage 5: **88 RW** (88 PAC · 88 SHO · 86 PAS · 88 DRI · 77 DEF · 76 PHY)
-  7. Stage 6: **89 RW** (89 PAC · 89 SHO · 87 PAS · 89 DRI · 78 DEF · 77 PHY)
-  8. Stage 7: **90 RW** (90 PAC · 90 SHO · 88 PAS · 90 DRI · 79 DEF · 78 PHY)
-  9. Stage 8: **91 RW** (91 PAC · 91 SHO · 89 PAS · 91 DRI · 80 DEF · 79 PHY)
-  10. Stage 9: **92 RW** (92 PAC · 92 SHO · 90 PAS · 92 DRI · 81 DEF · 80 PHY)
-  11. Stage 10: **93 RW** (93 PAC · 93 SHO · 91 PAS · 93 DRI · 82 DEF · 81 PHY)
-  12. Stage 11: **95 RW** (95 PAC · 95 SHO · 93 PAS · 95 DRI · 84 DEF · 83 PHY)
-  13. Stage 12: **97 CAM** (97 PAC · 97 SHO · 95 PAS · 97 DRI · 86 DEF · 85 PHY)
-  14. Stage 13 (Apex Master): **98 RW** (98 PAC · 98 SHO · 96 PAS · 98 DRI · 87 DEF · 86 PHY)
+## User Specifications & Verified Answers
+- **Card Styling**: Black/green-gold geometric crystal shield with golden borders matching the 20 uploaded cards.
+- **Autograph Feature**: Every card displays a **golden cursive signature script** in place of the standard block font name.
+- **Set Progression**: Progressive milestone tiers unlocking the 99-rated Signature cards, culminating in the final set reward.
+- **The 20 Exact Cards from Uploads**:
+  - **Collectible Set (10 Players)**:
+    1. Douglas Luiz (79 CDM) · Juventus
+    2. Lacroix (83 CB) · Chelsea
+    3. Ferran Torres (83 ST) · PSG
+    4. Alvarez (85 ST) · Atlético Madrid
+    5. Fernández (85 CM) · Man City
+    6. Mbappé (89 ST) · Real Madrid
+    7. Insigne (89 CAM) · Napoli
+    8. Dembélé (90 ST) · PSG
+    9. Maradona (90 CAM) · Napoli
+    10. Esposito (92 ST) · Cagliari/Bologna
+  - **Progressive Milestone 99 Rewards**:
+    - Collect 2: Gareth Bale (99 RW)
+    - Collect 4: Bradley Barcola (99 LW)
+    - Collect 6: Michael Olise (99 RM)
+    - Collect 8: Antoine Semenyo (99 LM)
+    - Collect 10: Paolo Maldini (99 CB)
+    - Collect 12: Yaya Touré (99 CM)
+  - **Grand Ultimate Set Reward (Complete Set)**:
+    - **All 4 Legendary 99 Signature Cards**:
+      1. Lionel Messi (99 CAM) · Barcelona
+      2. Cristiano Ronaldo (99 ST) · Real Madrid
+      3. Pelé (99 CAM) · Santos
+      4. Ronaldo Nazário (99 ST) · Real Madrid
 
 ---
 
 ## Proposed Changes
 
-### 1. Evolution Stages Data & Card Generator (`src/data/evolutionSaka.ts`)
-- Define the 14 evolution stages with their exact ratings, positions, stats, and card styles (`evolution_emerald` & `evolution_gold_apex`).
-- Generate dynamic SVGs for each stage using custom DNA emerald and apex gold border designs.
-- Export helper functions:
-  - `getEvoStage(stageIndex: number): EvolutionStage`
-  - `canEvolveToNextStage(currentStats, nextStageStats): boolean`
+### 1. Card Model & Autograph Rendering (`src/types/card.ts` & `src/data/cardSvgGenerator.ts`)
+- Add `'signature_autograph'` to `CardRarity` and `CardStyle`.
+- In `generateUserCardSvg`:
+  - When `cardStyle === 'signature_autograph'`, render a signature styling layer:
+    - Flowing golden cursive font (`font-family: 'Brush Script MT', 'Dancing Script', 'Pacifico', cursive`)
+    - Subtle tilt (-4deg to -6deg) and gold-foil drop-shadow filter.
+    - Custom SVG autograph flourishes and pen strokes beneath the text.
+  - Green-gold/black geometric crystal shield gradients matching the uploaded cards.
 
-### 2. Evolution State & Storage Management (`src/types/card.ts` & `src/App.tsx`)
-- Add `evoPoints` and `sakaEvoState` to persistent state:
-  - `currentStageIndex`: number (starts at 0 = 75 OVR).
-  - `currentStats`: { pac, sho, pas, dri, def, phy }.
-  - `claimedFreeStarter`: boolean.
-- Distribute Evolution Points across user activities:
-  - In `handleAwardMatchPrize`: add +35 Evo Points.
-  - In `DailyObjectives`: award +100 Evo Points per task claimed.
-  - In `MiniGamesHub`: award +25 Evo Points on wins.
-  - In `handleIncrementPacksOpened`: award +5 Evo Points.
-- Sync the evolved Saka card automatically with `clubCards` so the user can immediately play him in their Squad!
+### 2. Signature Series Cards Database (`src/data/signatureCards.ts`)
+- Define all 20 players with exact ratings, positions, clubs, nations, and stats from the images.
+- Provide custom cursive signature data and PlayStyle+ badges.
+- Export utility functions:
+  - `SIGNATURE_COLLECTIBLE_CARDS`: The 10 base set cards.
+  - `SIGNATURE_99_TIER_REWARDS`: The 6 progressive 99 rewards (Bale, Barcola, Olise, Semenyo, Maldini, Touré).
+  - `SIGNATURE_FINAL_FOUR_LEGENDS`: Messi 99, CR7 99, Pelé 99, Ronaldo 99.
 
-### 3. Dedicated Evolution Hub Component (`src/components/EvolutionHub.tsx`)
-- Interactive DNA-themed UI featuring:
-  - **Live Card Showcase**: Displaying the active evolving Saka card with live glowing stat counters.
-  - **Stage Progress Bar & Roadmap**: Visual chain displaying all 14 stages (75 ➔ 84 ➔ 85 ... ➔ 98).
-  - **Target Stat Radar**: Shows current stat vs target stat for each of the 6 attributes (PAC, SHO, PAS, DRI, DEF, PHY) with animated progress indicators.
-  - **"🎲 Train Random Stat" Button**: Consumes 10 Evo Points to randomly upgrade one eligible stat by +1 with sound effects and floating numbers.
-  - **"⚡ Train x5" & "⚡ Train All Available"**: Multi-train buttons for convenient fast training.
-  - **Stage Evolution Celebration**: When all 6 attributes match the target stats, triggers an evolution fanfare sequence and transforms the card to the next tier!
+### 3. Signature Pack in Store & Vault (`src/data/packs.ts`)
+- Add the **"Signature Series Showcase Pack"**:
+  - Contains guaranteed Signature Series cards with chances to pull base set players.
+  - Custom pack art and theme matching the green-gold obsidian foil.
 
-### 4. Navigation & App Integration (`src/App.tsx`)
-- Add `'evolution'` to `NavTab` with a glowing DNA / Sparkles icon.
-- Header counter displaying live **🧬 Evo Points** alongside coins.
+### 4. Interactive Set Rewards Hub Integration (`src/components/SetRewardsHub.tsx`)
+- Add a dedicated **Signature Series Collection** showcase:
+  - Grid of the 10 collectible cards showing owned vs unowned status.
+  - **Milestone Reward Track**: Visual path unlocking Bale 99 ➔ Barcola 99 ➔ Olise 99 ➔ Semenyo 99 ➔ Maldini 99 ➔ Touré 99 as cards are acquired.
+  - **The Grand Finale Vault**: Unlocks when milestones are met, letting the user claim the 4 GOATs (Messi, CR7, Pelé, R9) into their Club with confetti and fanfare!
 
 ---
 
 ## Verification Plan
 1. **Compilation Check**: Run `lint_applet` and `compile_applet`.
-2. **Starter Grant**: Verify that opening the Evolution tab or launching the app grants the free 75 OVR LB Saka card.
-3. **Point Earning**: Verify that matches, mini-games, objectives, and pack openings award Evo Points.
-4. **Random Attribute Roll**: Confirm that clicking "Train Stat" rolls an attribute that needs points and updates live.
-5. **Auto-Evolution**: Confirm that completing all 6 stats triggers the evolution animation and updates Saka to the next tier.
+2. **Card Visual Check**: Verify that Signature cards display golden cursive autographs in place of standard player names.
+3. **Set Progression Check**: Verify that collecting cards tracks correctly, milestones unlock the 6 99-rated cards, and the Grand Finale claims Messi, CR7, Pelé, and R9.

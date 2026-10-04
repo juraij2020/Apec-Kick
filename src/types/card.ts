@@ -24,6 +24,7 @@ export type CardRarity =
   | 'summer_premium'
   | 'evolution_emerald'
   | 'evolution_gold_apex'
+  | 'signature_autograph'
   | 'throwback';
 
 export type CardStyle =
@@ -34,6 +35,7 @@ export type CardStyle =
   | 'hall_of_fut_upgrade'
   | 'evolution_emerald'
   | 'evolution_gold_apex'
+  | 'signature_autograph'
   | 'totw_black'
   | 'classic_gold'
   | 'futmas_crimson'

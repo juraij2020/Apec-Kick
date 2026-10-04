@@ -110,8 +110,16 @@ export function generateUserCardSvg(
   const isHallOfFutUpgrade = cardStyle === 'hall_of_fut_upgrade';
   const isEvolutionGoldApex = cardStyle === 'evolution_gold_apex';
   const isEvolutionEmerald = cardStyle === 'evolution_emerald';
+  const isSignature = cardStyle === 'signature_autograph';
 
-  const borderStops = isEvolutionGoldApex
+  const borderStops = isSignature
+    ? `<stop offset="0%" stop-color="#fffbeb"/>
+       <stop offset="20%" stop-color="#fef08a"/>
+       <stop offset="45%" stop-color="#eab308"/>
+       <stop offset="70%" stop-color="#ca8a04"/>
+       <stop offset="85%" stop-color="#fef08a"/>
+       <stop offset="100%" stop-color="#a16207"/>`
+    : isEvolutionGoldApex
     ? `<stop offset="0%" stop-color="#34d399"/>
        <stop offset="25%" stop-color="#fbbf24"/>
        <stop offset="50%" stop-color="#10b981"/>
@@ -192,7 +200,12 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isEvolutionGoldApex
+  const shieldStops = isSignature
+    ? `<stop offset="0%" stop-color="#02140d"/>
+       <stop offset="30%" stop-color="#082e1c"/>
+       <stop offset="65%" stop-color="#04180f"/>
+       <stop offset="100%" stop-color="#010805"/>`
+    : isEvolutionGoldApex
     ? `<stop offset="0%" stop-color="#022c22"/>
        <stop offset="35%" stop-color="#064e3b"/>
        <stop offset="70%" stop-color="#042f2e"/>
@@ -256,7 +269,12 @@ export function generateUserCardSvg(
        <stop offset="50%" stop-color="#09090b"/>
        <stop offset="100%" stop-color="#000000"/>`;
 
-  const lineStops = isSummerPremium
+  const lineStops = isSignature
+    ? `<stop offset="0%" stop-color="#fffbeb" stop-opacity="0.95"/>
+       <stop offset="30%" stop-color="#fef08a" stop-opacity="0.9"/>
+       <stop offset="70%" stop-color="#10b981" stop-opacity="0.65"/>
+       <stop offset="100%" stop-color="#047857" stop-opacity="0.15"/>`
+    : isSummerPremium
     ? `<stop offset="0%" stop-color="#38bdf8" stop-opacity="0.95"/>
        <stop offset="35%" stop-color="#fef08a" stop-opacity="0.9"/>
        <stop offset="70%" stop-color="#ec4899" stop-opacity="0.8"/>
@@ -282,7 +300,7 @@ export function generateUserCardSvg(
     : `<stop offset="0%" stop-color="#eab308" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#a16207" stop-opacity="0.1"/>`;
 
-  const starSymbol = isSummerPremium ? '👑' : isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
+  const starSymbol = isSignature ? '✍️' : isSummerPremium ? '👑' : isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 900" width="100%" height="100%">
     <defs>
@@ -300,6 +318,18 @@ export function generateUserCardSvg(
       </filter>
       <filter id="greenGlow" x="-20%" y="-20%" width="140%" height="140%">
         <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#22c55e" flood-opacity="0.8"/>
+      </filter>
+      <linearGradient id="signatureGoldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fffbeb"/>
+        <stop offset="20%" stop-color="#fef08a"/>
+        <stop offset="45%" stop-color="#f59e0b"/>
+        <stop offset="70%" stop-color="#eab308"/>
+        <stop offset="90%" stop-color="#fef08a"/>
+        <stop offset="100%" stop-color="#ca8a04"/>
+      </linearGradient>
+      <filter id="signatureShine" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.9"/>
+        <feDropShadow dx="0" dy="0" stdDeviation="3.5" flood-color="#facc15" flood-opacity="0.7"/>
       </filter>
       <linearGradient id="flashbackChevron" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stop-color="#86efac"/>
@@ -382,6 +412,9 @@ export function generateUserCardSvg(
     ` : isHallOfFutBase ? `
     <!-- Hall of FUT Base Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#cbd5e1" letter-spacing="3" text-anchor="middle">HALL OF FUT</text>
+    ` : isSignature ? `
+    <!-- Signature Series Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="13" fill="#fef08a" letter-spacing="4" text-anchor="middle" filter="url(#goldGlow)">✍️ SIGNATURE SERIES ✍️</text>
     ` : isHOF ? `
     <!-- Hall of Fame Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="14" fill="#fef08a" letter-spacing="4" text-anchor="middle" filter="url(#goldGlow)">HALL OF FAME</text>
@@ -400,8 +433,8 @@ export function generateUserCardSvg(
     </g>
     ` : `
     <!-- Top Left Rating & Position Stack -->
-    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isSummerPremium || isHallOfFutUpgrade ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isHOF || isSummerPremium || isHallOfFutUpgrade ? 'url(#goldGlow)' : 'none'}">${rating}</text>
-    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isHOF || isHallOfFutUpgrade ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
+    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isSignature || isSummerPremium || isHallOfFutUpgrade ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isSignature || isHOF || isSummerPremium || isHallOfFutUpgrade ? 'url(#goldGlow)' : 'none'}">${rating}</text>
+    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isSignature || isHOF || isHallOfFutUpgrade ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
     `}
 
     <!-- Center Player Face Silhouette / Avatar placeholder -->
@@ -466,28 +499,41 @@ export function generateUserCardSvg(
       <text x="0" y="6" font-family="sans-serif" font-weight="900" font-size="14" fill="#4ade80" text-anchor="middle">FW</text>
     </g>
     ` : `
-    <!-- Standard Player Name Banner Plate -->
+    <!-- Standard or Signature Player Name Banner Plate -->
+    ${isSignature ? `
+    <rect x="95" y="565" width="454" height="66" fill="#02140d" fill-opacity="0.8" rx="8" stroke="#ca8a04" stroke-width="1.8"/>
+    <g transform="translate(322, 608) rotate(-3)">
+      <!-- Signature Glow Shadow -->
+      <text x="0" y="0" font-family="'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', 'Apple Chancery', 'Snell Roundhand', 'Dancing Script', 'Caveat', 'Pacifico', cursive" font-style="italic" font-weight="900" font-size="${safeName.length > 14 ? '36' : safeName.length > 10 ? '42' : '48'}" fill="#ca8a04" text-anchor="middle" letter-spacing="1.5" filter="url(#goldGlow)" opacity="0.7">${safeName}</text>
+      <!-- Signature Main Golden Calligraphy -->
+      <text x="0" y="0" font-family="'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', 'Apple Chancery', 'Snell Roundhand', 'Dancing Script', 'Caveat', 'Pacifico', cursive" font-style="italic" font-weight="900" font-size="${safeName.length > 14 ? '35' : safeName.length > 10 ? '41' : '47'}" fill="url(#signatureGoldGradient)" text-anchor="middle" letter-spacing="1.5" filter="url(#signatureShine)">${safeName}</text>
+      <!-- Authentic Pen Paraph / Flourish Underline Loop -->
+      <path d="M-135,16 C-70,24 20,8 110,18 C135,21 142,12 125,7 C100,0 70,12 118,15" fill="none" stroke="url(#signatureGoldGradient)" stroke-width="2.5" stroke-linecap="round" opacity="0.95"/>
+      <circle cx="122" cy="15" r="2.5" fill="#fef08a"/>
+    </g>
+    ` : `
     <rect x="100" y="565" width="444" height="60" fill="#000000" fill-opacity="${isHOF ? '0.75' : '0.5'}" rx="4" stroke="${isHOF ? '#ca8a04' : 'transparent'}" stroke-width="${isHOF ? '1.5' : '0'}"/>
     <text x="322" y="610" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="42" fill="${isHOF ? '#ffffff' : '#ffffff'}" text-anchor="middle" letter-spacing="1.5">${safeName}</text>
+    `}
 
     <!-- Stats Grid Divider Lines -->
-    <line x1="110" y1="635" x2="534" y2="635" stroke="${isHOF ? '#eab308' : '#ffffff'}" stroke-opacity="${isHOF ? '0.5' : '0.2'}" stroke-width="2"/>
+    <line x1="110" y1="635" x2="534" y2="635" stroke="${isSignature || isHOF ? '#eab308' : '#ffffff'}" stroke-opacity="${isSignature || isHOF ? '0.6' : '0.2'}" stroke-width="2"/>
 
     <!-- Stats Row 1: Labels -->
-    <text x="140" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isHOF ? '#fef08a' : '#ffffff'}" opacity="0.9" text-anchor="middle">${l1}</text>
-    <text x="212" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isHOF ? '#fef08a' : '#ffffff'}" opacity="0.9" text-anchor="middle">${l2}</text>
-    <text x="284" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isHOF ? '#fef08a' : '#ffffff'}" opacity="0.9" text-anchor="middle">${l3}</text>
-    <text x="360" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isHOF ? '#fef08a' : '#ffffff'}" opacity="0.9" text-anchor="middle">${l4}</text>
-    <text x="432" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isHOF ? '#fef08a' : '#ffffff'}" opacity="0.9" text-anchor="middle">${l5}</text>
-    <text x="504" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isHOF ? '#fef08a' : '#ffffff'}" opacity="0.9" text-anchor="middle">${l6}</text>
+    <text x="140" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isSignature || isHOF ? '#fef08a' : '#ffffff'}" opacity="0.95" text-anchor="middle">${l1}</text>
+    <text x="212" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isSignature || isHOF ? '#fef08a' : '#ffffff'}" opacity="0.95" text-anchor="middle">${l2}</text>
+    <text x="284" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isSignature || isHOF ? '#fef08a' : '#ffffff'}" opacity="0.95" text-anchor="middle">${l3}</text>
+    <text x="360" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isSignature || isHOF ? '#fef08a' : '#ffffff'}" opacity="0.95" text-anchor="middle">${l4}</text>
+    <text x="432" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isSignature || isHOF ? '#fef08a' : '#ffffff'}" opacity="0.95" text-anchor="middle">${l5}</text>
+    <text x="504" y="660" font-family="sans-serif" font-weight="700" font-size="20" fill="${isSignature || isHOF ? '#fef08a' : '#ffffff'}" opacity="0.95" text-anchor="middle">${l6}</text>
 
     <!-- Stats Row 2: Values -->
-    <text x="140" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.pac}</text>
-    <text x="212" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.sho}</text>
-    <text x="284" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.pas}</text>
-    <text x="360" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.dri}</text>
-    <text x="432" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.def}</text>
-    <text x="504" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle">${safeStats.phy}</text>
+    <text x="140" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="${isSignature ? '#fef08a' : '#ffffff'}" text-anchor="middle">${safeStats.pac}</text>
+    <text x="212" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="${isSignature ? '#fef08a' : '#ffffff'}" text-anchor="middle">${safeStats.sho}</text>
+    <text x="284" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="${isSignature ? '#fef08a' : '#ffffff'}" text-anchor="middle">${safeStats.pas}</text>
+    <text x="360" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="${isSignature ? '#fef08a' : '#ffffff'}" text-anchor="middle">${safeStats.dri}</text>
+    <text x="432" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="${isSignature ? '#fef08a' : '#ffffff'}" text-anchor="middle">${safeStats.def}</text>
+    <text x="504" y="705" font-family="sans-serif" font-weight="900" font-size="34" fill="${isSignature ? '#fef08a' : '#ffffff'}" text-anchor="middle">${safeStats.phy}</text>
 
     <!-- Bottom Badges (Flag, Star/Crown, Club) -->
     <g transform="translate(230, 770)">

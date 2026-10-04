@@ -17,6 +17,7 @@ import { FORMATIONS } from './data/formations';
 import { sound } from './utils/audio';
 import { HALL_OF_FUT_COLLECTIBLE_CARDS } from './data/hallOfFutCards';
 import { SPANISH_HOF_COLLECTIBLE_CARDS } from './data/hallOfFutSpanishCards';
+import { ALL_SIGNATURE_CARDS } from './data/signatureCards';
 
 import { PackOpening } from './components/PackOpening';
 import { CardCreator } from './components/CardCreator';
@@ -376,6 +377,7 @@ export default function App() {
     HALL_OF_FAME_CARDS.forEach((c) => cardMap.set(c.id, c));
     HALL_OF_FUT_COLLECTIBLE_CARDS.forEach((c) => cardMap.set(c.id, c));
     SPANISH_HOF_COLLECTIBLE_CARDS.forEach((c) => cardMap.set(c.id, c));
+    ALL_SIGNATURE_CARDS.forEach((c) => cardMap.set(c.id, c));
     FUTMAS_CARDS.forEach((c) => cardMap.set(c.id, c));
     userCreatedCards.forEach((c) => cardMap.set(c.id, c));
     return Array.from(cardMap.values());

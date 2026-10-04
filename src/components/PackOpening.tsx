@@ -68,7 +68,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   const [stage, setStage] = useState<OpeningStage>('idle');
   const [pulledCards, setPulledCards] = useState<SoccerCard[]>([]);
   const [walkoutCard, setWalkoutCard] = useState<SoccerCard | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'All' | 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Signature Series' | 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
   const [insufficientPack, setInsufficientPack] = useState<PackDefinition | null>(null);
 
   // Pack Creation Modal State
@@ -170,7 +170,10 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
       } else if (pack.programFilter === 'International Moments:Belgium' || pack.theme === 'belgium') {
         intlPool = intlPool.filter((c) => c.nation === 'Belgium');
       }
-      candidatePool = intlPool.length > 0 ? intlPool : allCardsPool;
+    } else if (pack.programFilter === 'Signature Series') {
+      candidatePool = allCardsPool.filter(
+        (c) => (c.program === 'Signature Series' || c.rarity === 'signature_autograph' || c.cardStyle === 'signature_autograph') && !c.isSetRewardOnly
+      );
     } else if (pack.programFilter === 'Hall of FUT' || pack.theme === 'hall_of_fut') {
       candidatePool = allCardsPool.filter(
         (c) => (c.program === 'Hall of FUT' || c.rarity === 'hall_of_fut_base' || c.rarity === 'hall_of_fut_upgrade') && !c.isSetRewardOnly
@@ -388,6 +391,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
   // Filter packs according to selected category
   const filteredPacks = allAvailablePacks.filter((p) => {
+    if (activeFilter === 'Signature Series') {
+      return p.programFilter === 'Signature Series' || p.id === 'pack-signature-series';
+    }
     if (activeFilter === 'Summer Transfers') {
       return p.programFilter === 'Summer Transfers' || p.theme === 'summer_pack';
     }
@@ -586,7 +592,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
           {/* Filter Categories */}
           <div className="flex flex-wrap items-center gap-2">
-            {(['All', 'Summer Transfers', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
+            {(['All', 'Signature Series', 'Summer Transfers', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -599,6 +605,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                     : 'bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
+                {cat === 'Signature Series' && <span>✍️</span>}
                 {cat === 'Summer Transfers' && <span>☀️</span>}
                 {cat === 'Street Kings' && <span className="text-cyan-400">⚡</span>}
                 {cat === 'International Moments' && <span>🌍</span>}
@@ -624,7 +631,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                 <div
                   key={pack.id}
                   className={`group relative rounded-3xl p-5 border transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xl ${
-                    pack.theme === 'summer_pack'
+                    pack.programFilter === 'Signature Series' || pack.id === 'pack-signature-series'
+                      ? 'bg-gradient-to-b from-[#021f14] via-slate-900 to-[#1c1404] border-amber-400/90 hover:border-yellow-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]'
+                      : pack.theme === 'summer_pack'
                       ? 'bg-gradient-to-b from-cyan-950/70 via-slate-900 to-amber-950/30 border-cyan-400/80 hover:border-amber-400 shadow-cyan-950/40'
                       : pack.theme === 'street_kings'
                       ? 'bg-gradient-to-b from-cyan-950/70 via-slate-900 to-black border-cyan-400/70 hover:border-pink-500 shadow-cyan-950/40'
