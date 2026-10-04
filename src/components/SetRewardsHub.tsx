@@ -5,6 +5,11 @@ import {
   HALL_OF_FUT_COLLECTIBLE_CARDS,
   HARRY_KANE_SET_REWARD,
 } from '../data/hallOfFutCards';
+import {
+  SPANISH_HOF_COLLECTIBLE_CARDS,
+  XAVI_SET_REWARD,
+  DI_STEFANO_SET_REWARD,
+} from '../data/hallOfFutSpanishCards';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
 import confetti from 'canvas-confetti';
@@ -22,11 +27,15 @@ import {
   Sparkles,
   Layers,
   Award,
+  ArrowRight,
+  Coins,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface SetRewardsHubProps {
   clubCards: SoccerCard[];
   onAddCardsToClub: (cards: SoccerCard[]) => void;
+  onAddCoins?: (amount: number) => void;
   onNavigateToStore?: (filter?: string) => void;
   onNavigateToMarket?: () => void;
 }
@@ -34,17 +43,22 @@ interface SetRewardsHubProps {
 export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
   clubCards,
   onAddCardsToClub,
+  onAddCoins,
   onNavigateToStore,
   onNavigateToMarket,
 }) => {
-  // Expandable active set state - default to first set (Hall of FUT)
-  const [expandedSetId, setExpandedSetId] = useState<string | null>(AVAILABLE_CARD_SETS[0]?.id || null);
+  // Expandable active set state - default to first Spanish tier or Hall of FUT
+  const [expandedSetId, setExpandedSetId] = useState<string | null>(AVAILABLE_CARD_SETS[1]?.id || AVAILABLE_CARD_SETS[0]?.id || null);
 
   // Filter type for album cards
   const [filterType, setFilterType] = useState<'all' | 'owned' | 'missing' | 'base' | 'upgrade'>('all');
 
-  // Claim celebration modal
-  const [celebrationReward, setCelebrationReward] = useState<SoccerCard | null>(null);
+  // Claim celebration modal state
+  const [celebrationModal, setCelebrationModal] = useState<{
+    card: SoccerCard;
+    bonusCoins?: number;
+    title: string;
+  } | null>(null);
 
   // Persistent claimed sets tracker
   const [claimedSetIds, setClaimedSetIds] = useState<string[]>(() => {
@@ -56,31 +70,94 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
     }
   });
 
-  // Calculate owned players map for Hall of FUT collection
-  const { ownedCardIds, ownedCountsMap, uniqueCount } = useMemo(() => {
-    const ownedIds = new Set<string>();
+  // Calculate owned card identities in the Club (stripping instance suffix)
+  const clubCardIdsSet = useMemo(() => {
+    const ids = new Set<string>();
+    clubCards.forEach((c) => {
+      if (!c) return;
+      ids.add(c.id);
+      const baseId = c.id.replace(/_inst_.*$/, '');
+      ids.add(baseId);
+    });
+    return ids;
+  }, [clubCards]);
+
+  // Helper to get album card list for any set
+  const getAlbumCardsForSet = (set: CardSetDefinition): SoccerCard[] => {
+    if (set.id === 'set-hall-of-fut') {
+      return HALL_OF_FUT_COLLECTIBLE_CARDS;
+    }
+    if (set.id === 'set-spanish-hof-tier-1') {
+      return SPANISH_HOF_COLLECTIBLE_CARDS;
+    }
+    if (set.id === 'set-spanish-hof-tier-2') {
+      // 18 collectible players + Xavi 99 CM = 19 cards
+      return [...SPANISH_HOF_COLLECTIBLE_CARDS, XAVI_SET_REWARD];
+    }
+    return SPANISH_HOF_COLLECTIBLE_CARDS;
+  };
+
+  // Helper to compute live progress for a specific set
+  const calculateProgress = (set: CardSetDefinition) => {
+    const isClaimed = claimedSetIds.includes(set.id);
+    const albumCards = getAlbumCardsForSet(set);
+    const requiredTarget = set.minRequiredCount || set.requiredPlayerIds.length;
+
+    // Count how many unique required cards exist in club
+    let uniqueCount = 0;
+    const ownedMap = new Set<string>();
     const countsMap: { [cardId: string]: number } = {};
 
-    clubCards.forEach((card) => {
-      if (!card) return;
-      const matchedHofCard = HALL_OF_FUT_COLLECTIBLE_CARDS.find(
-        (hof) => hof.id === card.id || (card.program === 'Hall of FUT' && card.name.toLowerCase() === hof.name.toLowerCase())
+    clubCards.forEach((c) => {
+      if (!c) return;
+      const baseId = c.id.replace(/_inst_.*$/, '');
+      const match = albumCards.find(
+        (target) =>
+          target.id === c.id ||
+          target.id === baseId ||
+          (target.program === c.program && target.name.toLowerCase() === c.name.toLowerCase())
       );
 
-      if (matchedHofCard) {
-        ownedIds.add(matchedHofCard.id);
-        countsMap[matchedHofCard.id] = (countsMap[matchedHofCard.id] || 0) + 1;
+      if (match) {
+        if (!ownedMap.has(match.id)) {
+          ownedMap.add(match.id);
+          uniqueCount++;
+        }
+        countsMap[match.id] = (countsMap[match.id] || 0) + 1;
       }
     });
 
-    return {
-      ownedCardIds: ownedIds,
-      ownedCountsMap: countsMap,
-      uniqueCount: ownedIds.size,
-    };
-  }, [clubCards]);
+    // Check prerequisites
+    let prerequisiteSatisfied = true;
+    let prerequisiteMessage = '';
 
-  // Handler to toggle an expandable set
+    if (set.prerequisiteSetId && !claimedSetIds.includes(set.prerequisiteSetId)) {
+      prerequisiteSatisfied = false;
+      prerequisiteMessage = 'Requires Tier 1 (Xavi 99) to be claimed first';
+    }
+    if (set.prerequisiteCardId && !clubCardIdsSet.has(set.prerequisiteCardId)) {
+      prerequisiteSatisfied = false;
+      prerequisiteMessage = 'Requires Xavi 99 CM in your Club collection';
+    }
+
+    const isReadyToClaim = prerequisiteSatisfied && uniqueCount >= requiredTarget && !isClaimed;
+    const progressPercent = Math.min(100, Math.round((uniqueCount / requiredTarget) * 100));
+
+    return {
+      isClaimed,
+      uniqueCount,
+      requiredTarget,
+      isReadyToClaim,
+      progressPercent,
+      ownedMap,
+      countsMap,
+      prerequisiteSatisfied,
+      prerequisiteMessage,
+      albumCards,
+    };
+  };
+
+  // Handler to toggle expandable set
   const toggleSetExpansion = (setId: string) => {
     sound.playClick();
     setExpandedSetId((prev) => (prev === setId ? null : setId));
@@ -88,37 +165,36 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
 
   // Claim set reward handler
   const handleClaimReward = (set: CardSetDefinition) => {
-    const isClaimed = claimedSetIds.includes(set.id);
-    if (uniqueCount < set.requiredPlayerIds.length || isClaimed) return;
+    const prog = calculateProgress(set);
+    if (!prog.isReadyToClaim) return;
 
     sound.playLevelUp();
     confetti({
-      particleCount: 130,
-      spread: 100,
+      particleCount: 140,
+      spread: 110,
       origin: { y: 0.55 },
     });
 
     // Add exclusive reward to user's club
     onAddCardsToClub([set.rewardPlayer]);
 
-    // Update claimed sets
+    // Add bonus coins if defined
+    if (set.bonusCoins && onAddCoins) {
+      onAddCoins(set.bonusCoins);
+      sound.playCoinClink();
+    }
+
+    // Persist claimed state
     const updated = [...claimedSetIds, set.id];
     setClaimedSetIds(updated);
     safeSetItem('apex_fut_claimed_sets_v1', JSON.stringify(updated));
-    setCelebrationReward(set.rewardPlayer);
-  };
 
-  // Filtered cards for Hall of FUT album
-  const displayedCards = useMemo(() => {
-    return HALL_OF_FUT_COLLECTIBLE_CARDS.filter((card) => {
-      const isOwned = ownedCardIds.has(card.id);
-      if (filterType === 'owned') return isOwned;
-      if (filterType === 'missing') return !isOwned;
-      if (filterType === 'base') return card.rarity === 'hall_of_fut_base';
-      if (filterType === 'upgrade') return card.rarity === 'hall_of_fut_upgrade';
-      return true;
+    setCelebrationModal({
+      card: set.rewardPlayer,
+      bonusCoins: set.bonusCoins,
+      title: `${set.rewardPlayer.name} ${set.rewardPlayer.rating} ${set.rewardPlayer.position}`,
     });
-  }, [filterType, ownedCardIds]);
+  };
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
@@ -136,11 +212,11 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                 Set Rewards 🏆
               </h1>
               <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/40 px-2.5 py-0.5 rounded-full">
-                Collector Hub
+                Progressive Series Live
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-              Complete themed player card sets in your Club to unlock untradeable supreme rewards. Expand any set below to track required unique cards and claim your reward!
+              Complete themed card sets to unlock untradeable supreme rewards. Complete <strong>Tier 1 (10 cards) for Xavi 99 CM</strong>, then collect all 19 cards for <strong>Di Stéfano 99 ST</strong>!
             </p>
           </div>
         </div>
@@ -203,8 +279,8 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
             <Award className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Apex Reward</span>
-            <strong className="text-lg font-black text-white">Harry Kane 99</strong>
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">Grand Master</span>
+            <strong className="text-sm font-black text-white">Di Stéfano 99 ST</strong>
           </div>
         </div>
 
@@ -213,19 +289,117 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] text-slate-400 uppercase font-bold block">Duplicate Rule</span>
-            <strong className="text-sm font-black text-sky-300">18 Unique Required</strong>
+            <span className="text-[10px] text-slate-400 uppercase font-bold block">Maestro Reward</span>
+            <strong className="text-sm font-black text-sky-300">Xavi 99 CM</strong>
           </div>
         </div>
       </div>
 
-      {/* Vertical Expandable List of Set Collections */}
+      {/* ================================================================= */}
+      {/* CONNECTED 2-TIER PROGRESSIVE ROADMAP BANNER                      */}
+      {/* ================================================================= */}
+      <div className="relative rounded-3xl overflow-hidden border-2 border-amber-500/60 bg-gradient-to-r from-[#170a0a] via-slate-950 to-[#170a0a] p-5 shadow-lg">
+        <div className="flex items-center justify-between gap-4 mb-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 font-black text-sm uppercase tracking-wider flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Spanish Hall of FUT: Connected 2-Tier Progressive Campaign</span>
+            </span>
+          </div>
+          <span className="text-xs font-mono text-slate-400">
+            Tier 1 ➔ Tier 2 Chain
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Step 1: Xavi */}
+          <div
+            onClick={() => setExpandedSetId('set-spanish-hof-tier-1')}
+            className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+              claimedSetIds.includes('set-spanish-hof-tier-1')
+                ? 'bg-emerald-950/40 border-emerald-500/60'
+                : 'bg-slate-900/70 border-slate-700 hover:border-amber-400'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                Tier 1 Milestone
+              </span>
+              {claimedSetIds.includes('set-spanish-hof-tier-1') ? (
+                <span className="text-xs font-black text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Xavi 99 Claimed</span>
+                </span>
+              ) : (
+                <span className="text-xs font-bold text-amber-400">
+                  Collect Any 10 / 18 Players
+                </span>
+              )}
+            </div>
+            <h4 className="text-base font-black text-white flex items-center gap-2">
+              <span>Xavi Hernández 99 CM</span>
+              <span className="text-[10px] bg-red-950 text-red-300 px-2 py-0.5 rounded border border-red-500/40">
+                +50,000 Coins
+              </span>
+            </h4>
+            <p className="text-xs text-slate-400 mt-1">
+              Assemble any 10 unique players from the series to claim the master midfield general.
+            </p>
+          </div>
+
+          {/* Step 2: Di Stéfano */}
+          <div
+            onClick={() => setExpandedSetId('set-spanish-hof-tier-2')}
+            className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+              claimedSetIds.includes('set-spanish-hof-tier-2')
+                ? 'bg-emerald-950/40 border-emerald-500/60'
+                : !claimedSetIds.includes('set-spanish-hof-tier-1')
+                ? 'bg-slate-950/80 border-slate-800 opacity-80 hover:opacity-100'
+                : 'bg-slate-900/70 border-slate-700 hover:border-amber-400'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40">
+                Tier 2 Grand Master
+              </span>
+              {claimedSetIds.includes('set-spanish-hof-tier-2') ? (
+                <span className="text-xs font-black text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Di Stéfano 99 Claimed</span>
+                </span>
+              ) : !claimedSetIds.includes('set-spanish-hof-tier-1') ? (
+                <span className="text-xs font-bold text-slate-500 flex items-center gap-1">
+                  <Lock className="w-3 h-3" />
+                  <span>Locked until Xavi Claimed</span>
+                </span>
+              ) : (
+                <span className="text-xs font-bold text-amber-400">
+                  Collect All 18 + Xavi
+                </span>
+              )}
+            </div>
+            <h4 className="text-base font-black text-white flex items-center gap-2">
+              <span>Alfredo Di Stéfano 99 ST</span>
+              <span className="text-[10px] bg-amber-950 text-amber-300 px-2 py-0.5 rounded border border-amber-500/40">
+                +100,000 Coins
+              </span>
+            </h4>
+            <p className="text-xs text-slate-400 mt-1">
+              Assemble all 18 Spanish players and incorporate Xavi 99 CM into your Club to crown the supreme legend.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ================================================================= */}
+      {/* VERTICAL EXPANDABLE LIST OF SET COLLECTIONS                       */}
+      {/* ================================================================= */}
       <div className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <Trophy className="w-4 h-4 text-amber-400" />
             <h2 className="text-sm font-black uppercase tracking-wider text-slate-300">
-              Set Collections Catalog
+              Set Collections Catalog ({AVAILABLE_CARD_SETS.length})
             </h2>
           </div>
           <span className="text-xs text-slate-400">Click any set to expand details & album</span>
@@ -233,11 +407,18 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
 
         {AVAILABLE_CARD_SETS.map((set) => {
           const isExpanded = expandedSetId === set.id;
-          const isClaimed = claimedSetIds.includes(set.id);
-          const totalRequired = set.requiredPlayerIds.length;
-          const currentUnique = uniqueCount; // extensible for future sets
-          const isReadyToClaim = currentUnique >= totalRequired && !isClaimed;
-          const progressPercent = Math.min(100, Math.round((currentUnique / totalRequired) * 100));
+          const prog = calculateProgress(set);
+          const albumCards = prog.albumCards;
+
+          // Filtered cards for this set's album
+          const displayedCards = albumCards.filter((card) => {
+            const isOwned = prog.ownedMap.has(card.id);
+            if (filterType === 'owned') return isOwned;
+            if (filterType === 'missing') return !isOwned;
+            if (filterType === 'base') return card.rarity === 'hall_of_fut_base';
+            if (filterType === 'upgrade') return card.rarity === 'hall_of_fut_upgrade';
+            return true;
+          });
 
           return (
             <div
@@ -258,10 +439,14 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                   <div className="relative flex-shrink-0">
                     <div className="w-14 h-16 rounded-xl bg-gradient-to-b from-red-600 to-amber-600 p-0.5 flex flex-col items-center justify-center shadow-lg">
                       <span className="text-[10px] font-black text-yellow-200">REWARD</span>
-                      <span className="text-xl font-black text-white leading-none">99</span>
-                      <span className="text-[10px] font-bold text-yellow-200 uppercase">ST</span>
+                      <span className="text-xl font-black text-white leading-none">
+                        {set.rewardPlayer.rating}
+                      </span>
+                      <span className="text-[10px] font-bold text-yellow-200 uppercase">
+                        {set.rewardPlayer.position}
+                      </span>
                     </div>
-                    {isClaimed && (
+                    {prog.isClaimed && (
                       <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center shadow">
                         <CheckCircle2 className="w-3.5 h-3.5 stroke-[3]" />
                       </div>
@@ -276,6 +461,12 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                       <span className="text-xs font-semibold text-slate-400">
                         {set.program}
                       </span>
+                      {set.bonusCoins && (
+                        <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 flex items-center gap-1">
+                          <Coins className="w-3 h-3" />
+                          <span>+{set.bonusCoins.toLocaleString()}</span>
+                        </span>
+                      )}
                     </div>
                     <h3 className="text-xl font-black text-white group-hover:text-amber-400 transition-colors">
                       {set.title}
@@ -292,28 +483,33 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-[11px] text-slate-400 font-bold">Progress</span>
                       <span className="font-black text-amber-400 font-mono text-xs">
-                        {currentUnique} / {totalRequired} Unique
+                        {prog.uniqueCount} / {prog.requiredTarget} Cards
                       </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
                       <div
                         className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full transition-all duration-500"
-                        style={{ width: `${progressPercent}%` }}
+                        style={{ width: `${prog.progressPercent}%` }}
                       />
                     </div>
                   </div>
 
                   {/* Status Badge */}
                   <div>
-                    {isClaimed ? (
+                    {prog.isClaimed ? (
                       <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Claimed</span>
                       </span>
-                    ) : isReadyToClaim ? (
+                    ) : prog.isReadyToClaim ? (
                       <span className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-black uppercase tracking-wider animate-bounce flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.6)]">
                         <Trophy className="w-3.5 h-3.5" />
                         <span>Ready!</span>
+                      </span>
+                    ) : !prog.prerequisiteSatisfied ? (
+                      <span className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-500 border border-slate-700 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Lock className="w-3 h-3" />
+                        <span>Locked</span>
                       </span>
                     ) : (
                       <span className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 text-xs font-bold uppercase tracking-wider">
@@ -335,6 +531,16 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
               {/* Expanded Set Content */}
               {isExpanded && (
                 <div className="border-t border-slate-800 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Prerequisite warning banner if locked */}
+                  {!prog.prerequisiteSatisfied && (
+                    <div className="p-4 bg-amber-950/40 border-b border-amber-500/30 flex items-center gap-3 text-amber-300 text-xs">
+                      <Lock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <span>
+                        <strong>Prerequisite Locked:</strong> {prog.prerequisiteMessage}. Complete and claim Tier 1 to unlock this master reward tier!
+                      </span>
+                    </div>
+                  )}
+
                   {/* Featured Reward Spotlight Stage */}
                   <div className="p-6 bg-gradient-to-b from-[#170a0a] via-slate-950 to-slate-900 border-b border-slate-800 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
@@ -353,36 +559,39 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                           <span>Supreme Set Reward (Exclusive)</span>
                         </div>
                         <h3 className="text-3xl font-black text-white">
-                          {set.rewardPlayer.name} <span className="text-amber-400">{set.rewardPlayer.rating} {set.rewardPlayer.position}</span>
+                          {set.rewardPlayer.name}{' '}
+                          <span className="text-amber-400">
+                            {set.rewardPlayer.rating} {set.rewardPlayer.position}
+                          </span>
                         </h3>
                         <p className="text-xs text-slate-300 leading-relaxed">
-                          {set.rewardPlayer.club} · {set.rewardPlayer.league} · 99 SHO & 92 PAS with Finesse Shot+ playstyle. <strong>Strictly unavailable in packs or the transfer market</strong> — can solely be earned through completing this 18-card set.
+                          {set.rewardPlayer.club} · {set.rewardPlayer.league} · {set.description}
                         </p>
 
                         <div className="grid grid-cols-6 gap-2 text-center pt-1">
                           <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
                             <span className="text-[10px] text-slate-400 block font-bold">PAC</span>
-                            <strong className="text-sm font-black text-white">71</strong>
+                            <strong className="text-sm font-black text-white">{set.rewardPlayer.stats.pac}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-slate-900/80 border border-red-500/50 bg-red-950/30">
                             <span className="text-[10px] text-red-400 block font-bold">SHO</span>
-                            <strong className="text-sm font-black text-red-300">99</strong>
+                            <strong className="text-sm font-black text-red-300">{set.rewardPlayer.stats.sho}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
                             <span className="text-[10px] text-slate-400 block font-bold">PAS</span>
-                            <strong className="text-sm font-black text-white">92</strong>
+                            <strong className="text-sm font-black text-white">{set.rewardPlayer.stats.pas}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
                             <span className="text-[10px] text-slate-400 block font-bold">DRI</span>
-                            <strong className="text-sm font-black text-white">91</strong>
+                            <strong className="text-sm font-black text-white">{set.rewardPlayer.stats.dri}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
                             <span className="text-[10px] text-slate-400 block font-bold">DEF</span>
-                            <strong className="text-sm font-black text-white">58</strong>
+                            <strong className="text-sm font-black text-white">{set.rewardPlayer.stats.def}</strong>
                           </div>
                           <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800">
                             <span className="text-[10px] text-slate-400 block font-bold">PHY</span>
-                            <strong className="text-sm font-black text-white">92</strong>
+                            <strong className="text-sm font-black text-white">{set.rewardPlayer.stats.phy}</strong>
                           </div>
                         </div>
                       </div>
@@ -390,43 +599,45 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
 
                     {/* Claim Action Button */}
                     <div className="flex flex-col items-center justify-center gap-3">
-                      {isClaimed ? (
+                      {prog.isClaimed ? (
                         <div className="px-6 py-4 rounded-2xl bg-emerald-950/80 border-2 border-emerald-500 text-emerald-300 font-black text-sm flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
                           <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                          <span>Claimed & Stored in Club!</span>
+                          <span>Claimed & Deposited into Club!</span>
                         </div>
                       ) : (
                         <button
                           onClick={() => handleClaimReward(set)}
-                          disabled={!isReadyToClaim}
+                          disabled={!prog.isReadyToClaim}
                           className={`px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center gap-2.5 ${
-                            isReadyToClaim
+                            prog.isReadyToClaim
                               ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 shadow-[0_0_30px_rgba(245,158,11,0.7)] hover:scale-105 active:scale-95 animate-bounce'
                               : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-80'
                           }`}
                         >
-                          {isReadyToClaim ? (
+                          {prog.isReadyToClaim ? (
                             <>
                               <Trophy className="w-5 h-5 text-slate-950" />
-                              <span>Claim Harry Kane 99 ST!</span>
+                              <span>Claim {set.rewardPlayer.name} {set.rewardPlayer.rating}!</span>
                             </>
                           ) : (
                             <>
                               <Lock className="w-4 h-4" />
-                              <span>Collect All 18 to Unlock</span>
+                              <span>{prog.prerequisiteSatisfied ? `Collect ${prog.requiredTarget} Cards` : 'Prerequisite Required'}</span>
                             </>
                           )}
                         </button>
                       )}
 
-                      {!isClaimed && (
+                      {!prog.isClaimed && (
                         <span className="text-xs text-slate-400 text-center">
-                          {totalRequired - currentUnique > 0 ? (
+                          {prog.requiredTarget - prog.uniqueCount > 0 ? (
                             <>
-                              Need <strong>{totalRequired - currentUnique}</strong> more separate players to claim
+                              Need <strong>{prog.requiredTarget - prog.uniqueCount}</strong> more unique card(s)
                             </>
+                          ) : prog.prerequisiteSatisfied ? (
+                            <span className="text-emerald-400 font-bold">Requirement met! Ready to claim!</span>
                           ) : (
-                            <span className="text-emerald-400 font-bold">All 18 separate players collected!</span>
+                            <span className="text-amber-400 font-semibold">{prog.prerequisiteMessage}</span>
                           )}
                         </span>
                       )}
@@ -451,7 +662,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                             : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                         }`}
                       >
-                        All Cards (18)
+                        All Cards ({albumCards.length})
                       </button>
                       <button
                         onClick={() => setFilterType('owned')}
@@ -461,7 +672,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                             : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                         }`}
                       >
-                        Owned ({currentUnique})
+                        Owned ({prog.uniqueCount})
                       </button>
                       <button
                         onClick={() => setFilterType('missing')}
@@ -471,7 +682,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                             : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                         }`}
                       >
-                        Missing ({totalRequired - currentUnique})
+                        Missing ({Math.max(0, albumCards.length - prog.uniqueCount)})
                       </button>
                       <button
                         onClick={() => setFilterType('base')}
@@ -481,7 +692,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                             : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                         }`}
                       >
-                        Grey Base (9)
+                        Grey Base
                       </button>
                       <button
                         onClick={() => setFilterType('upgrade')}
@@ -491,17 +702,17 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                             : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                         }`}
                       >
-                        Red Upgrade (9)
+                        Red Upgrade
                       </button>
                     </div>
                   </div>
 
-                  {/* 18-Card Collector Album Grid */}
+                  {/* Album Cards Grid */}
                   <div className="p-6">
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                       {displayedCards.map((card) => {
-                        const isOwned = ownedCardIds.has(card.id);
-                        const countOwned = ownedCountsMap[card.id] || 0;
+                        const isOwned = prog.ownedMap.has(card.id);
+                        const countOwned = prog.countsMap[card.id] || 0;
                         const isUpgrade = card.rarity === 'hall_of_fut_upgrade';
 
                         return (
@@ -517,12 +728,14 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                             <div className="w-full flex items-center justify-between mb-2">
                               <span
                                 className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                                  isUpgrade
+                                  card.isSetRewardOnly
+                                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                    : isUpgrade
                                     ? 'bg-red-500/20 text-red-300 border border-red-500/40'
                                     : 'bg-slate-700/40 text-slate-300 border border-slate-600'
                                 }`}
                               >
-                                {isUpgrade ? 'Upgrade' : 'Base'}
+                                {card.isSetRewardOnly ? 'Set Reward' : isUpgrade ? 'Upgrade' : 'Base'}
                               </span>
 
                               {isOwned ? (
@@ -566,7 +779,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
       </div>
 
       {/* Claim Celebration Modal */}
-      {celebrationReward && (
+      {celebrationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-fade-in">
           <div className="relative max-w-lg w-full rounded-3xl border-2 border-amber-500 bg-gradient-to-b from-slate-950 via-[#1f0b0b] to-slate-950 p-6 text-center space-y-6 shadow-[0_0_60px_rgba(245,158,11,0.6)]">
             <div className="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-500 mx-auto flex items-center justify-center text-4xl shadow-inner">
@@ -575,27 +788,33 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
 
             <div className="space-y-2">
               <span className="text-xs font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30">
-                Set Completed!
+                Milestone Achieved!
               </span>
               <h3 className="text-3xl font-black text-white">
-                {celebrationReward.name} {celebrationReward.rating} {celebrationReward.position} Claimed!
+                {celebrationModal.title} Unlocked!
               </h3>
               <p className="text-xs text-slate-300">
-                You successfully assembled all required separate players into your Club! The untradeable master reward has been deposited into your active Club roster.
+                Congratulations! You assembled the required cards into your Club collection. This untradeable master reward has been deposited into your active Club roster!
               </p>
+              {celebrationModal.bonusCoins && (
+                <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-300 text-sm font-black">
+                  <Coins className="w-4 h-4" />
+                  <span>+{celebrationModal.bonusCoins.toLocaleString()} Bonus Coins Awarded!</span>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-center py-2">
               <div className="transform hover:scale-105 transition-transform duration-300">
-                <CardItem card={celebrationReward} size="md" interactive={true} />
+                <CardItem card={celebrationModal.card} size="md" interactive={true} />
               </div>
             </div>
 
             <button
-              onClick={() => setCelebrationReward(null)}
+              onClick={() => setCelebrationModal(null)}
               className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-wider shadow-lg active:scale-95 transition-all"
             >
-              Continue to Club
+              Continue to Club Collection
             </button>
           </div>
         </div>

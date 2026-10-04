@@ -448,7 +448,15 @@ export const HALL_OF_FUT_SET_DEFINITION: CardSetDefinition = {
   bonusCoins: 50000,
 };
 
+import {
+  SPANISH_HOF_TIER_1_SET,
+  SPANISH_HOF_TIER_2_SET,
+} from './hallOfFutSpanishCards';
+
 export const AVAILABLE_CARD_SETS: CardSetDefinition[] = [
   HALL_OF_FUT_SET_DEFINITION,
+  SPANISH_HOF_TIER_1_SET,
+  SPANISH_HOF_TIER_2_SET,
 ];
+
 

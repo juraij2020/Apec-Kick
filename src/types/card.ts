@@ -298,7 +298,12 @@ export interface CardSetDefinition {
   subtitle: string;
   description: string;
   program: string;
-  requiredPlayerIds: string[]; // 18 unique players
+  seriesName?: string;
+  tier?: number;
+  minRequiredCount?: number; // E.g. 10 unique cards to claim Tier 1 (Xavi)
+  prerequisiteSetId?: string;
+  prerequisiteCardId?: string; // E.g. requires Xavi in Club for Tier 2 (Di Stéfano)
+  requiredPlayerIds: string[];
   rewardPlayer: SoccerCard;
   bonusCoins?: number;
 }

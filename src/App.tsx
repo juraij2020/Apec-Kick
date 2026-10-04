@@ -15,6 +15,8 @@ import { PACKS } from './data/packs';
 import { calculateSquadChemistry } from './utils/chemistry';
 import { FORMATIONS } from './data/formations';
 import { sound } from './utils/audio';
+import { HALL_OF_FUT_COLLECTIBLE_CARDS } from './data/hallOfFutCards';
+import { SPANISH_HOF_COLLECTIBLE_CARDS } from './data/hallOfFutSpanishCards';
 
 import { PackOpening } from './components/PackOpening';
 import { CardCreator } from './components/CardCreator';
@@ -313,6 +315,8 @@ export default function App() {
     THROWBACK_CARDS.forEach((c) => cardMap.set(c.id, c));
     INTERNATIONAL_MOMENTS_CARDS.forEach((c) => cardMap.set(c.id, c));
     HALL_OF_FAME_CARDS.forEach((c) => cardMap.set(c.id, c));
+    HALL_OF_FUT_COLLECTIBLE_CARDS.forEach((c) => cardMap.set(c.id, c));
+    SPANISH_HOF_COLLECTIBLE_CARDS.forEach((c) => cardMap.set(c.id, c));
     FUTMAS_CARDS.forEach((c) => cardMap.set(c.id, c));
     userCreatedCards.forEach((c) => cardMap.set(c.id, c));
     return Array.from(cardMap.values());
@@ -1123,6 +1127,7 @@ export default function App() {
           <SetRewardsHub
             clubCards={clubCards}
             onAddCardsToClub={handleAddCardsToClub}
+            onAddCoins={handleAddCoins}
             onNavigateToStore={(_filter?: string) => {
               setCurrentTab('packs');
               sound.playClick();
