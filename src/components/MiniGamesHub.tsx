@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { SoccerCard, PackDefinition } from '../types/card';
 import { CardItem } from './CardItem';
 import { PackDuoGame } from './PackDuoGame';
+import { CursedBoardGame } from './CursedBoardGame';
 import { sound } from '../utils/audio';
 import { HL_REWARD_LADDER, getGuessWhoTierReward } from '../data/rewardPacks';
 import {
@@ -28,12 +29,14 @@ import {
   ChevronRight,
   ExternalLink,
   Swords,
+  Skull,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { safeSetItem } from '../utils/safeStorage';
 
 interface MiniGamesHubProps {
   coins: number;
+  clubCards?: SoccerCard[];
   allCardsPool: SoccerCard[];
   onAddCoins: (amount: number) => void;
   onAddCardsToClub: (cards: SoccerCard[]) => void;
@@ -42,11 +45,12 @@ interface MiniGamesHubProps {
   onMiniGamePlayed?: () => void;
 }
 
-type MiniGameMode = 'high_low' | 'guess_who' | 'pack_duo';
+type MiniGameMode = 'cursed_board' | 'high_low' | 'guess_who' | 'pack_duo';
 type HighLowStat = 'rating' | 'pac' | 'sho' | 'pas' | 'dri';
 
 export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
   coins,
+  clubCards = [],
   allCardsPool,
   onAddCoins,
   onAddCardsToClub,
@@ -54,7 +58,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
   onNavigateToMyPacks,
   onMiniGamePlayed,
 }) => {
-  const [activeGame, setActiveGame] = useState<MiniGameMode>('high_low');
+  const [activeGame, setActiveGame] = useState<MiniGameMode>('cursed_board');
 
   // Pool of high quality cards (filtering out any malformed data)
   const playablePool = useMemo(() => {
@@ -350,6 +354,21 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
 
         {/* Mode Switcher */}
         <div className="relative z-10 flex flex-wrap items-center gap-3 pt-6 mt-6 border-t border-slate-800/80">
+          <button
+            onClick={() => {
+              setActiveGame('cursed_board');
+              sound.playClick();
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              activeGame === 'cursed_board'
+                ? 'bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 text-slate-950 shadow-[0_0_25px_rgba(239,68,68,0.7)] scale-105 animate-pulse'
+                : 'bg-slate-950 text-slate-300 hover:text-white border border-red-900/60 shadow-[0_0_10px_rgba(220,38,38,0.2)]'
+            }`}
+          >
+            <Skull className="w-4 h-4 text-red-500" />
+            <span>🎃 Cursed Snakes &amp; Ladders (Germany)</span>
+          </button>
+
           <button
             onClick={() => {
               setActiveGame('high_low');
@@ -1070,6 +1089,20 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* GAME 0: CURSED HORROR SNAKES & LADDERS (GERMANY NATIONS EDITION) */}
+      {/* ========================================================================= */}
+      {activeGame === 'cursed_board' && (
+        <CursedBoardGame
+          coins={coins}
+          clubCards={clubCards}
+          onAddCoins={onAddCoins}
+          onAddCardsToClub={onAddCardsToClub}
+          onAddUnopenedPack={onAddUnopenedPack}
+          onMiniGamePlayed={onMiniGamePlayed}
+        />
       )}
 
       {/* ========================================================================= */}

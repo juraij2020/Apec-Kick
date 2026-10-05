@@ -1,74 +1,134 @@
-# Implementation Plan: Signature Series Collection & Grand Set Rewards
+# Implementation Plan: Cursed Horror Snakes & Ladders & Germany Nations Collection
 
-Introduce the official **Signature Series** card program featuring authentic golden **autograph script replacing player names**, a progressive milestone system unlocking 99-rated stars, and the grand culmination granting the **Final Four 99 Legends: Messi, Cristiano Ronaldo, Pelé, and Ronaldo Nazário**.
-
----
-
-## User Specifications & Verified Answers
-- **Card Styling**: Black/green-gold geometric crystal shield with golden borders matching the 20 uploaded cards.
-- **Autograph Feature**: Every card displays a **golden cursive signature script** in place of the standard block font name.
-- **Set Progression**: Progressive milestone tiers unlocking the 99-rated Signature cards, culminating in the final set reward.
-- **The 20 Exact Cards from Uploads**:
-  - **Collectible Set (10 Players)**:
-    1. Douglas Luiz (79 CDM) · Juventus
-    2. Lacroix (83 CB) · Chelsea
-    3. Ferran Torres (83 ST) · PSG
-    4. Alvarez (85 ST) · Atlético Madrid
-    5. Fernández (85 CM) · Man City
-    6. Mbappé (89 ST) · Real Madrid
-    7. Insigne (89 CAM) · Napoli
-    8. Dembélé (90 ST) · PSG
-    9. Maradona (90 CAM) · Napoli
-    10. Esposito (92 ST) · Cagliari/Bologna
-  - **Progressive Milestone 99 Rewards**:
-    - Collect 2: Gareth Bale (99 RW)
-    - Collect 4: Bradley Barcola (99 LW)
-    - Collect 6: Michael Olise (99 RM)
-    - Collect 8: Antoine Semenyo (99 LM)
-    - Collect 10: Paolo Maldini (99 CB)
-    - Collect 12: Yaya Touré (99 CM)
-  - **Grand Ultimate Set Reward (Complete Set)**:
-    - **All 4 Legendary 99 Signature Cards**:
-      1. Lionel Messi (99 CAM) · Barcelona
-      2. Cristiano Ronaldo (99 ST) · Real Madrid
-      3. Pelé (99 CAM) · Santos
-      4. Ronaldo Nazário (99 ST) · Real Madrid
+Introduce the **Germany Nations Collection** (featuring the German black-red-gold flag shield, Brandenburg Gate twilight silhouette, and 4-star DFB eagle crest) and the thrilling **Cursed Horror Snakes & Ladders** mini-game where cards, packs, and coins are earned on a haunted board filled with booby traps, flying bats and ghosts, 3-question national trivia quizzes on every landing, a terrifying central Ouija Board Nightmare event, and the ultimate end-of-board set reward: the **All-Time Germany Legendary XI (99 OVR)**.
 
 ---
 
-## Proposed Changes
+## User Review & Critical Decisions
 
-### 1. Card Model & Autograph Rendering (`src/types/card.ts` & `src/data/cardSvgGenerator.ts`)
-- Add `'signature_autograph'` to `CardRarity` and `CardStyle`.
-- In `generateUserCardSvg`:
-  - When `cardStyle === 'signature_autograph'`, render a signature styling layer:
-    - Flowing golden cursive font (`font-family: 'Brush Script MT', 'Dancing Script', 'Pacifico', cursive`)
-    - Subtle tilt (-4deg to -6deg) and gold-foil drop-shadow filter.
-    - Custom SVG autograph flourishes and pen strokes beneath the text.
-  - Green-gold/black geometric crystal shield gradients matching the uploaded cards.
+> [!IMPORTANT]
+> **Confirmed Choices from Phase 1 Interactive Clarifications**:
+> - **Trivia Quiz Frequency**: Every landing triggers a 3-question German trivia quiz, regardless of whether that landing has rewards or traps. Passing trivia questions awards bonus dice/points or disarms hazards.
+> - **Central Ouija Board Tile**: Every central tile of the board is an authentic cursed Ouija board that triggers the ultimate "Real Nightmare" sequence: moving planchette, blood-red fog vignette, screen shake, ghost/bat swarms, eerie audio wails, and phantom banishment.
+> - **Navigation Placement**: Featured as a prominent game inside the existing **Mini-Games Hub** (with a top-level quick-access banner).
+> - **Cards Included**: All 22 exact cards from user uploads:
+>   - 11 Collectible Germany cards (Adeyemi 91, Brown 90, Can 87, Kimmich 97, Kroos 96, Musiala 96, Schlotterbeck 93, Tah 94, ter Stegen 87, Wirtz 95, Woltemade 87).
+>   - 11 All-Time Germany Legendary XI Cards (Beckenbauer 99, Brehme 99, Breitner 99, Lahm 99, Matthäus 99, Netzer 99, Neuer 99, Rahn 99, Rummenigge 99, Sammer 99, Schnellinger 98) awarded as the grand prize upon reaching the finish!
 
-### 2. Signature Series Cards Database (`src/data/signatureCards.ts`)
-- Define all 20 players with exact ratings, positions, clubs, nations, and stats from the images.
-- Provide custom cursive signature data and PlayStyle+ badges.
-- Export utility functions:
-  - `SIGNATURE_COLLECTIBLE_CARDS`: The 10 base set cards.
-  - `SIGNATURE_99_TIER_REWARDS`: The 6 progressive 99 rewards (Bale, Barcola, Olise, Semenyo, Maldini, Touré).
-  - `SIGNATURE_FINAL_FOUR_LEGENDS`: Messi 99, CR7 99, Pelé 99, Ronaldo 99.
+---
 
-### 3. Signature Pack in Store & Vault (`src/data/packs.ts`)
-- Add the **"Signature Series Showcase Pack"**:
-  - Contains guaranteed Signature Series cards with chances to pull base set players.
-  - Custom pack art and theme matching the green-gold obsidian foil.
+## 1. Overview & Core Concept
 
-### 4. Interactive Set Rewards Hub Integration (`src/components/SetRewardsHub.tsx`)
-- Add a dedicated **Signature Series Collection** showcase:
-  - Grid of the 10 collectible cards showing owned vs unowned status.
-  - **Milestone Reward Track**: Visual path unlocking Bale 99 ➔ Barcola 99 ➔ Olise 99 ➔ Semenyo 99 ➔ Maldini 99 ➔ Touré 99 as cards are acquired.
-  - **The Grand Finale Vault**: Unlocks when milestones are met, letting the user claim the 4 GOATs (Messi, CR7, Pelé, R9) into their Club with confetti and fanfare!
+- **What It Does**: Transports the player from standard pack opening into an eerie gothic football underworld. Instead of buying packs in the store, players roll dice on a 100-tile cursed Snakes & Ladders board to explore, unlock German national player cards, answer national football trivia, dodge haunted booby traps, survive the Ouija Nightmare, and reach the final sanctuary to claim the legendary All-Time Germany XI.
+- **Target Audience**: Players who love interactive game modes, football trivia, Halloween/horror aesthetics, and collecting high-tier national cards.
+- **Key Value**: Bridges active tactical gameplay (board navigation, dice rolling, trivia mastery) with card collection progression, creating high replayability and unforgettable audiovisual presentation.
+
+---
+
+## 2. User Experience & Visual Design
+
+### Key User Flows
+1. **Entering the Cursed Board**: Inside the Mini-Games Hub, the user selects **"🎃 Cursed Snakes & Ladders (Germany Edition)"**. Eerie atmospheric wind, distant bell tolls, and flying bat shadows set the mood.
+2. **Rolling the Cursed Bone Dice**: The player rolls a 3D bone dice (1 to 6) to advance their cursed token along the winding cobblestone board.
+3. **Landing & National Trivia Quiz**:
+   - On landing, the game pauses for the **3-Question Germany Trivia Challenge** (questions drawn from an authentic pool of German football lore: 1954 Miracle of Bern, 1974 & 1990 & 2014 World Cup victories, Bundesliga legends, stadium records, and iconic national team moments).
+   - Answering correctly disarms nearby traps, enhances card drop chances, and awards bonus coins.
+4. **Tile Encounters & Hazards**:
+   - **German Card Chests**: Directly awards one of the 11 Germany Nations cards into the user's Club!
+   - **Booby Traps**: Cursed Guillotines, Spike Pits, and Haunted Snakes that hiss and strike, causing the player to slide back down the board.
+   - **Bone Ladders**: Glowing spectral ladders that elevate the player across tiers.
+   - **Flying Ghosts & Bats**: Interactive particle/animation effects that swoop across the screen with spatial sound effects when triggered.
+5. **The Central Ouija Board Nightmare**:
+   - Landing on tile 50 (or the center Ouija tiles) triggers the **"Real Nightmare"**: The lights flicker out, a glowing planchette spells out ominous messages ("TREMBLE", "DOOM", "GO BACK"), flying specters and bats swarm the screen, screen shake and blood-red vignette activate, and a sinister phantom laugh sends the token reeling into a random cursed rift!
+6. **Victory at Tile 100**:
+   - Reaching the 100th tile triggers the **Grand Germany All-Time XI Ceremony**: Confetti and spectral gold lightning burst as the player opens the **"All-Time Germany Legendary XI Pack"** containing all 11 immortal 98–99 legends.
+
+### Visual Identity & Theme
+- **Color Palette**: Deep midnight slate (`#020617`), gothic charcoal (`#090d16`), blood crimson (`#991b1b`), eerie phantom cyan (`#06b6d4`), German national gold (`#facc15`), and glowing emerald ectoplasm (`#10b981`).
+- **Card Design**: German Flag Shield with dynamic black, crimson red, and gold radiant wave backdrop, Brandenburg Gate twilight silhouette, 4-star DFB eagle crest, and gold metallic bevels.
+- **Horror Audio FX**: Synthesized and Web Audio effects for bat chirps, ghost wails, bone dice rattles, ominous bell chimes, trap snaps, and victorious gold fanfare.
+
+---
+
+## 3. Key Product Decisions & Trade-Offs
+
+- **Decision 1: Board Size & Mechanics**:
+  - *Chosen Approach*: 100-tile (10x10) board with zigzag snake progression, featuring 8 ladders, 8 snakes, 12 card reward chests, 6 coin vaults, 1 central Ouija nightmare zone, and trivia modals on landing.
+  - *Why*: 100 tiles is the universally recognized Snakes & Ladders layout, providing substantial adventure length while ensuring milestones and rewards happen every 2–3 turns.
+- **Decision 2: Modular Multi-Nation Architecture**:
+  - *Chosen Approach*: Separate nation definitions into a config object (`NATION_BOARDS`), with `'germany'` as the inaugural board, ready for future nations (e.g., `'brazil'`, `'argentina'`, `'france'`).
+  - *Why*: User explicitly stated: *"more nation will come in future"*. Modular configuration makes adding subsequent nations effortless.
+- **Decision 3: Card Model & SVGs**:
+  - *Chosen Approach*: Add `nations_germany` rarity and cardStyle with dedicated SVG background rendering matching the 22 uploaded cards.
+  - *Why*: Keeps cards fully consistent with the existing dynamic vector rendering engine, market, club gallery, and squad builder.
+
+---
+
+## 4. Technical Architecture & Data Strategy
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Mini-Games Hub View                             │
+│  [Higher or Lower]  [Guess Who]  [Pack Duo]  [🎃 Cursed Snakes (NEW)]  │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                 CursedBoardGame Component (src/components)             │
+│                                                                        │
+│  ┌───────────────────────┐ ┌─────────────────────────────────────────┐ │
+│  │     HUD & Meters      │ │        Horror Snakes & Ladders Board    │ │
+│  │  Tile / 100 · Streak  │ │  10x10 Cursed Cobblestone Grid Tiles    │ │
+│  │  Coins · Audio Toggle │ │  Animated Player Token · Snakes/Ladders │ │
+│  └───────────────────────┘ └─────────────────────────────────────────┘ │
+│                                                                        │
+│  ┌───────────────────────────────────────────────────────────────────┐ │
+│  │ Interactive Horror FX Layer (Bats, Ghosts, Red Vignette, Ouija)   │ │
+│  └───────────────────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────┐ ┌─────────────────────────────────┐ │
+│  │ 3-Question Trivia Modal       │ │ Tile Reward / Nightmare Modal   │ │
+│  │ (German Football History)     │ │ (Cards, Traps, Ouija Planchette)│ │
+│  └───────────────────────────────┘ └─────────────────────────────────┘ │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                      Data Stores & Utilities                           │
+│  • src/data/nationsGermany.ts (22 Player Cards + Trivia Question Pool) │
+│  • src/data/cardSvgGenerator.ts (Germany Flag Shield Card Theme)       │
+│  • src/utils/horrorAudio.ts (Horror Ambient & FX Synthesizer)          │
+│  • localStorage (Board Progress, Claimed Rewards, Best Runs)          │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Entities & State
+1. **`GermanyCard`**: All 22 players defined with exact stats, positions, ratings, and SVG graphics:
+   - 11 Collectibles: Adeyemi (91), Brown (90), Can (87), Kimmich (97), Kroos (96), Musiala (96), Schlotterbeck (93), Tah (94), ter Stegen (87), Wirtz (95), Woltemade (87).
+   - 11 All-Time Legends: Beckenbauer (99), Brehme (99), Breitner (99), Lahm (99), Matthäus (99), Netzer (99), Neuer (99), Rahn (99), Rummenigge (99), Sammer (99), Schnellinger (98).
+2. **`TriviaQuestion`**: Over 30 rich German football questions with 4 choices, randomized on each turn.
+3. **`CursedBoardState`**:
+   - `playerPosition`: 1 to 100
+   - `isRolling`: boolean
+   - `activeTrivia`: 3 questions with answer tracking
+   - `activeNightmare`: Ouija nightmare animation state
+   - `flyingBats`: Active flying bat particle models
+   - `flyingGhosts`: Active floating ghost particle models
+   - `claimedRewardTiles`: List of collected tile IDs
+   - `isCompleted`: boolean (reaching Tile 100)
 
 ---
 
 ## Verification Plan
-1. **Compilation Check**: Run `lint_applet` and `compile_applet`.
-2. **Card Visual Check**: Verify that Signature cards display golden cursive autographs in place of standard player names.
-3. **Set Progression Check**: Verify that collecting cards tracks correctly, milestones unlock the 6 99-rated cards, and the Grand Finale claims Messi, CR7, Pelé, and R9.
+
+1. **Compilation Check**: Run `lint_applet` and `compile_applet` to ensure zero errors.
+2. **Cursed Board Mechanics**:
+   - Verify dice rolling and token animation along the 100-tile grid.
+   - Verify that landing on any tile prompts the 3-question German football trivia modal.
+   - Verify snakes, ladders, coin vaults, and card chests trigger their respective events.
+3. **Horror & Ouija Nightmare Testing**:
+   - Verify flying bats and ghost animations across the screen.
+   - Verify the central Ouija board tile triggers the full nightmare sequence (planchette, blood-red vignette, eerie sounds, backward rift).
+4. **End-of-Board Set Reward**:
+   - Verify reaching Tile 100 opens the All-Time Germany Legendary XI Pack, awarding all 11 98-99 rated cards into the user's club.
+5. **Card Appearance**:
+   - Verify German flag shield, Brandenburg Gate, and 4-star eagle crest render properly on cards.

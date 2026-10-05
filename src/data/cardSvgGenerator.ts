@@ -111,8 +111,15 @@ export function generateUserCardSvg(
   const isEvolutionGoldApex = cardStyle === 'evolution_gold_apex';
   const isEvolutionEmerald = cardStyle === 'evolution_emerald';
   const isSignature = cardStyle === 'signature_autograph';
+  const isGermany = cardStyle === 'nations_germany';
 
-  const borderStops = isSignature
+  const borderStops = isGermany
+    ? `<stop offset="0%" stop-color="#fef08a"/>
+       <stop offset="25%" stop-color="#ca8a04"/>
+       <stop offset="50%" stop-color="#18181b"/>
+       <stop offset="75%" stop-color="#eab308"/>
+       <stop offset="100%" stop-color="#fef08a"/>`
+    : isSignature
     ? `<stop offset="0%" stop-color="#fffbeb"/>
        <stop offset="20%" stop-color="#fef08a"/>
        <stop offset="45%" stop-color="#eab308"/>
@@ -200,7 +207,14 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isSignature
+  const shieldStops = isGermany
+    ? `<stop offset="0%" stop-color="#09090b"/>
+       <stop offset="28%" stop-color="#18181b"/>
+       <stop offset="48%" stop-color="#881337"/>
+       <stop offset="70%" stop-color="#b91c1c"/>
+       <stop offset="85%" stop-color="#854d0e"/>
+       <stop offset="100%" stop-color="#0f0d07"/>`
+    : isSignature
     ? `<stop offset="0%" stop-color="#02140d"/>
        <stop offset="30%" stop-color="#082e1c"/>
        <stop offset="65%" stop-color="#04180f"/>
@@ -300,7 +314,7 @@ export function generateUserCardSvg(
     : `<stop offset="0%" stop-color="#eab308" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#a16207" stop-opacity="0.1"/>`;
 
-  const starSymbol = isSignature ? '✍️' : isSummerPremium ? '👑' : isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
+  const starSymbol = isGermany ? '🇩🇪' : isSignature ? '✍️' : isSummerPremium ? '👑' : isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 900" width="100%" height="100%">
     <defs>
@@ -355,7 +369,43 @@ export function generateUserCardSvg(
     <path d="M 322 108 C 300 128 275 140 252 118 C 220 95 105 170 85 220 L 85 710 C 85 790 250 865 322 885 C 394 865 559 790 559 710 L 559 220 C 539 170 424 95 392 118 C 369 140 344 128 322 108 Z" 
       fill="url(#cardShield)"/>
 
-    ${isThrowback ? `
+    ${isGermany ? `
+    <!-- German Flag Waves, Brandenburg Gate & 4 Stars -->
+    <g clip-path="url(#cardClip)">
+      <!-- Flag Wave 1: Black Top Banner -->
+      <path d="M 85 108 L 559 108 L 559 310 Q 320 260 85 330 Z" fill="#09090b" opacity="0.95"/>
+      <!-- Flag Wave 2: Crimson Red Center Wave -->
+      <path d="M 85 330 Q 320 260 559 310 L 559 450 Q 320 400 85 460 Z" fill="#dc2626" opacity="0.9"/>
+      <!-- Flag Wave 3: Golden Yellow Bottom Wave -->
+      <path d="M 85 460 Q 320 400 559 450 L 559 600 Q 320 570 85 620 Z" fill="#eab308" opacity="0.9"/>
+
+      <!-- Brandenburg Gate Silhouette -->
+      <g opacity="0.35" transform="translate(192, 280)">
+        <rect x="0" y="50" width="260" height="12" fill="#ca8a04"/>
+        <rect x="10" y="62" width="16" height="85" fill="#facc15"/>
+        <rect x="54" y="62" width="16" height="85" fill="#facc15"/>
+        <rect x="98" y="62" width="16" height="85" fill="#facc15"/>
+        <rect x="146" y="62" width="16" height="85" fill="#facc15"/>
+        <rect x="190" y="62" width="16" height="85" fill="#facc15"/>
+        <rect x="234" y="62" width="16" height="85" fill="#facc15"/>
+        <path d="M 112 50 L 130 20 L 148 50 Z" fill="#fde047"/>
+      </g>
+
+      <!-- 4 Golden Championship Stars atop Crest -->
+      <g transform="translate(322, 192)" filter="url(#goldGlow)">
+        <text x="-48" y="0" font-size="22" fill="#facc15" text-anchor="middle">★</text>
+        <text x="-16" y="-6" font-size="24" fill="#fde047" text-anchor="middle">★</text>
+        <text x="16" y="-6" font-size="24" fill="#fde047" text-anchor="middle">★</text>
+        <text x="48" y="0" font-size="22" fill="#facc15" text-anchor="middle">★</text>
+      </g>
+
+      <!-- German National Eagle DFB Crest Backdrop Circle -->
+      <g transform="translate(322, 360)" opacity="0.2">
+        <circle cx="0" cy="0" r="145" fill="none" stroke="#facc15" stroke-width="4"/>
+        <circle cx="0" cy="0" r="135" fill="none" stroke="#eab308" stroke-width="1.5" stroke-dasharray="6,4"/>
+      </g>
+    </g>
+    ` : isThrowback ? `
     <!-- Throwback Cybernetic Circuit Board & 3D Flashback Chevron Pattern -->
     <g clip-path="url(#cardClip)">
       <rect x="85" y="108" width="474" height="420" fill="url(#cyberCircuit)" opacity="0.65"/>
@@ -391,7 +441,10 @@ export function generateUserCardSvg(
     </g>
     `}
 
-    ${isThrowback ? `
+    ${isGermany ? `
+    <!-- Germany Nations Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#fef08a" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">🇩🇪 DIE MANNSCHAFT 🇩🇪</text>
+    ` : isThrowback ? `
     <!-- Throwback Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#4ade80" letter-spacing="3" text-anchor="middle" filter="url(#greenGlow)">⏳ THROWBACK FLASHBACK ⏳</text>
     ` : isSummerPremium ? `

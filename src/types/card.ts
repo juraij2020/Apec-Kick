@@ -25,6 +25,7 @@ export type CardRarity =
   | 'evolution_emerald'
   | 'evolution_gold_apex'
   | 'signature_autograph'
+  | 'nations_germany'
   | 'throwback';
 
 export type CardStyle =
@@ -36,6 +37,7 @@ export type CardStyle =
   | 'evolution_emerald'
   | 'evolution_gold_apex'
   | 'signature_autograph'
+  | 'nations_germany'
   | 'totw_black'
   | 'classic_gold'
   | 'futmas_crimson'
@@ -57,6 +59,7 @@ export type PackTheme =
   | 'belgium'
   | 'hof_gold'
   | 'hall_of_fut'
+  | 'nations_germany'
   | 'gold' 
   | 'black' 
   | 'ruby' 
