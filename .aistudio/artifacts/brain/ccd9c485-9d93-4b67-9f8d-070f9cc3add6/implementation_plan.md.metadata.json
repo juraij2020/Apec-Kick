@@ -1,6 +1,6 @@
 {
-  "summary":  "Implementation plan for Nations Cards (Germany Flag Shield) and the Cursed Horror Snakes & Ladders mini-game with 3-question national trivia quizzes, animated flying bats & ghosts, eerie audio, central Ouija board nightmare tiles, and the All-Time Germany 99-Rated XI Set Reward.",
-  "updatedAt":  "2026-10-04T14:57:13.069779668Z",
+  "summary":  "Implementation plan for Strong Firebase Authentication and Cloud Firestore cross-device synchronization to ensure progress (cards, coins, squads, packs, evolutions, and minigames) is never reset across different laptops or Vercel deployments.",
+  "updatedAt":  "2026-10-05T08:59:51.704054145Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

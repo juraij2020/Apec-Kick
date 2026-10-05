@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile document containing account metadata",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth user ID"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name of the user"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "User profile picture avatar URL"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Timestamp of last profile update"
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "GameProgress": {
+      "title": "GameProgress",
+      "description": "Comprehensive cross-device synced club state and inventory",
+      "type": "object",
+      "properties": {
+        "coins": {
+          "type": "number",
+          "description": "Current coins balance"
+        },
+        "clubCardsJson": {
+          "type": "string",
+          "description": "JSON serialized string of full club cards collection"
+        },
+        "formationId": {
+          "type": "string",
+          "description": "Active squad tactical formation ID"
+        },
+        "activeSquadSlotsJson": {
+          "type": "string",
+          "description": "JSON serialized active squad position slots"
+        },
+        "unopenedPacksJson": {
+          "type": "string",
+          "description": "JSON serialized unopened packs inventory"
+        },
+        "sakaStageIndex": {
+          "type": "number",
+          "description": "Evolution Saka stage index"
+        },
+        "sakaStatsJson": {
+          "type": "string",
+          "description": "JSON serialized Evolution Saka card stats"
+        },
+        "cursedBoardPos": {
+          "type": "number",
+          "description": "Cursed Snakes and Ladders board tile position"
+        },
+        "lastSyncedAt": {
+          "type": "number",
+          "description": "Timestamp of last cloud synchronization"
+        }
+      },
+      "required": ["coins", "lastSyncedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User account document"
+    },
+    "/users/{userId}/game_data/{dataId}": {
+      "schema": "GameProgress",
+      "description": "User game data documents such as club progress, squad, packs, and minigames"
+    }
+  }
+}

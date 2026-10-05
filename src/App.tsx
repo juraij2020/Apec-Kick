@@ -36,6 +36,8 @@ import { DailyObjectives } from './components/DailyObjectives';
 import { SetRewardsHub } from './components/SetRewardsHub';
 import { EvolutionHub } from './components/EvolutionHub';
 import { GoogleAuthButton } from './components/GoogleAuthButton';
+import { auth, onAuthStateChanged, User } from './utils/firebase';
+import { scheduleCloudSync, CloudGamePayload } from './utils/cloudSync';
 import { StoredRewardPack, CardStats } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
 import { buildEvolvedSakaCard } from './data/evolutionSaka';
@@ -364,6 +366,64 @@ export default function App() {
     sound.enabled = audioEnabled;
     safeSetItem(STORAGE_KEYS.AUDIO, audioEnabled ? 'true' : 'false');
   }, [audioEnabled]);
+
+  // Firebase Auth user tracking
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (u) => {
+      setCurrentUser(u);
+    });
+  }, []);
+
+  // Hydrate club state when user signs in on any device
+  const handleCloudLoaded = (merged: CloudGamePayload) => {
+    if (merged.coins !== undefined) setCoins(merged.coins);
+    if (merged.clubCards && merged.clubCards.length > 0) setClubCards(merged.clubCards);
+    if (merged.formationId) setFormationId(merged.formationId);
+    if (merged.activeSquadSlots && Object.keys(merged.activeSquadSlots).length > 0) {
+      setActiveSquadSlots(merged.activeSquadSlots);
+    }
+    if (merged.unopenedPacks && merged.unopenedPacks.length > 0) {
+      setUnopenedPacks(merged.unopenedPacks);
+    }
+    if (merged.sakaStageIndex !== undefined) setSakaStageIndex(merged.sakaStageIndex);
+    if (merged.sakaStats) setSakaStats(merged.sakaStats);
+    if (merged.cursedBoardPos) {
+      safeSetItem('apex_fut_cursed_board_pos', merged.cursedBoardPos.toString());
+    }
+  };
+
+  // Debounced auto-sync to Cloud Firestore whenever game progress updates
+  useEffect(() => {
+    if (currentUser) {
+      let cursedPos = 1;
+      try {
+        const saved = localStorage.getItem('apex_fut_cursed_board_pos');
+        if (saved) cursedPos = Number(saved) || 1;
+      } catch {}
+
+      scheduleCloudSync(currentUser, {
+        coins,
+        clubCards,
+        formationId,
+        activeSquadSlots,
+        unopenedPacks,
+        sakaStageIndex,
+        sakaStats,
+        cursedBoardPos: cursedPos,
+      });
+    }
+  }, [
+    currentUser,
+    coins,
+    clubCards,
+    formationId,
+    activeSquadSlots,
+    unopenedPacks,
+    sakaStageIndex,
+    sakaStats,
+  ]);
 
   // Combined card pool for packs, market & squads (Standard cards + Street Kings + Summer Transfers + Intl Moments + HOF + Futmas + User cards)
   const allCardsPool = useMemo(() => {
@@ -894,10 +954,23 @@ export default function App() {
 
           {/* Zone 3: Google Login, Coins balance & Audio toggle */}
           <div className="flex items-center gap-2 sm:gap-2.5 flex-shrink-0">
-            {/* Google Account Authentication */}
+            {/* Google Account Authentication & Cross-Device Cloud Sync */}
             <GoogleAuthButton
               coins={coins}
               clubCards={clubCards}
+              formationId={formationId}
+              activeSquadSlots={activeSquadSlots}
+              unopenedPacks={unopenedPacks}
+              sakaStageIndex={sakaStageIndex}
+              sakaStats={sakaStats}
+              cursedBoardPos={(() => {
+                try {
+                  return Number(localStorage.getItem('apex_fut_cursed_board_pos')) || 1;
+                } catch {
+                  return 1;
+                }
+              })()}
+              onCloudLoaded={handleCloudLoaded}
               onAddCoins={handleAddCoins}
             />
 
