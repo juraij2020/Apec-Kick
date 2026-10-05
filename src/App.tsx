@@ -36,8 +36,13 @@ import { DailyObjectives } from './components/DailyObjectives';
 import { SetRewardsHub } from './components/SetRewardsHub';
 import { EvolutionHub } from './components/EvolutionHub';
 import { GoogleAuthButton } from './components/GoogleAuthButton';
-import { auth, onAuthStateChanged, User } from './utils/firebase';
-import { scheduleCloudSync, CloudGamePayload } from './utils/cloudSync';
+import {
+  scheduleCloudSync,
+  CloudGamePayload,
+  CloudAccountSession,
+  getStoredSession,
+  subscribeToSession,
+} from './utils/cloudSync';
 import { StoredRewardPack, CardStats } from './types/card';
 import { INITIAL_REWARD_PACKS } from './data/rewardPacks';
 import { buildEvolvedSakaCard } from './data/evolutionSaka';
@@ -367,12 +372,12 @@ export default function App() {
     safeSetItem(STORAGE_KEYS.AUDIO, audioEnabled ? 'true' : 'false');
   }, [audioEnabled]);
 
-  // Firebase Auth user tracking
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // Cloud Session tracking
+  const [currentSession, setCurrentSession] = useState<CloudAccountSession | null>(getStoredSession);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (u) => {
-      setCurrentUser(u);
+    return subscribeToSession((s) => {
+      setCurrentSession(s);
     });
   }, []);
 
@@ -396,14 +401,14 @@ export default function App() {
 
   // Debounced auto-sync to Cloud Firestore whenever game progress updates
   useEffect(() => {
-    if (currentUser) {
+    if (currentSession) {
       let cursedPos = 1;
       try {
         const saved = localStorage.getItem('apex_fut_cursed_board_pos');
         if (saved) cursedPos = Number(saved) || 1;
       } catch {}
 
-      scheduleCloudSync(currentUser, {
+      scheduleCloudSync(currentSession.docId, {
         coins,
         clubCards,
         formationId,
@@ -415,7 +420,7 @@ export default function App() {
       });
     }
   }, [
-    currentUser,
+    currentSession,
     coins,
     clubCards,
     formationId,

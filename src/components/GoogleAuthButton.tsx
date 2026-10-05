@@ -1,26 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SoccerCard, StoredRewardPack, CardStats } from '../types/card';
 import {
-  auth,
-  googleProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  User,
-} from '../utils/firebase';
-import {
+  CloudAccountSession,
   CloudGamePayload,
-  loadCloudGameProgress,
-  saveCloudGameProgressImmediate,
+  getStoredSession,
+  setStoredSession,
+  subscribeToSession,
   subscribeToSyncStatus,
+  signInOrCreateCloudAccount,
+  saveCloudGameProgressImmediate,
+  loadCloudGameProgressForAccount,
+  SyncStatus,
 } from '../utils/cloudSync';
 import { sound } from '../utils/audio';
 import {
   CheckCircle2,
   LogOut,
-  User as UserIcon,
   ShieldCheck,
   RefreshCw,
   Coins,
@@ -30,9 +25,9 @@ import {
   Mail,
   Lock,
   Layers,
-  Sparkles,
   AlertCircle,
   Cloud,
+  Check,
 } from 'lucide-react';
 
 interface GoogleAuthButtonProps {
@@ -59,47 +54,25 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
   cursedBoardPos,
   onCloudLoaded,
 }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<CloudAccountSession | null>(getStoredSession);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'google' | 'login' | 'register'>('google');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sync state tracking
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [lastSyncedTime, setLastSyncedTime] = useState<number | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Subscribe to Firebase Auth state
+  // Subscribe to session changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Hydrate from Cloud Firestore
-        const currentLocalPayload: CloudGamePayload = {
-          coins,
-          clubCards,
-          formationId,
-          activeSquadSlots,
-          unopenedPacks,
-          sakaStageIndex,
-          sakaStats,
-          cursedBoardPos,
-        };
-        try {
-          const merged = await loadCloudGameProgress(currentUser, currentLocalPayload);
-          onCloudLoaded(merged);
-        } catch (err) {
-          console.error('Error loading cloud progress:', err);
-        }
-      }
+    return subscribeToSession((s) => {
+      setSession(s);
     });
-
-    return () => unsubscribe();
   }, []);
 
   // Subscribe to Cloud Sync status
@@ -108,6 +81,31 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
       setSyncStatus(status);
       if (lastSynced) setLastSyncedTime(lastSynced);
     });
+  }, []);
+
+  // Hydrate from cloud on initial boot if user already had an active session
+  useEffect(() => {
+    const currentSession = getStoredSession();
+    if (currentSession) {
+      const currentLocalPayload: CloudGamePayload = {
+        coins,
+        clubCards,
+        formationId,
+        activeSquadSlots,
+        unopenedPacks,
+        sakaStageIndex,
+        sakaStats,
+        cursedBoardPos,
+      };
+
+      loadCloudGameProgressForAccount(currentSession.docId, currentLocalPayload)
+        .then((merged) => {
+          onCloudLoaded(merged);
+        })
+        .catch((err) => {
+          console.warn('Initial session hydration warning:', err);
+        });
+    }
   }, []);
 
   // Close dropdown on outside click
@@ -125,77 +123,65 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     };
   }, [dropdownOpen]);
 
-  // Google One-Click Sign In
-  const handleGoogleSignIn = async () => {
-    setIsSubmitting(true);
-    setAuthError(null);
-    try {
-      sound.playClick();
-      const result = await signInWithPopup(auth, googleProvider);
-      if (result.user) {
-        sound.playCoinClink();
-        setLoginModalOpen(false);
-      }
-    } catch (err: unknown) {
-      console.warn('Google popup error:', err);
-      const msg = err instanceof Error ? err.message : 'Google sign-in failed. Please try Email login.';
-      if (msg.includes('popup-blocked')) {
-        setAuthError('Browser blocked popup window. Please allow popups or use Email sign-in below.');
-      } else {
-        setAuthError(msg.replace('Firebase: ', ''));
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Email / Password Login or Sign Up
-  const handleEmailAuth = async (e: React.FormEvent) => {
+  // Handle Universal Cloud Sign-In & Registration
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       setAuthError('Please enter both email and password.');
       return;
     }
+    if (password.length < 4) {
+      setAuthError('Password must be at least 4 characters.');
+      return;
+    }
+
     setIsSubmitting(true);
     setAuthError(null);
 
+    const currentLocalPayload: CloudGamePayload = {
+      coins,
+      clubCards,
+      formationId,
+      activeSquadSlots,
+      unopenedPacks,
+      sakaStageIndex,
+      sakaStats,
+      cursedBoardPos,
+    };
+
     try {
-      if (authMode === 'register') {
-        const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
-        if (cred.user) {
-          sound.playCoinClink();
-          setLoginModalOpen(false);
-        }
-      } else {
-        const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
-        if (cred.user) {
-          sound.playCoinClink();
-          setLoginModalOpen(false);
-        }
-      }
+      sound.playClick();
+      const { session: newSession, mergedPayload } = await signInOrCreateCloudAccount(
+        email.trim(),
+        password,
+        currentLocalPayload
+      );
+
+      sound.playCoinClink();
+      onCloudLoaded(mergedPayload);
+      setSession(newSession);
+      setLoginModalOpen(false);
+      setEmail('');
+      setPassword('');
     } catch (err: unknown) {
-      console.warn('Auth error:', err);
-      const msg = err instanceof Error ? err.message : 'Authentication failed.';
-      setAuthError(msg.replace('Firebase: ', ''));
+      console.error('Sign-in error:', err);
+      const msg = err instanceof Error ? err.message : 'Sign-in failed. Please verify your details.';
+      setAuthError(msg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Sign out
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     sound.playClick();
-    try {
-      await signOut(auth);
-      setDropdownOpen(false);
-    } catch (err) {
-      console.error('Sign-out error:', err);
-    }
+    setStoredSession(null);
+    setDropdownOpen(false);
   };
 
   // Manual Force Sync
   const handleManualSync = async () => {
-    if (!user) return;
+    if (!session) return;
     sound.playClick();
     setSyncStatus('syncing');
 
@@ -211,7 +197,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
         cursedBoardPos,
         lastSyncedAt: Date.now(),
       };
-      await saveCloudGameProgressImmediate(user.uid, payload);
+      await saveCloudGameProgressImmediate(session.docId, payload);
       sound.playCoinClink();
       setSyncStatus('synced');
       setLastSyncedTime(Date.now());
@@ -222,50 +208,28 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
     }
   };
 
-  // Google SVG G Logo
-  const GoogleLogo = () => (
-    <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-      <path
-        fill="#4285F4"
-        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-      />
-    </svg>
-  );
-
   return (
     <div className="relative inline-block" ref={dropdownRef}>
       {/* Top Header Button */}
-      {user ? (
+      {session ? (
         <button
           onClick={() => {
             sound.playClick();
             setDropdownOpen(!dropdownOpen);
           }}
           className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-850 border border-slate-700 hover:border-emerald-500/60 rounded-xl transition-all shadow-sm group select-none"
-          title={`Signed in as ${user.displayName || user.email} (Cloud Synced)`}
+          title={`Signed in as ${session.email} (Cloud Synced)`}
         >
           <div className="relative flex-shrink-0">
-            {user.photoURL ? (
+            {session.photoURL ? (
               <img
-                src={user.photoURL}
-                alt={user.displayName || 'User'}
+                src={session.photoURL}
+                alt={session.displayName}
                 className="w-5 h-5 rounded-full object-cover border border-emerald-400"
               />
             ) : (
               <div className="w-5 h-5 rounded-full bg-emerald-600 text-[10px] font-black flex items-center justify-center text-white">
-                {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                {session.displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <span
@@ -280,7 +244,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           </div>
 
           <span className="text-xs font-semibold text-slate-200 group-hover:text-white max-w-[85px] truncate hidden sm:inline">
-            {(user.displayName || user.email || 'Cloud').split(' ')[0]}
+            {session.displayName}
           </span>
 
           <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-transform" />
@@ -292,49 +256,49 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
             setAuthError(null);
             setLoginModalOpen(true);
           }}
-          className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 text-slate-950 rounded-xl font-black text-xs transition-all shadow-[0_0_15px_rgba(245,158,11,0.4)] hover:scale-[1.02] active:scale-[0.98]"
-          title="Sign in with your Google Account or Email to save progress permanently across all laptops"
+          className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 hover:from-emerald-400 hover:to-cyan-300 text-slate-950 rounded-xl font-black text-xs transition-all shadow-[0_0_15px_rgba(16,185,129,0.35)] hover:scale-[1.02] active:scale-[0.98]"
+          title="Sign in with your Email & Password to save progress permanently across all laptops"
         >
-          <GoogleLogo />
+          <Cloud className="w-4 h-4 fill-slate-950" />
           <span className="hidden sm:inline">Sign in to Cloud</span>
           <span className="sm:hidden">Sign in</span>
         </button>
       )}
 
       {/* User Profile Dropdown Menu */}
-      {dropdownOpen && user && (
+      {dropdownOpen && session && (
         <div className="absolute right-0 mt-2 w-80 bg-[#0d131f] border border-slate-700/80 rounded-2xl shadow-2xl z-50 p-4 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
           {/* Header section with User Info */}
           <div className="flex items-start gap-3 pb-3 border-b border-slate-800">
-            {user.photoURL ? (
+            {session.photoURL ? (
               <img
-                src={user.photoURL}
-                alt={user.displayName || 'User'}
+                src={session.photoURL}
+                alt={session.displayName}
                 className="w-10 h-10 rounded-full object-cover border-2 border-emerald-400 flex-shrink-0"
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-emerald-600 text-sm font-black flex items-center justify-center text-white flex-shrink-0">
-                {(user.displayName || user.email || 'U').charAt(0).toUpperCase()}
+                {session.displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-bold text-white truncate">
-                  {user.displayName || user.email?.split('@')[0]}
+                  {session.displayName}
                 </span>
                 <span title="Verified Cloud Profile">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+              <p className="text-[11px] text-slate-400 truncate">{session.email}</p>
               <div className="flex items-center gap-1.5 mt-1">
                 <Cloud className="w-3 h-3 text-emerald-400" />
                 <span className="text-[10px] text-emerald-300 font-semibold">
                   {syncStatus === 'syncing'
                     ? 'Syncing changes...'
                     : syncStatus === 'error'
-                    ? 'Sync issue (offline)'
-                    : 'Cloud Synced Across All Devices'}
+                    ? 'Sync offline'
+                    : 'Cloud Synced Across All Laptops'}
                 </span>
               </div>
             </div>
@@ -343,7 +307,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           {/* Club Snapshot */}
           <div className="py-3 space-y-2.5 border-b border-slate-800">
             <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-              <span>Cloud Synchronized Club</span>
+              <span>Cloud Protected Inventory</span>
               <span className="text-emerald-400 font-mono text-[9px]">ACTIVE</span>
             </div>
 
@@ -405,8 +369,8 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
           <div className="pt-2 flex items-center justify-between gap-2">
             <span className="text-[10px] text-slate-500 font-mono truncate">
               {lastSyncedTime
-                ? `Last saved: ${new Date(lastSyncedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-                : 'Protected by Firebase'}
+                ? `Saved ${new Date(lastSyncedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                : 'Protected by Cloud'}
             </span>
 
             <button
@@ -427,7 +391,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
             {/* Top Bar */}
             <div className="px-6 pt-6 pb-4 border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-xl shadow-md text-slate-950">
+                <div className="p-2.5 bg-gradient-to-tr from-emerald-500 to-cyan-400 rounded-xl shadow-md text-slate-950">
                   <Cloud className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <div>
@@ -452,25 +416,8 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
                 </div>
               )}
 
-              {/* Primary Option: Google Sign-In */}
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={isSubmitting}
-                className="w-full py-3 px-4 bg-white hover:bg-slate-100 text-slate-900 font-black text-xs rounded-2xl transition-all shadow-md flex items-center justify-center gap-3 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
-              >
-                <GoogleLogo />
-                <span>Sign in with Google</span>
-              </button>
-
-              <div className="flex items-center gap-3 my-2 text-slate-500 text-xs uppercase font-bold">
-                <div className="h-px bg-slate-800 flex-1" />
-                <span>Or with Email &amp; Password</span>
-                <div className="h-px bg-slate-800 flex-1" />
-              </div>
-
               {/* Email & Password Form */}
-              <form onSubmit={handleEmailAuth} className="space-y-3">
+              <form onSubmit={handleAuthSubmit} className="space-y-3">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1.5">
                     <Mail className="w-3.5 h-3.5 text-slate-400" />
@@ -479,46 +426,49 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
                   <input
                     type="email"
                     required
-                    placeholder="manager@example.com"
+                    placeholder="e.g. juraijsaeed@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1.5">
                     <Lock className="w-3.5 h-3.5 text-slate-400" />
-                    Password
+                    Password or PIN
                   </label>
                   <input
                     type="password"
                     required
-                    minLength={6}
-                    placeholder="••••••••"
+                    minLength={4}
+                    placeholder="Choose or enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    First time? Enter any password you like to create your cloud account!
+                  </p>
                 </div>
 
-                <div className="flex gap-2 pt-1">
+                <div className="pt-2">
                   <button
                     type="submit"
-                    onClick={() => setAuthMode('login')}
-                    disabled={isSubmitting}
-                    className="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs rounded-xl transition-all shadow-md"
+                    disabled={isSubmitting || !email.trim() || !password.trim()}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
                   >
-                    {isSubmitting && authMode === 'login' ? 'Signing in...' : 'Sign In'}
-                  </button>
-
-                  <button
-                    type="submit"
-                    onClick={() => setAuthMode('register')}
-                    disabled={isSubmitting}
-                    className="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 font-bold text-xs rounded-xl transition-all border border-slate-700"
-                  >
-                    {isSubmitting && authMode === 'register' ? 'Registering...' : 'Create Account'}
+                    {isSubmitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+                        <span>Connecting &amp; Syncing Club...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>Sign In &amp; Sync Progress</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -527,7 +477,7 @@ export const GoogleAuthButton: React.FC<GoogleAuthButtonProps> = ({
               <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 flex items-start gap-2.5 text-[11px] text-slate-400">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                 <span>
-                  <strong>Zero-Loss Auto-Merge:</strong> Signing in immediately downloads your cloud club, and merges any progress you just made on this device so nothing is reset.
+                  <strong>Zero-Loss Auto-Merge:</strong> Signing in immediately downloads your cloud club, and merges any progress made on this laptop so nothing is reset.
                 </span>
               </div>
             </div>

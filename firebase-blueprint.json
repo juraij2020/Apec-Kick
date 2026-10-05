@@ -1,38 +1,22 @@
 {
   "entities": {
-    "UserProfile": {
-      "title": "UserProfile",
-      "description": "User profile document containing account metadata",
+    "ClubProfile": {
+      "title": "ClubProfile",
+      "description": "Cross-device persistent club profile keyed by account ID",
       "type": "object",
       "properties": {
-        "uid": {
-          "type": "string",
-          "description": "Firebase Auth user ID"
-        },
         "email": {
           "type": "string",
-          "description": "User email address"
+          "description": "User account email address or account identifier"
+        },
+        "passcodeHash": {
+          "type": "string",
+          "description": "Protected password or PIN verification hash"
         },
         "displayName": {
           "type": "string",
-          "description": "Display name of the user"
+          "description": "Manager or club display name"
         },
-        "photoURL": {
-          "type": "string",
-          "description": "User profile picture avatar URL"
-        },
-        "updatedAt": {
-          "type": "number",
-          "description": "Timestamp of last profile update"
-        }
-      },
-      "required": ["uid", "email"]
-    },
-    "GameProgress": {
-      "title": "GameProgress",
-      "description": "Comprehensive cross-device synced club state and inventory",
-      "type": "object",
-      "properties": {
         "coins": {
           "type": "number",
           "description": "Current coins balance"
@@ -70,17 +54,13 @@
           "description": "Timestamp of last cloud synchronization"
         }
       },
-      "required": ["coins", "lastSyncedAt"]
+      "required": ["email", "coins", "lastSyncedAt"]
     }
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": "UserProfile",
-      "description": "User account document"
-    },
-    "/users/{userId}/game_data/{dataId}": {
-      "schema": "GameProgress",
-      "description": "User game data documents such as club progress, squad, packs, and minigames"
+    "/club_profiles/{accountId}": {
+      "schema": "ClubProfile",
+      "description": "User cloud clubs synchronized across all laptops and Vercel"
     }
   }
 }
