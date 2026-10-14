@@ -1,134 +1,74 @@
-# Strong Authentication & Cloud Cross-Device Progress Synchronization (Firebase)
+# 99 OVR Raffle Cards & Single-Month Secret Reveal Plan
 
-Upgrade the authentication and data persistence architecture to use **Firebase Authentication** and **Cloud Firestore** so that user progress—including coins, club cards, squad lineups, unopened packs, evolutions, and mini-game states—is seamlessly saved to the cloud and never reset when opening the app on different laptops or deploying to Vercel.
-
----
-
-## User Review & Critical Decisions
-
-> [!IMPORTANT]
-> **Confirmed Choices from Clarification Interview**:
-> - **Authentication & Backend**: Firebase Authentication (Google Sign-In + Email/Password) backed by a Cloud Firestore database.
-> - **Synchronized Data Scope**: **Everything in the game**:
->   - Coins balance & club value
->   - Full club card collection (all collectibles, user-created cards, and nations cards)
->   - Active squad slots & formation
->   - Unopened pack inventory (`MyPacks`)
->   - Evolution progress (stage index, stats, evo points)
->   - Mini-game states (Cursed Snakes & Ladders tile position, Higher/Lower streaks)
-> - **Pre-Login / Multi-Device Conflict Resolution**: Automatically merge local progress into the signed-in cloud account upon login, ensuring that opening the app on a fresh device never overwrites or resets prior achievements.
-> - **Vercel Readiness**: Environment variables and client configuration will support both the local preview and external Vercel deployments seamlessly.
+Implement the requested updates to the Daily Raffle system: boost all Raffle Cards to prestigious **99 OVR** cards with endgame 99-tier stats, and restrict the Daily Raffle tab so it **strictly displays only the single player of the active month**, completely hiding upcoming players and calendar previews until the current month concludes.
 
 ---
 
-## 1. Overview & Core Concept
+## 1. Overview & Core Changes
 
-- **Problem**: The application currently relies on local browser storage (`localStorage`) for player data. When accessing the Vercel-deployed application from a different laptop or browser, the local storage is blank, resetting progress back to the starter team and coins.
-- **Solution**: Connect the application to **Firebase Authentication** and **Cloud Firestore**. Every game event (packing a card, earning coins, setting up a squad, advancing on the Cursed Board) synchronizes securely to the user's Firestore document. Signing in from any laptop or mobile device immediately pulls the player's full club, ensuring zero data loss across platforms.
-
----
-
-## 2. User Experience & Visual Design
-
-### Key User Flows
-1. **First-Time Sign-In (Any Laptop)**:
-   - User clicks **"Sign in with Google"** (or Email/Password) in the top bar.
-   - Firebase Auth authenticates the user.
-   - The app checks Firestore for an existing cloud club profile:
-     - If found: Hydrates the entire club state (coins, cards, squad, packs). If the new laptop already had unbacked progress, it intelligently merges cards and balances without loss.
-     - If new: Uploads the initial local state as the cloud master profile.
-2. **Seamless Cloud Sync Indicator**:
-   - The top bar profile dropdown displays live status: `☁️ Cloud Synced` (green pulse), `🔄 Syncing...` (spin), or `Offline (Cached)`.
-   - Displays user avatar, Google email, and quick "Force Sync Now" button.
-3. **Cross-Laptop Experience on Vercel**:
-   - Opening the Vercel link on Laptop A and Laptop B under the same account shares the identical club roster, squad chemistry, and coin balance.
-   - Logging out clears sensitive session tokens while keeping cloud data safe in Firestore.
+### Key Requirements
+1. **Every Raffle Card is 99 OVR**:
+   - All monthly raffle player cards (October Buksa through July Richard) will have an official rating of **99**.
+   - Stats updated to elite 99-level endgame ratings (99 PAC, 99 SHO, 99 DRI, 99 PHY, etc.).
+   - Card SVG visual badges, shields, and rating headers will render `99` in embossed molten gold foil.
+2. **Single Active Player Display in Raffle Tab**:
+   - The Daily Raffle tab will exclusively show **one player**—the player for the active calendar month (currently **Adam Buksa 99 OVR** for October).
+   - All multi-month calendar modals, month-selector tabs, and preview buttons will be removed.
+   - Zero future month leaks: players cannot see who is coming in November, December, or later until October ends.
+3. **Strict Real-World UTC Calendar Progression**:
+   - The active raffle player is determined strictly by the real-world calendar month (`new Date().getUTCMonth() + 1`).
+   - When October ends and midnight UTC on November 1st arrives, the tab automatically transitions to reveal the November 99 OVR player.
+   - Daily draws, ticket purchases (1 coin = 1 ticket), countdown timer to midnight UTC, and winner podium below the ticket counter remain fully active and rewarding the 99 OVR player for 1st place.
 
 ---
 
-## 3. Key Product Decisions & Trade-Offs
+## 2. Proposed Changes
 
-- **Decision 1: Real-Time Auto-Save with Debounce**:
-  - *Chosen Approach*: Debounced background sync (800ms) to Firestore whenever coins, club cards, squads, or minigames update.
-  - *Why*: Prevents exceeding Firestore write limits during rapid pack openings while ensuring data is always backed up to the cloud.
-- **Decision 2: Intelligent Union Merge for New Devices**:
-  - *Chosen Approach*: When a user signs in on a device that already had local cards, the app merges the collections by card ID (union), takes `Math.max(cloudCoins, localCoins)` (or sums recently earned rewards), and reconciles squad slots.
-  - *Why*: Users never lose cards opened as an anonymous guest before remembering to sign in.
-- **Decision 3: Firebase Auth Providers**:
-  - *Chosen Approach*: Support both **Google Sign-In** (one-click popup) and **Email/Password** fallback.
-  - *Why*: Ensures compatibility across all browsers, incognito windows, and third-party cookie restrictions on Vercel.
+### Data Layer (`src/data/raffleCards.ts`)
+- **Update all 10 monthly raffle cards to 99 OVR**:
+  - `raffle-buksa-october`: Adam Buksa — **99 ST** (PAC 99, SHO 99, PAS 95, DRI 99, DEF 65, PHY 99)
+  - `raffle-cahill-november`: Tim Cahill — **99 CAM** (PAC 97, SHO 99, PAS 98, DRI 98, DEF 88, PHY 99)
+  - `raffle-coluna-december`: Mário Coluna — **99 CM** (PAC 97, SHO 98, PAS 99, DRI 99, DEF 94, PHY 97)
+  - `raffle-esposito-january`: Francesco Pio Esposito — **99 ST** (PAC 99, SHO 99, PAS 94, DRI 98, DEF 62, PHY 99)
+  - `raffle-griezmann-february`: Antoine Griezmann — **99 ST** (PAC 99, SHO 99, PAS 99, DRI 99, DEF 80, PHY 95)
+  - `raffle-joao-neves-march`: João Neves — **99 CM** (PAC 98, SHO 95, PAS 99, DRI 99, DEF 98, PHY 97)
+  - `raffle-keown-april`: Martin Keown — **94 -> 99 CB** (PAC 97, SHO 70, PAS 92, DRI 94, DEF 99, PHY 99)
+  - `raffle-martinez-may`: Emiliano Martínez — **99 GK** (DIV 99, HAN 99, KIC 98, REF 99, SPE 75, POS 99)
+  - `raffle-paez-june`: Kendry Páez — **99 CAM** (PAC 99, SHO 97, PAS 99, DRI 99, DEF 78, PHY 92)
+  - `raffle-richard-july`: Richard Ríos — **99 CM** (PAC 98, SHO 96, PAS 98, DRI 99, DEF 96, PHY 99)
+- **Provide Safe Active Month Getter**:
+  - Export a helper function `getActiveRaffleConfig()` that only returns the config for the real-world UTC current month.
+  - Remove public calendar exports that expose future months to client components.
 
----
+### Raffle Service (`src/utils/raffleService.ts`)
+- Lock the active month detection strictly to the real-world UTC month.
+- Ensure daily draw winner resolution awards the 99 OVR card for 1st place.
+- Ensure the runner-up prizes (Jumbo Rare Players Pack for 2nd, Mega Pack for 3rd) continue to work seamlessly.
 
-## 4. Technical Architecture & Data Strategy
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Apex Kick Client (Vercel)                       │
-│  [Top Bar Auth Button] ──> Firebase Auth SDK (Google / Email Auth)     │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                 Cloud Sync Manager (src/utils/cloudSync.ts)            │
-│  • Auto-detects auth state changes                                     │
-│  • Debounces local state updates                                       │
-│  • Merges local cache with remote Firestore snapshot                   │
-└──────────────────┬─────────────────────────────────┬───────────────────┘
-                   │                                 │
-                   ▼                                 ▼
-┌──────────────────────────────────────┐  ┌──────────────────────────────┐
-│        Local Browser Cache           │  │   Cloud Firestore Database   │
-│  • Fast initial render (<50ms)       │  │   /users/{uid}/data/club     │
-│  • Offline resilience                │  │   • coins, clubCards         │
-│  • safeStorage fallback              │  │   • squad, packs, minigames  │
-└──────────────────────────────────────┘  └──────────────────────────────┘
-```
-
-### Firestore Database Schema
-- **Path**: `users/{uid}/game_data/profile`
-```typescript
-interface CloudClubProfile {
-  uid: string;
-  email: string;
-  displayName: string;
-  photoURL?: string;
-  coins: number;
-  clubCards: SoccerCard[];
-  formationId: string;
-  activeSquadSlots: Record<string, string | null>;
-  unopenedPacks: StoredRewardPack[];
-  sakaStageIndex: number;
-  sakaStats: CardStats;
-  cursedBoardPos: number;
-  hlBestStreak: number;
-  lastSyncedAt: number;
-}
-```
-
-### Security Rules (`firestore.rules`)
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
-```
+### Raffle Component (`src/components/RaffleHub.tsx`)
+- **Single-Month Focus**:
+  - Remove the "10-Month Season Calendar" modal button and modal markup completely.
+  - Remove any month selector tabs or future-month previews.
+  - The hero card spotlight, title, and raffle badge only highlight the current month's star (October: Adam Buksa 99 ST).
+  - Keep the ticket counter, quick buy buttons (1 coin = 1 ticket), 24h countdown timer, and daily winners podium directly below the ticket counter.
+  - Keep the draw test action ("Simulate Daily Midnight UTC Draw") for testing the daily draw and claim workflow while keeping future months hidden.
 
 ---
 
-## 5. Verification Plan
+## 3. Verification Plan
 
-1. **Firebase Provisioning & Rules Verification**:
-   - Provision Firestore and Firebase Auth using standard AI Studio setup flow.
-   - Validate and deploy security rules enforcing user-isolated access.
-2. **Local & Cloud Sync Testing**:
-   - Sign in with an account on one session and earn coins / add cards.
-   - Simulate a second browser session (or fresh incognito window), sign in with the same account, and verify that all cards, coins, squad, and Cursed Board position are restored.
-3. **Merge Conflict Resolution Testing**:
-   - Verify that logging in on a device with unsaved guest cards merges them into the cloud roster without replacing or deleting existing cloud cards.
-4. **App Compilation**:
-   - Run `lint_applet` and `compile_applet` to ensure zero compilation or type errors.
+### Automated Build Verification
+- Run `lint_applet` to check for syntax and type issues.
+- Run `compile_applet` to verify a clean build.
+
+### User Flow Verification
+1. **99 OVR Display**:
+   - Inspect the active Buksa card in the Daily Raffle tab; verify it displays 93 -> **99 OVR** in gold foil with 99-tier stats.
+2. **Single-Month Secrecy**:
+   - Verify the Raffle tab contains no future month buttons, calendar modals, or spoilers about upcoming months.
+   - Verify only the current month's player (October: Buksa) is shown.
+3. **Daily Gameplay Loop**:
+   - Verify buying tickets still charges 1 coin per ticket.
+   - Verify the 24-hour UTC countdown runs accurately.
+   - Verify the winner podium displays directly below the ticket counter.
+   - Verify winning 1st place awards the 99 OVR card to the Club collection.

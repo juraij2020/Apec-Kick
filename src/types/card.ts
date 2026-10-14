@@ -26,6 +26,8 @@ export type CardRarity =
   | 'evolution_gold_apex'
   | 'signature_autograph'
   | 'nations_germany'
+  | 'follower_edition'
+  | 'raffle'
   | 'throwback';
 
 export type CardStyle =
@@ -38,6 +40,8 @@ export type CardStyle =
   | 'evolution_gold_apex'
   | 'signature_autograph'
   | 'nations_germany'
+  | 'follower_edition'
+  | 'raffle_amber'
   | 'totw_black'
   | 'classic_gold'
   | 'futmas_crimson'
@@ -136,6 +140,8 @@ export interface SoccerCard {
   momentDescription?: string; // Lore / trivia about the moment
   hofInductionYear?: number;
   hofLegacyQuote?: string;
+  instagramHandle?: string;
+  instagramUrl?: string;
   isCustom?: boolean;
   creatorTag?: string;
   isSetRewardOnly?: boolean; // Strictly exclusive to Set Rewards completion (cannot be packed or bought on market)
@@ -256,7 +262,7 @@ export interface StoredRewardPack {
   packDefinition: PackDefinition;
   earnedAt: number;
   sourceTitle: string;
-  sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo';
+  sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle';
 }
 
 export interface RewardLadderTier {

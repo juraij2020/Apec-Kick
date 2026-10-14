@@ -19,6 +19,8 @@ import { HALL_OF_FUT_COLLECTIBLE_CARDS } from './data/hallOfFutCards';
 import { SPANISH_HOF_COLLECTIBLE_CARDS } from './data/hallOfFutSpanishCards';
 import { ALL_SIGNATURE_CARDS } from './data/signatureCards';
 import { ALL_GERMANY_CARDS } from './data/nationsGermany';
+import { ALL_FOLLOWER_CARDS } from './data/followerCards';
+import { MONTHLY_RAFFLE_PLAYERS } from './data/raffleCards';
 
 import { PackOpening } from './components/PackOpening';
 import { CardCreator } from './components/CardCreator';
@@ -36,6 +38,7 @@ import { DailyObjectives } from './components/DailyObjectives';
 import { SetRewardsHub } from './components/SetRewardsHub';
 import { EvolutionHub } from './components/EvolutionHub';
 import { GoogleAuthButton } from './components/GoogleAuthButton';
+import { RaffleHub } from './components/RaffleHub';
 import {
   scheduleCloudSync,
   CloudGamePayload,
@@ -67,11 +70,12 @@ import {
   Swords,
   Package,
   Trophy,
-  Dna
+  Dna,
+  Ticket
 } from 'lucide-react';
 import { safeSetItem, safeGetItem, sanitizeCardsListForStorage } from './utils/safeStorage';
 
-type NavTab = 'intl' | 'hof' | 'evolution' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives' | 'set_rewards';
+type NavTab = 'intl' | 'hof' | 'evolution' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives' | 'set_rewards' | 'raffle';
 
 const STORAGE_KEYS = {
   COINS: 'apex_fut_coins_v2',
@@ -408,6 +412,11 @@ export default function App() {
         if (saved) cursedPos = Number(saved) || 1;
       } catch {}
 
+      let followerCooldownsJson = '';
+      try {
+        followerCooldownsJson = localStorage.getItem('apex_fut_follower_cooldowns_v2') || '';
+      } catch {}
+
       scheduleCloudSync(currentSession.docId, {
         coins,
         clubCards,
@@ -417,6 +426,7 @@ export default function App() {
         sakaStageIndex,
         sakaStats,
         cursedBoardPos: cursedPos,
+        followerCooldownsJson,
       });
     }
   }, [
@@ -445,6 +455,8 @@ export default function App() {
     SPANISH_HOF_COLLECTIBLE_CARDS.forEach((c) => cardMap.set(c.id, c));
     ALL_SIGNATURE_CARDS.forEach((c) => cardMap.set(c.id, c));
     ALL_GERMANY_CARDS.forEach((c) => cardMap.set(c.id, c));
+    ALL_FOLLOWER_CARDS.forEach((c) => cardMap.set(c.id, c));
+    MONTHLY_RAFFLE_PLAYERS.forEach((m) => cardMap.set(m.card.id, m.card));
     FUTMAS_CARDS.forEach((c) => cardMap.set(c.id, c));
     userCreatedCards.forEach((c) => cardMap.set(c.id, c));
     return Array.from(cardMap.values());
@@ -637,7 +649,7 @@ export default function App() {
   const handleAddUnopenedPack = (
     pack: PackDefinition,
     sourceTitle: string,
-    sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo'
+    sourceType: StoredRewardPack['sourceType']
   ) => {
     const newStoredPack: StoredRewardPack = {
       instanceId: `pack_reward_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -766,6 +778,22 @@ export default function App() {
                 <span>Evolutions</span>
                 <span className="text-[9px] bg-emerald-400 text-slate-950 font-black px-1.5 py-0.2 rounded-full uppercase">
                   Saka 98
+                </span>
+              </button>
+
+              {/* Daily Raffle Tab */}
+              <button
+                onClick={() => { setCurrentTab('raffle'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                  currentTab === 'raffle'
+                    ? 'bg-amber-500/25 text-amber-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.35)]'
+                    : 'bg-gradient-to-r from-amber-500/10 to-yellow-500/10 text-amber-300 border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/20'
+                }`}
+              >
+                <Ticket className="w-4 h-4 text-amber-400 animate-pulse" />
+                <span>Daily Raffle</span>
+                <span className="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded-full uppercase">
+                  1 Coin
                 </span>
               </button>
 
@@ -1060,6 +1088,18 @@ export default function App() {
             </button>
 
             <button
+              onClick={() => { setCurrentTab('raffle'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1.5 flex-shrink-0 border ${
+                currentTab === 'raffle' 
+                  ? 'bg-amber-500/25 text-amber-200 border-amber-400 font-bold shadow-[0_0_10px_rgba(245,158,11,0.3)]' 
+                  : 'bg-slate-900/60 border-amber-500/40 text-amber-300 font-bold'
+              }`}
+            >
+              <Ticket className="w-3.5 h-3.5 text-amber-400" />
+              <span>Raffle</span>
+            </button>
+
+            <button
               onClick={() => { setCurrentTab('minigames'); sound.playClick(); }}
               className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1 flex-shrink-0 border ${
                 currentTab === 'minigames' 
@@ -1349,6 +1389,20 @@ export default function App() {
           />
         )}
 
+        {currentTab === 'raffle' && (
+          <RaffleHub
+            coins={coins}
+            setCoins={setCoins}
+            clubCards={clubCards}
+            setClubCards={setClubCards}
+            onAddUnopenedPack={handleAddUnopenedPack}
+            onNavigateToTab={(tab) => {
+              setCurrentTab(tab as NavTab);
+              sound.playClick();
+            }}
+          />
+        )}
+
         {currentTab === 'minigames' && (
           <MiniGamesHub
             coins={coins}
@@ -1360,6 +1414,14 @@ export default function App() {
             onMiniGamePlayed={handleIncrementMiniGamesPlayed}
             onNavigateToMyPacks={() => {
               setCurrentTab('mypacks');
+              sound.playClick();
+            }}
+            onNavigateToSetRewards={() => {
+              setCurrentTab('set_rewards');
+              sound.playClick();
+            }}
+            onNavigateToRaffle={() => {
+              setCurrentTab('raffle');
               sound.playClick();
             }}
           />

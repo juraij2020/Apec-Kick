@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { SoccerCard, CardSetDefinition } from '../types/card';
 import {
   AVAILABLE_CARD_SETS,
@@ -15,6 +15,14 @@ import {
   SIGNATURE_99_TIER_REWARDS,
   SIGNATURE_FINAL_FOUR_LEGENDS,
 } from '../data/signatureCards';
+import {
+  FOLLOWER_CHALLENGE_CARDS,
+  FOLLOWER_HERO_CARDS,
+  FOLLOWER_ICON_CARDS,
+  OLISE_99_SET_REWARD,
+  CARRICK_99_SET_REWARD,
+  BALE_99_SET_REWARD,
+} from '../data/followerCards';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
 import confetti from 'canvas-confetti';
@@ -36,6 +44,10 @@ import {
   Coins,
   ShieldCheck,
   PenTool,
+  Instagram,
+  Clock,
+  X,
+  ExternalLink,
 } from 'lucide-react';
 
 interface SetRewardsHubProps {
@@ -97,6 +109,78 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
   // Final Four Grand Celebration Modal
   const [showFinalFourModal, setShowFinalFourModal] = useState<boolean>(false);
 
+  // Follow Michael Olise on Instagram verification modal
+  const [oliseModalOpen, setOliseModalOpen] = useState<boolean>(false);
+  const [oliseCountdown, setOliseCountdown] = useState<number>(5);
+  const [isVerifyingOlise, setIsVerifyingOlise] = useState<boolean>(false);
+  const [pendingOliseSet, setPendingOliseSet] = useState<CardSetDefinition | null>(null);
+
+  // Countdown timer for Olise follow verification
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval>;
+    if (isVerifyingOlise && oliseCountdown > 0) {
+      timer = setInterval(() => {
+        setOliseCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (isVerifyingOlise && oliseCountdown === 0) {
+      setIsVerifyingOlise(false);
+      setOliseModalOpen(false);
+      if (pendingOliseSet) {
+        executeClaimReward(pendingOliseSet);
+        setPendingOliseSet(null);
+      }
+    }
+    return () => clearInterval(timer);
+  }, [isVerifyingOlise, oliseCountdown, pendingOliseSet]);
+
+  // Follow Michael Carrick on Instagram verification modal
+  const [carrickModalOpen, setCarrickModalOpen] = useState<boolean>(false);
+  const [carrickCountdown, setCarrickCountdown] = useState<number>(5);
+  const [isVerifyingCarrick, setIsVerifyingCarrick] = useState<boolean>(false);
+  const [pendingCarrickSet, setPendingCarrickSet] = useState<CardSetDefinition | null>(null);
+
+  // Countdown timer for Carrick follow verification
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval>;
+    if (isVerifyingCarrick && carrickCountdown > 0) {
+      timer = setInterval(() => {
+        setCarrickCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (isVerifyingCarrick && carrickCountdown === 0) {
+      setIsVerifyingCarrick(false);
+      setCarrickModalOpen(false);
+      if (pendingCarrickSet) {
+        executeClaimReward(pendingCarrickSet);
+        setPendingCarrickSet(null);
+      }
+    }
+    return () => clearInterval(timer);
+  }, [isVerifyingCarrick, carrickCountdown, pendingCarrickSet]);
+
+  // Follow Gareth Bale on Instagram verification modal
+  const [baleModalOpen, setBaleModalOpen] = useState<boolean>(false);
+  const [baleCountdown, setBaleCountdown] = useState<number>(5);
+  const [isVerifyingBale, setIsVerifyingBale] = useState<boolean>(false);
+  const [pendingBaleSet, setPendingBaleSet] = useState<CardSetDefinition | null>(null);
+
+  // Countdown timer for Bale follow verification
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval>;
+    if (isVerifyingBale && baleCountdown > 0) {
+      timer = setInterval(() => {
+        setBaleCountdown((prev) => prev - 1);
+      }, 1000);
+    } else if (isVerifyingBale && baleCountdown === 0) {
+      setIsVerifyingBale(false);
+      setBaleModalOpen(false);
+      if (pendingBaleSet) {
+        executeClaimReward(pendingBaleSet);
+        setPendingBaleSet(null);
+      }
+    }
+    return () => clearInterval(timer);
+  }, [isVerifyingBale, baleCountdown, pendingBaleSet]);
+
   // Filter for signature cards album
   const [sigFilter, setSigFilter] = useState<'all' | 'owned' | 'missing'>('all');
 
@@ -128,6 +212,15 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
 
   // Helper to get album card list for any set
   const getAlbumCardsForSet = (set: CardSetDefinition): SoccerCard[] => {
+    if (set.id === 'set-follower-edition') {
+      return FOLLOWER_CHALLENGE_CARDS;
+    }
+    if (set.id === 'set-follower-heroes-edition') {
+      return FOLLOWER_HERO_CARDS;
+    }
+    if (set.id === 'set-follower-icons-edition') {
+      return FOLLOWER_ICON_CARDS;
+    }
     if (set.id === 'set-hall-of-fut') {
       return HALL_OF_FUT_COLLECTIBLE_CARDS;
     }
@@ -212,6 +305,31 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
     const prog = calculateProgress(set);
     if (!prog.isReadyToClaim) return;
 
+    if (set.id === 'set-follower-edition') {
+      sound.playClick();
+      setPendingOliseSet(set);
+      setOliseModalOpen(true);
+      return;
+    }
+
+    if (set.id === 'set-follower-heroes-edition') {
+      sound.playClick();
+      setPendingCarrickSet(set);
+      setCarrickModalOpen(true);
+      return;
+    }
+
+    if (set.id === 'set-follower-icons-edition') {
+      sound.playClick();
+      setPendingBaleSet(set);
+      setBaleModalOpen(true);
+      return;
+    }
+
+    executeClaimReward(set);
+  };
+
+  const executeClaimReward = (set: CardSetDefinition) => {
     sound.playLevelUp();
     confetti({
       particleCount: 140,
@@ -1361,6 +1479,222 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
             >
               Continue to Club Collection
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Follow Michael Olise on Instagram Modal (Final Set Step) */}
+      {oliseModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border-2 border-red-500/80 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-4 shadow-[0_0_60px_rgba(239,68,68,0.4)] animate-in zoom-in-95">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-red-600 text-white mx-auto flex items-center justify-center shadow-lg">
+              <Instagram className="w-9 h-9" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500/40">
+                Final Step • Set Complete!
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+                Follow Michael Olise on Instagram
+              </h3>
+              <p className="text-xs text-slate-300 mt-1">
+                You collected all 8 Follower Cards! Follow Michael Olise (@michaell.olise) to claim his 99 RM Master card + 100,000 Coins.
+              </p>
+            </div>
+
+            <div className="w-48 mx-auto py-1">
+              <CardItem card={OLISE_99_SET_REWARD} size="md" interactive={false} />
+            </div>
+
+            {isVerifyingOlise ? (
+              <div className="p-4 bg-slate-950 border border-amber-500/50 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-black text-white">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                    <span>Verifying Instagram Follow...</span>
+                  </span>
+                  <span className="font-mono text-amber-400">{oliseCountdown}s</span>
+                </div>
+                <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-amber-400 to-rose-500 h-full transition-all duration-1000 ease-linear"
+                    style={{ width: `${((5 - oliseCountdown) / 5) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    window.open(OLISE_99_SET_REWARD.instagramUrl, '_blank', 'noopener,noreferrer');
+                    setIsVerifyingOlise(true);
+                    setOliseCountdown(5);
+                  }}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-pink-600 via-rose-500 to-red-600 hover:from-pink-500 hover:to-red-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <Instagram className="w-4 h-4" />
+                  <span>Follow @michaell.olise &amp; Claim 99 Olise</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setOliseModalOpen(false);
+                    setPendingOliseSet(null);
+                  }}
+                  className="w-full py-2.5 text-slate-400 hover:text-white font-bold text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Follow Michael Carrick on Instagram Modal (Final Hero Set Step) */}
+      {carrickModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border-2 border-amber-500/80 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-4 shadow-[0_0_60px_rgba(245,158,11,0.4)] animate-in zoom-in-95">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 mx-auto flex items-center justify-center shadow-lg">
+              <Instagram className="w-9 h-9" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500/40">
+                Final Step • Hero Set Complete!
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+                Follow Michael Carrick on Instagram
+              </h3>
+              <p className="text-xs text-slate-300 mt-1">
+                You collected all 8 Follower Heroes! Follow Michael Carrick (@carrick_michael) to claim his 99 CDM Master card + 100,000 Coins.
+              </p>
+            </div>
+
+            <div className="w-48 mx-auto py-1">
+              <CardItem card={CARRICK_99_SET_REWARD} size="md" interactive={false} />
+            </div>
+
+            {isVerifyingCarrick ? (
+              <div className="p-4 bg-slate-950 border border-amber-500/50 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-black text-white">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                    <span>Verifying Instagram Follow...</span>
+                  </span>
+                  <span className="font-mono text-amber-400">{carrickCountdown}s</span>
+                </div>
+                <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-amber-400 to-yellow-400 h-full transition-all duration-1000 ease-linear"
+                    style={{ width: `${((5 - carrickCountdown) / 5) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    window.open(CARRICK_99_SET_REWARD.instagramUrl, '_blank', 'noopener,noreferrer');
+                    setIsVerifyingCarrick(true);
+                    setCarrickCountdown(5);
+                  }}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:brightness-110 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <Instagram className="w-4 h-4" />
+                  <span>Follow @carrick_michael &amp; Claim 99 Carrick</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setCarrickModalOpen(false);
+                    setPendingCarrickSet(null);
+                  }}
+                  className="w-full py-2.5 text-slate-400 hover:text-white font-bold text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Follow Gareth Bale on Instagram Modal (Final Icon Set Step) */}
+      {baleModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border-2 border-yellow-400/80 rounded-3xl p-6 sm:p-8 max-w-md w-full text-center space-y-4 shadow-[0_0_60px_rgba(250,204,21,0.4)] animate-in zoom-in-95">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 via-amber-300 to-yellow-500 text-slate-950 mx-auto flex items-center justify-center shadow-lg">
+              <Instagram className="w-9 h-9" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-yellow-300 bg-yellow-950/80 px-3 py-1 rounded-full border border-yellow-500/40">
+                Final Step • Icon Set Complete!
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+                Follow Gareth Bale on Instagram
+              </h3>
+              <p className="text-xs text-slate-300 mt-1">
+                You collected all 8 Follower Icons! Follow Gareth Bale (@garethbale11) to claim his 99 RW Master Icon card + 150,000 Coins.
+              </p>
+            </div>
+
+            <div className="w-48 mx-auto py-1">
+              <CardItem card={BALE_99_SET_REWARD} size="md" interactive={false} />
+            </div>
+
+            {isVerifyingBale ? (
+              <div className="p-4 bg-slate-950 border border-yellow-500/50 rounded-2xl space-y-2">
+                <div className="flex items-center justify-between text-xs font-black text-white">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+                    <span>Verifying Instagram Follow...</span>
+                  </span>
+                  <span className="font-mono text-yellow-400">{baleCountdown}s</span>
+                </div>
+                <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-yellow-400 to-amber-300 h-full transition-all duration-1000 ease-linear"
+                    style={{ width: `${((5 - baleCountdown) / 5) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    window.open(BALE_99_SET_REWARD.instagramUrl, '_blank', 'noopener,noreferrer');
+                    setIsVerifyingBale(true);
+                    setBaleCountdown(5);
+                  }}
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 hover:brightness-110 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                >
+                  <Instagram className="w-4 h-4" />
+                  <span>Follow @garethbale11 &amp; Claim 99 Bale</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setBaleModalOpen(false);
+                    setPendingBaleSet(null);
+                  }}
+                  className="w-full py-2.5 text-slate-400 hover:text-white font-bold text-xs transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

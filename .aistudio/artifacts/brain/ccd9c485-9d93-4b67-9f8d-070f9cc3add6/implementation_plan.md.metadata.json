@@ -1,6 +1,6 @@
 {
-  "summary":  "Implementation plan for Strong Firebase Authentication and Cloud Firestore cross-device synchronization to ensure progress (cards, coins, squads, packs, evolutions, and minigames) is never reset across different laptops or Vercel deployments.",
-  "updatedAt":  "2026-10-05T08:59:51.704054145Z",
+  "summary":  "Plan to update all Raffle Cards to 99 OVR and strictly display only the current month's single player in the Daily Raffle tab, keeping all future months strictly hidden until their month arrives.",
+  "updatedAt":  "2026-10-11T10:08:00.912176882Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

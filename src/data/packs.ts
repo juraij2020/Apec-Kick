@@ -309,4 +309,38 @@ export const PACKS: PackDefinition[] = [
     theme: 'prismatic',
     imageAsset: iconPackImg,
   },
+  {
+    id: 'pack-raffle-jumbo-rare',
+    name: 'Jumbo Rare Players Pack',
+    tagline: 'Daily Raffle 2nd Place Prize! 8 Rare & Special players with guaranteed 84+ rating!',
+    cost: 0,
+    cardCount: 8,
+    minRating: 82,
+    guaranteedRating: 84,
+    guaranteedWalkout: true,
+    programFilter: 'All',
+    customCardChance: 0.75,
+    customChance: 0.75,
+    theme: 'prismatic',
+    imageAsset: iconPackImg,
+  },
+  {
+    id: 'pack-raffle-mega',
+    name: 'Mega Pack',
+    tagline: 'Daily Raffle 3rd Place Prize! 6 High-caliber players with guaranteed 80+ rating!',
+    cost: 0,
+    cardCount: 6,
+    minRating: 78,
+    guaranteedRating: 80,
+    guaranteedWalkout: false,
+    programFilter: 'All',
+    customCardChance: 0.5,
+    customChance: 0.5,
+    theme: 'gold',
+    imageAsset: goldPackImg,
+  },
 ];
+
+export const RAFFLE_JUMBO_RARE_PACK = PACKS.find((p) => p.id === 'pack-raffle-jumbo-rare')!;
+export const RAFFLE_MEGA_PACK = PACKS.find((p) => p.id === 'pack-raffle-mega')!;
+

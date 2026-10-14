@@ -11,6 +11,7 @@ export interface CloudGamePayload {
   sakaStageIndex: number;
   sakaStats: CardStats;
   cursedBoardPos: number;
+  followerCooldownsJson?: string;
   lastSyncedAt?: number;
 }
 
@@ -166,6 +167,9 @@ export function mergeGameProgress(
   const mergedFormation = hasRemoteSquad ? remote.formationId : local.formationId;
   const mergedSquadSlots = hasRemoteSquad ? remote.activeSquadSlots : local.activeSquadSlots;
 
+  // Follower cooldowns: keep latest or non-null
+  const mergedFollowerCooldowns = remote.followerCooldownsJson || local.followerCooldownsJson;
+
   return {
     coins: mergedCoins,
     clubCards: mergedCards,
@@ -175,6 +179,7 @@ export function mergeGameProgress(
     sakaStageIndex: mergedSakaStage,
     sakaStats: mergedSakaStats,
     cursedBoardPos: mergedBoardPos,
+    followerCooldownsJson: mergedFollowerCooldowns,
     lastSyncedAt: Date.now(),
   };
 }
@@ -218,6 +223,7 @@ export async function signInOrCreateCloudAccount(
       sakaStageIndex: Number(data.sakaStageIndex) || 0,
       sakaStats: data.sakaStatsJson ? JSON.parse(data.sakaStatsJson) : currentLocal.sakaStats,
       cursedBoardPos: Number(data.cursedBoardPos) || 1,
+      followerCooldownsJson: data.followerCooldownsJson || currentLocal.followerCooldownsJson,
       lastSyncedAt: Number(data.lastSyncedAt) || Date.now(),
     };
 
@@ -245,6 +251,7 @@ export async function signInOrCreateCloudAccount(
       sakaStageIndex: finalPayload.sakaStageIndex,
       sakaStatsJson: JSON.stringify(finalPayload.sakaStats),
       cursedBoardPos: finalPayload.cursedBoardPos,
+      followerCooldownsJson: finalPayload.followerCooldownsJson || '',
       lastSyncedAt: Date.now(),
     };
 
@@ -289,6 +296,7 @@ export async function loadCloudGameProgressForAccount(
         sakaStageIndex: Number(data.sakaStageIndex) || 0,
         sakaStats: data.sakaStatsJson ? JSON.parse(data.sakaStatsJson) : currentLocal.sakaStats,
         cursedBoardPos: Number(data.cursedBoardPos) || 1,
+        followerCooldownsJson: data.followerCooldownsJson || currentLocal.followerCooldownsJson,
         lastSyncedAt: Number(data.lastSyncedAt) || Date.now(),
       };
 
@@ -325,6 +333,7 @@ export async function saveCloudGameProgressImmediate(
       sakaStageIndex: payload.sakaStageIndex,
       sakaStatsJson: JSON.stringify(payload.sakaStats),
       cursedBoardPos: payload.cursedBoardPos,
+      followerCooldownsJson: payload.followerCooldownsJson || '',
       lastSyncedAt: Date.now(),
     };
 

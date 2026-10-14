@@ -3,6 +3,7 @@ import { SoccerCard, PackDefinition } from '../types/card';
 import { CardItem } from './CardItem';
 import { PackDuoGame } from './PackDuoGame';
 import { CursedBoardGame } from './CursedBoardGame';
+import { FollowerGame } from './FollowerGame';
 import { sound } from '../utils/audio';
 import { HL_REWARD_LADDER, getGuessWhoTierReward } from '../data/rewardPacks';
 import {
@@ -30,6 +31,8 @@ import {
   ExternalLink,
   Swords,
   Skull,
+  Instagram,
+  Ticket,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { safeSetItem } from '../utils/safeStorage';
@@ -40,12 +43,14 @@ interface MiniGamesHubProps {
   allCardsPool: SoccerCard[];
   onAddCoins: (amount: number) => void;
   onAddCardsToClub: (cards: SoccerCard[]) => void;
-  onAddUnopenedPack: (pack: PackDefinition, sourceTitle: string, sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo') => void;
+  onAddUnopenedPack: (pack: PackDefinition, sourceTitle: string, sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle') => void;
   onNavigateToMyPacks?: () => void;
+  onNavigateToSetRewards?: () => void;
+  onNavigateToRaffle?: () => void;
   onMiniGamePlayed?: () => void;
 }
 
-type MiniGameMode = 'cursed_board' | 'high_low' | 'guess_who' | 'pack_duo';
+type MiniGameMode = 'cursed_board' | 'follower' | 'high_low' | 'guess_who' | 'pack_duo';
 type HighLowStat = 'rating' | 'pac' | 'sho' | 'pas' | 'dri';
 
 export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
@@ -56,6 +61,8 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
   onAddCardsToClub,
   onAddUnopenedPack,
   onNavigateToMyPacks,
+  onNavigateToSetRewards,
+  onNavigateToRaffle,
   onMiniGamePlayed,
 }) => {
   const [activeGame, setActiveGame] = useState<MiniGameMode>('cursed_board');
@@ -371,6 +378,21 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
 
           <button
             onClick={() => {
+              setActiveGame('follower');
+              sound.playClick();
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              activeGame === 'follower'
+                ? 'bg-gradient-to-r from-pink-500 via-rose-500 to-red-600 text-white shadow-[0_0_20px_rgba(236,72,153,0.6)] scale-105'
+                : 'bg-slate-950 text-slate-300 hover:text-white border border-pink-900/60 shadow-[0_0_10px_rgba(236,72,153,0.2)]'
+            }`}
+          >
+            <Instagram className="w-4 h-4 text-pink-400" />
+            <span>🔥 Follower Cards</span>
+          </button>
+
+          <button
+            onClick={() => {
               setActiveGame('high_low');
               sound.playClick();
             }}
@@ -418,6 +440,19 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             <Swords className="w-4 h-4" />
             <span>⚔️ Pack Duo (50-Pack Showdown)</span>
           </button>
+
+          {onNavigateToRaffle && (
+            <button
+              onClick={() => {
+                onNavigateToRaffle();
+                sound.playClick();
+              }}
+              className="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30 transition-all hover:scale-105"
+            >
+              <Ticket className="w-4 h-4 text-amber-400 animate-pulse" />
+              <span>🎟️ Daily Raffle (1 Coin)</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1101,6 +1136,18 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
           onAddCoins={onAddCoins}
           onAddCardsToClub={onAddCardsToClub}
           onAddUnopenedPack={onAddUnopenedPack}
+          onMiniGamePlayed={onMiniGamePlayed}
+        />
+      )}
+
+      {/* ========================================================================= */}
+      {/* GAME 0.5: FOLLOWER CARDS CHALLENGE (INSTAGRAM TIMED ROTATION) */}
+      {/* ========================================================================= */}
+      {activeGame === 'follower' && (
+        <FollowerGame
+          clubCards={clubCards}
+          onAddCardsToClub={onAddCardsToClub}
+          onNavigateToSetRewards={onNavigateToSetRewards}
           onMiniGamePlayed={onMiniGamePlayed}
         />
       )}
