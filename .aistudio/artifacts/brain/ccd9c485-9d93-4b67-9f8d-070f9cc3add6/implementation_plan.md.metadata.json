@@ -1,6 +1,6 @@
 {
-  "summary":  "Revised implementation plan incorporating the rule that incorrect 5-treat combinations award base cards, while correct combinations award the corresponding Ultimate Halloween Scream player cards.",
-  "updatedAt":  "2026-10-22T13:27:07.165016086Z",
+  "summary":  "Implementation plan for rating-scaled Jigsaw Pixel Puzzles with exact piece counts (100 to 105 pieces), swap-to-assemble board mechanics, and a blurred reference preview.",
+  "updatedAt":  "2026-10-22T20:34:01.955024798Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

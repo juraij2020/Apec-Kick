@@ -28,6 +28,10 @@ import {
   CRAFTABLE_SCREAM_CARDS,
   DEMBELE_99_SCREAM_REWARD,
 } from '../data/halloweenScreamCards';
+import {
+  PIXEL_PUZZLE_CARDS,
+  YEREMY_PINO_108_SET_REWARD,
+} from '../data/pixelCards';
 import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS } from '../data/defaultCards';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
@@ -36,6 +40,7 @@ import { safeSetItem } from '../utils/safeStorage';
 import {
   Trophy,
   CheckCircle2,
+  Check,
   Lock,
   PackageOpen,
   ShoppingBag,
@@ -101,8 +106,77 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
     }
   });
 
-  // Top level category tab: 'halloween_scream' (Mini-game set reward), 'campaign' (100% Game Finish Reward), 'signature', or 'hall_of_fut'
-  const [activeTab, setActiveTab] = useState<'halloween_scream' | 'campaign' | 'signature' | 'hall_of_fut'>('halloween_scream');
+  // Top level category tab: 'pixel' (Mini-game pixel puzzle set reward), 'halloween_scream', 'campaign', 'signature', or 'hall_of_fut'
+  const [activeTab, setActiveTab] = useState<'pixel' | 'halloween_scream' | 'campaign' | 'signature' | 'hall_of_fut'>('pixel');
+
+  // Claimed 108 Yeremy Pino Pixel Set Reward
+  const [claimedYeremyPino108, setClaimedYeremyPino108] = useState<boolean>(() => {
+    return localStorage.getItem('apex_fut_claimed_yeremy_pino_108') === 'true';
+  });
+
+  // Dev testing simulation flag to preview 9/9 pixel cards
+  const [simulatePixel100Percent, setSimulatePixel100Percent] = useState<boolean>(false);
+
+  // Filter for Pixel cards album in Set Rewards
+  const [pixelAlbumFilter, setPixelAlbumFilter] = useState<'all' | 'owned' | 'missing'>('all');
+
+  // Track owned Pixel puzzle cards (out of 9)
+  const ownedPixelCards = useMemo(() => {
+    return PIXEL_PUZZLE_CARDS.filter((card) => {
+      return clubCards.some(
+        (c) =>
+          c.id === card.id ||
+          c.id.replace(/_inst_.*$/, '') === card.id ||
+          (c.name.toLowerCase() === card.name.toLowerCase() && c.rarity === 'pixel')
+      );
+    });
+  }, [clubCards]);
+
+  const ownedPixelCount = ownedPixelCards.length;
+  const isPixelComplete = ownedPixelCount >= PIXEL_PUZZLE_CARDS.length || simulatePixel100Percent;
+  const pixelPercentage = Math.min(100, Math.round((ownedPixelCount / PIXEL_PUZZLE_CARDS.length) * 100));
+
+  const filteredPixelCards = useMemo(() => {
+    if (pixelAlbumFilter === 'owned') return ownedPixelCards;
+    if (pixelAlbumFilter === 'missing') {
+      const ownedIds = new Set(ownedPixelCards.map((c) => c.id));
+      return PIXEL_PUZZLE_CARDS.filter((c) => !ownedIds.has(c.id));
+    }
+    return PIXEL_PUZZLE_CARDS;
+  }, [pixelAlbumFilter, ownedPixelCards]);
+
+  const handleClaimYeremyPinoReward = () => {
+    if (claimedYeremyPino108 || !isPixelComplete) return;
+
+    sound.playLevelUp();
+    setTimeout(() => sound.playWalkoutFanfare(), 300);
+
+    confetti({
+      particleCount: 260,
+      spread: 130,
+      origin: { y: 0.55 },
+      colors: ['#10b981', '#06b6d4', '#facc15', '#ec4899', '#ffffff'],
+    });
+
+    onAddCardsToClub([YEREMY_PINO_108_SET_REWARD]);
+    if (onAddCoins) onAddCoins(300000);
+
+    setClaimedYeremyPino108(true);
+    safeSetItem('apex_fut_claimed_yeremy_pino_108', 'true');
+
+    setCelebrationModal({
+      card: YEREMY_PINO_108_SET_REWARD,
+      bonusCoins: 300000,
+      title: '👑 108 Ultimate Pixel Legend Yeremy Pino Unlocked!',
+    });
+  };
+
+  const handleSimulateAllPixelCards = () => {
+    sound.playLevelUp();
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    onAddCardsToClub(PIXEL_PUZZLE_CARDS);
+    setSimulatePixel100Percent(true);
+  };
 
   // Claimed 99 Dembele Scream Set Reward
   const [claimedDembeleScream99, setClaimedDembeleScream99] = useState<boolean>(() => {
@@ -306,6 +380,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
       ...FOLLOWER_ICON_CARDS,
       ...SPANISH_HOF_COLLECTIBLE_CARDS,
       ...HALL_OF_FUT_COLLECTIBLE_CARDS,
+      ...PIXEL_PUZZLE_CARDS,
     ];
     pools.forEach((c) => {
       if (c && !c.id.startsWith('campaign-') && !c.id.includes('_inst_')) {
@@ -619,8 +694,26 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
         </div>
       </div>
 
-      {/* Top Tab Switcher: Halloween Scream vs Campaign 100% Master vs Signature Series vs Hall of FUT */}
+      {/* Top Tab Switcher: Pixel Cards vs Halloween Scream vs Campaign 100% Master vs Signature Series vs Hall of FUT */}
       <div className="flex items-center gap-3 border-b border-slate-800 pb-3 flex-wrap">
+        <button
+          onClick={() => {
+            setActiveTab('pixel');
+            sound.playClick();
+          }}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 border transition-all ${
+            activeTab === 'pixel'
+              ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 text-slate-950 border-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.7)] scale-102'
+              : 'bg-slate-900/80 text-emerald-400 border-emerald-500/40 hover:border-emerald-300'
+          }`}
+        >
+          <span className="text-base">👾</span>
+          <span>Pixel Cards (Yeremy Pino 108)</span>
+          <span className="text-[10px] bg-slate-950/70 text-emerald-300 px-2 py-0.5 rounded-full font-mono font-bold">
+            {ownedPixelCount}/9
+          </span>
+        </button>
+
         <button
           onClick={() => {
             setActiveTab('halloween_scream');
@@ -690,6 +783,273 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
           <span>Hall of FUT &amp; Spanish Sets (Kane 99)</span>
         </button>
       </div>
+
+      {/* ================================================================= */}
+      {/* PIXEL CARDS 9-PUZZLE MINI-GAME SET REWARD (YEREMY PINO 108 LW)   */}
+      {/* ================================================================= */}
+      {activeTab === 'pixel' && (
+        <div className="space-y-8 animate-fade-in">
+          {/* Main Pixel Hero Showcase Banner */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-emerald-500/60 bg-gradient-to-br from-slate-950 via-[#071d14] to-slate-950 p-6 sm:p-8 shadow-[0_0_60px_rgba(16,185,129,0.35)]">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 left-20 w-80 h-80 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+              <div className="space-y-4 max-w-2xl">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 flex items-center gap-1.5 font-mono shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                    <Gamepad2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Pixel Puzzle Mini-Game Set</span>
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 font-mono">
+                    👾 9 Puzzle Players
+                  </span>
+                  {claimedYeremyPino108 && (
+                    <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1 font-mono">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>108 Pino Claimed!</span>
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase">
+                  108 Yeremy Pino <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">Pixel Master Reward</span> 👾
+                </h2>
+
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  The 9 Pixel players can <strong className="text-emerald-400">only be earned by completing their interactive 3x3 pixel puzzle</strong> in the Mini Games Hub. Complete all 9 unique player puzzles to unlock the supreme Set Reward <strong className="text-amber-300">108 OVR LW Yeremy Pino</strong> and <strong className="text-amber-300">300,000 Bonus Coins</strong>!
+                </p>
+
+                {/* Progress Indicators & Quick Stats */}
+                <div className="pt-2 flex items-center gap-6 text-xs text-slate-400">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Pixel Collection</span>
+                    <strong className="text-white text-base font-black font-mono">
+                      {ownedPixelCount} / {PIXEL_PUZZLE_CARDS.length}
+                    </strong>
+                    <span className="ml-1 text-slate-500">Players</span>
+                  </div>
+                  <div className="h-8 w-px bg-slate-800" />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Progress</span>
+                    <strong className={`text-base font-black font-mono ${isPixelComplete ? 'text-emerald-400' : 'text-teal-400'}`}>
+                      {pixelPercentage}%
+                    </strong>
+                  </div>
+                  <div className="h-8 w-px bg-slate-800" />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Grand Reward</span>
+                    <strong className="text-amber-400 text-base font-black">
+                      108 Pino + 300K 🪙
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Animated Progress Bar */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex justify-between text-[11px] font-bold text-slate-400">
+                    <span>Progress to Yeremy Pino 108 OVR LW</span>
+                    <span className="font-mono text-emerald-300">{pixelPercentage}% Complete</span>
+                  </div>
+                  <div className="h-3.5 w-full bg-slate-900/90 rounded-full overflow-hidden border border-emerald-500/30 p-0.5">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full transition-all duration-700 shadow-[0_0_15px_rgba(16,185,129,0.8)]"
+                      style={{ width: `${pixelPercentage}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-2 flex items-center gap-3 flex-wrap">
+                  {onNavigateToMiniGame && (
+                    <button
+                      onClick={() => {
+                        onNavigateToMiniGame();
+                        sound.playClick();
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:scale-105 transition-all"
+                    >
+                      <Gamepad2 className="w-4 h-4 text-slate-950" />
+                      <span>Play Pixel Puzzle Mini-Game</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleSimulateAllPixelCards}
+                    className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 hover:text-white border border-slate-700 text-xs font-mono font-bold flex items-center gap-2 transition-all"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>⚡ Dev: Unlock All 9 Pixel Cards</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Reward Card Highlight Box */}
+              <div className="w-full lg:w-auto flex-shrink-0 flex flex-col items-center p-6 rounded-3xl bg-slate-950/90 border-2 border-amber-500/60 shadow-[0_0_40px_rgba(245,158,11,0.3)]">
+                <div className="flex items-center gap-2 mb-3">
+                  <Crown className="w-5 h-5 text-amber-400" />
+                  <span className="text-xs font-black uppercase text-amber-300 tracking-wider">
+                    Ultimate Pixel Set Reward
+                  </span>
+                </div>
+
+                <div className="relative group">
+                  <CardItem card={YEREMY_PINO_108_SET_REWARD} size="md" interactive={true} />
+                  {claimedYeremyPino108 && (
+                    <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-xs rounded-2xl flex flex-col items-center justify-center p-4 text-center border-2 border-emerald-500/60">
+                      <CheckCircle2 className="w-12 h-12 text-emerald-400 mb-2" />
+                      <span className="text-sm font-black text-white uppercase tracking-wider">
+                        Set Reward Claimed!
+                      </span>
+                      <span className="text-[11px] text-emerald-300 mt-1">
+                        108 Pino is in your Club
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 w-full">
+                  {claimedYeremyPino108 ? (
+                    <div className="w-full py-2.5 px-4 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>Unlocked &amp; Claimed</span>
+                    </div>
+                  ) : isPixelComplete ? (
+                    <button
+                      onClick={handleClaimYeremyPinoReward}
+                      className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider shadow-[0_0_25px_rgba(245,158,11,0.9)] animate-pulse hover:scale-105 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Crown className="w-4 h-4" />
+                      <span>Claim 108 Yeremy Pino + 300K Coins!</span>
+                    </button>
+                  ) : (
+                    <div className="w-full py-2.5 px-4 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs font-mono font-bold text-center">
+                      🔒 Collect All 9 ({ownedPixelCount}/9)
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Album Header & Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <h3 className="text-xl font-black text-white uppercase flex items-center gap-2">
+                <span className="text-emerald-400">👾</span> 9 Pixel Puzzle Players
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Every player must be assembled in the Pixel Puzzle mini-game to unlock the 108 Yeremy Pino reward.
+              </p>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPixelAlbumFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  pixelAlbumFilter === 'all'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                }`}
+              >
+                All (9)
+              </button>
+              <button
+                onClick={() => setPixelAlbumFilter('owned')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  pixelAlbumFilter === 'owned'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                }`}
+              >
+                Owned ({ownedPixelCount})
+              </button>
+              <button
+                onClick={() => setPixelAlbumFilter('missing')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  pixelAlbumFilter === 'missing'
+                    ? 'bg-emerald-500 text-slate-950 shadow-md font-black'
+                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                }`}
+              >
+                Missing ({PIXEL_PUZZLE_CARDS.length - ownedPixelCount})
+              </button>
+            </div>
+          </div>
+
+          {/* 9-Card Album Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            {filteredPixelCards.map((player) => {
+              const isOwned = clubCards.some(
+                (c) =>
+                  c.id === player.id ||
+                  c.id.replace(/_inst_.*$/, '') === player.id ||
+                  (c.name.toLowerCase() === player.name.toLowerCase() && c.rarity === 'pixel')
+              );
+
+              return (
+                <div
+                  key={player.id}
+                  className={`relative rounded-3xl p-4 border transition-all flex flex-col items-center justify-between text-center ${
+                    isOwned
+                      ? 'bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                      : 'bg-slate-950/70 border-slate-800/80 opacity-80 hover:opacity-100'
+                  }`}
+                >
+                  {/* Status Tag */}
+                  <div className="w-full flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono font-bold text-slate-400">
+                      #{player.rating} {player.position}
+                    </span>
+                    {isOwned ? (
+                      <span className="text-[10px] font-black uppercase text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800/60 flex items-center gap-1 font-mono">
+                        <Check className="w-3 h-3 stroke-[3]" />
+                        <span>OWNED</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-black uppercase text-slate-500 bg-slate-900 px-2 py-0.5 rounded-full border border-slate-800 font-mono">
+                        UNSOLVED
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Card Art Display */}
+                  <div className="py-2">
+                    <CardItem card={player} size="sm" interactive={true} />
+                  </div>
+
+                  {/* Details & Action */}
+                  <div className="w-full mt-2 space-y-2">
+                    <div>
+                      <div className="text-sm font-black text-white truncate">
+                        {player.name}
+                      </div>
+                      <div className="text-[11px] text-slate-400 truncate">
+                        {player.nationFlag} {player.club}
+                      </div>
+                    </div>
+
+                    {!isOwned && onNavigateToMiniGame && (
+                      <button
+                        onClick={() => {
+                          onNavigateToMiniGame();
+                          sound.playClick();
+                        }}
+                        className="w-full py-1.5 px-2 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/60 text-emerald-300 text-[10px] font-black uppercase tracking-wider transition-all hover:scale-102 flex items-center justify-center gap-1 font-mono"
+                      >
+                        <Gamepad2 className="w-3 h-3" />
+                        <span>Solve Puzzle 🧩</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ================================================================= */}
       {/* HALLOWEEN SCREAM 31-CARD MINI-GAME SET REWARD (DEMBELE 99 ST)    */}

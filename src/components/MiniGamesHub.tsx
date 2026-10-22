@@ -5,6 +5,7 @@ import { PackDuoGame } from './PackDuoGame';
 import { CursedBoardGame } from './CursedBoardGame';
 import { FollowerGame } from './FollowerGame';
 import { HalloweenScreamHub } from './HalloweenScreamHub';
+import { PixelPuzzleHub } from './PixelPuzzleHub';
 import { sound } from '../utils/audio';
 import { HL_REWARD_LADDER, getGuessWhoTierReward } from '../data/rewardPacks';
 import {
@@ -52,7 +53,7 @@ interface MiniGamesHubProps {
   onMiniGamePlayed?: () => void;
 }
 
-type MiniGameMode = 'halloween_scream' | 'cursed_board' | 'follower' | 'high_low' | 'guess_who' | 'pack_duo';
+type MiniGameMode = 'pixel_puzzle' | 'halloween_scream' | 'cursed_board' | 'follower' | 'high_low' | 'guess_who' | 'pack_duo';
 type HighLowStat = 'rating' | 'pac' | 'sho' | 'pas' | 'dri';
 
 export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
@@ -363,6 +364,24 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
 
         {/* Mode Switcher */}
         <div className="relative z-10 flex flex-wrap items-center gap-3 pt-6 mt-6 border-t border-slate-800/80">
+          <button
+            onClick={() => {
+              setActiveGame('pixel_puzzle');
+              sound.playClick();
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              activeGame === 'pixel_puzzle'
+                ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500 text-slate-950 font-black shadow-[0_0_25px_rgba(16,185,129,0.8)] scale-105 animate-pulse'
+                : 'bg-slate-950 text-emerald-400 hover:text-emerald-200 border border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
+            }`}
+          >
+            <span className="text-base">👾</span>
+            <span>Pixel Puzzle (9 Players &amp; 108 Pino)</span>
+            <span className="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-mono font-bold">
+              NEW
+            </span>
+          </button>
+
           <button
             onClick={() => {
               setActiveGame('halloween_scream');
@@ -1144,6 +1163,19 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             </div>
           )}
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* GAME: PIXEL CARDS PUZZLE MINI-GAME (9 PLAYERS & 108 YEREMY PINO)          */}
+      {/* ========================================================================= */}
+      {activeGame === 'pixel_puzzle' && (
+        <PixelPuzzleHub
+          clubCards={clubCards}
+          onAddCardsToClub={onAddCardsToClub}
+          onAddCoins={onAddCoins}
+          onNavigateToSetRewards={onNavigateToSetRewards}
+          onMiniGamePlayed={onMiniGamePlayed}
+        />
       )}
 
       {/* ========================================================================= */}

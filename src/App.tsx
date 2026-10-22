@@ -21,6 +21,7 @@ import { ALL_SIGNATURE_CARDS } from './data/signatureCards';
 import { ALL_GERMANY_CARDS } from './data/nationsGermany';
 import { ALL_FOLLOWER_CARDS } from './data/followerCards';
 import { MONTHLY_RAFFLE_PLAYERS, isRaffleCard } from './data/raffleCards';
+import { ALL_PIXEL_CARDS } from './data/pixelCards';
 
 import { PackOpening } from './components/PackOpening';
 import { CardCreator } from './components/CardCreator';
@@ -459,6 +460,7 @@ export default function App() {
     ALL_GERMANY_CARDS.forEach((c) => cardMap.set(c.id, c));
     ALL_FOLLOWER_CARDS.forEach((c) => cardMap.set(c.id, c));
     MONTHLY_RAFFLE_PLAYERS.forEach((m) => cardMap.set(m.card.id, m.card));
+    ALL_PIXEL_CARDS.forEach((c) => cardMap.set(c.id, c));
     FUTMAS_CARDS.forEach((c) => cardMap.set(c.id, c));
     userCreatedCards.forEach((c) => cardMap.set(c.id, c));
     return Array.from(cardMap.values());
