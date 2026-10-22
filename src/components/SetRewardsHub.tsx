@@ -23,6 +23,12 @@ import {
   CARRICK_99_SET_REWARD,
   BALE_99_SET_REWARD,
 } from '../data/followerCards';
+import { CAMPAIGN_CARDS } from '../data/campaignCards';
+import {
+  CRAFTABLE_SCREAM_CARDS,
+  DEMBELE_99_SCREAM_REWARD,
+} from '../data/halloweenScreamCards';
+import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS } from '../data/defaultCards';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
 import confetti from 'canvas-confetti';
@@ -48,6 +54,11 @@ import {
   Clock,
   X,
   ExternalLink,
+  Crown,
+  Zap,
+  Flame,
+  Skull,
+  Gamepad2,
 } from 'lucide-react';
 
 interface SetRewardsHubProps {
@@ -56,6 +67,7 @@ interface SetRewardsHubProps {
   onAddCoins?: (amount: number) => void;
   onNavigateToStore?: (filter?: string) => void;
   onNavigateToMarket?: () => void;
+  onNavigateToMiniGame?: () => void;
 }
 
 export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
@@ -64,6 +76,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
   onAddCoins,
   onNavigateToStore,
   onNavigateToMarket,
+  onNavigateToMiniGame,
 }) => {
   // Expandable active set state - default to first Spanish tier or Hall of FUT
   const [expandedSetId, setExpandedSetId] = useState<string | null>(AVAILABLE_CARD_SETS[1]?.id || AVAILABLE_CARD_SETS[0]?.id || null);
@@ -88,8 +101,91 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
     }
   });
 
-  // Top level category tab: 'signature' (Signature Series 99 Autograph Set) or 'hall_of_fut' (Original Sets)
-  const [activeTab, setActiveTab] = useState<'signature' | 'hall_of_fut'>('signature');
+  // Top level category tab: 'halloween_scream' (Mini-game set reward), 'campaign' (100% Game Finish Reward), 'signature', or 'hall_of_fut'
+  const [activeTab, setActiveTab] = useState<'halloween_scream' | 'campaign' | 'signature' | 'hall_of_fut'>('halloween_scream');
+
+  // Claimed 99 Dembele Scream Set Reward
+  const [claimedDembeleScream99, setClaimedDembeleScream99] = useState<boolean>(() => {
+    return localStorage.getItem('apex_fut_claimed_scream_dembele_99_v1') === 'true';
+  });
+
+  // Dev testing simulation flag to preview 31/31 scream cards
+  const [simulateScream100Percent, setSimulateScream100Percent] = useState<boolean>(false);
+
+  // Filter for Scream cards album in Set Rewards
+  const [screamAlbumFilter, setScreamAlbumFilter] = useState<'all' | 'owned' | 'missing'>('all');
+
+  // Track owned Halloween Scream craftable cards (out of 31)
+  const ownedScreamCards = useMemo(() => {
+    return CRAFTABLE_SCREAM_CARDS.filter((card) => {
+      return clubCards.some(
+        (c) =>
+          c.id === card.id ||
+          c.id.replace(/_inst_.*$/, '') === card.id ||
+          (c.name.toLowerCase() === card.name.toLowerCase() && c.rarity === 'halloween_scream')
+      );
+    });
+  }, [clubCards]);
+
+  const ownedScreamCount = ownedScreamCards.length;
+  const isScreamComplete = ownedScreamCount >= CRAFTABLE_SCREAM_CARDS.length || simulateScream100Percent;
+  const screamPercentage = Math.min(100, Math.round((ownedScreamCount / CRAFTABLE_SCREAM_CARDS.length) * 100));
+
+  const filteredScreamCards = useMemo(() => {
+    if (screamAlbumFilter === 'owned') return ownedScreamCards;
+    if (screamAlbumFilter === 'missing') {
+      const ownedIds = new Set(ownedScreamCards.map((c) => c.id));
+      return CRAFTABLE_SCREAM_CARDS.filter((c) => !ownedIds.has(c.id));
+    }
+    return CRAFTABLE_SCREAM_CARDS;
+  }, [screamAlbumFilter, ownedScreamCards]);
+
+  const handleClaimDembeleScreamReward = () => {
+    if (claimedDembeleScream99 || !isScreamComplete) return;
+
+    sound.playLevelUp();
+    setTimeout(() => sound.playWalkoutFanfare(), 300);
+
+    confetti({
+      particleCount: 220,
+      spread: 120,
+      origin: { y: 0.55 },
+      colors: ['#f97316', '#a855f7', '#fb923c', '#ffffff', '#22c55e'],
+    });
+
+    onAddCardsToClub([DEMBELE_99_SCREAM_REWARD]);
+    if (onAddCoins) onAddCoins(250000);
+
+    setClaimedDembeleScream99(true);
+    safeSetItem('apex_fut_claimed_scream_dembele_99_v1', 'true');
+
+    setCelebrationModal({
+      card: DEMBELE_99_SCREAM_REWARD,
+      bonusCoins: 250000,
+      title: '🎃 99 Ultimate Halloween Scream Dembélé Unlocked!',
+    });
+  };
+
+  const handleSimulateAllScreamCards = () => {
+    sound.playLevelUp();
+    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    onAddCardsToClub(CRAFTABLE_SCREAM_CARDS);
+    setSimulateScream100Percent(true);
+  };
+
+  // Claimed Campaign 100% Game Completion Reward
+  const [claimedCampaign, setClaimedCampaign] = useState<boolean>(() => {
+    return localStorage.getItem('apex_fut_claimed_campaign_v1') === 'true';
+  });
+
+  // Campaign 5-Card Grand Walkout modal
+  const [showCampaignModal, setShowCampaignModal] = useState<boolean>(false);
+
+  // Dev testing simulation flag to preview 100% completion pack unlock
+  const [simulate100Percent, setSimulate100Percent] = useState<boolean>(false);
+
+  // Filter for Campaign album cards
+  const [campaignAlbumFilter, setCampaignAlbumFilter] = useState<'all' | 'owned' | 'missing'>('all');
 
   // Claimed Signature Milestones (indices in SIGNATURE_99_TIER_REWARDS)
   const [claimedSigMilestones, setClaimedSigMilestones] = useState<number[]>(() => {
@@ -197,6 +293,69 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
   }, [clubCards]);
 
   const ownedSignatureCount = ownedSignatureCards.length;
+
+  // Complete collection pool representing the 100% Game Album
+  const allCollectibleAlbumCards = useMemo(() => {
+    const map = new Map<string, SoccerCard>();
+    const pools: SoccerCard[] = [
+      ...BASE_SOCCER_CARDS,
+      ...INITIAL_CUSTOM_CARDS,
+      ...SIGNATURE_COLLECTIBLE_CARDS,
+      ...FOLLOWER_CHALLENGE_CARDS,
+      ...FOLLOWER_HERO_CARDS,
+      ...FOLLOWER_ICON_CARDS,
+      ...SPANISH_HOF_COLLECTIBLE_CARDS,
+      ...HALL_OF_FUT_COLLECTIBLE_CARDS,
+    ];
+    pools.forEach((c) => {
+      if (c && !c.id.startsWith('campaign-') && !c.id.includes('_inst_')) {
+        const key = `${c.name.toLowerCase()}_${c.program || c.rarity}_${c.position}`;
+        if (!map.has(key) && !map.has(c.id)) {
+          map.set(c.id, c);
+        }
+      }
+    });
+    return Array.from(map.values());
+  }, []);
+
+  // Compute unique owned cards from the total album
+  const ownedAlbumCards = useMemo(() => {
+    return allCollectibleAlbumCards.filter((target) => {
+      return clubCards.some(
+        (c) =>
+          c.id === target.id ||
+          c.id.replace(/_inst_.*$/, '') === target.id ||
+          (c.name.toLowerCase() === target.name.toLowerCase() && c.rarity === target.rarity)
+      );
+    });
+  }, [allCollectibleAlbumCards, clubCards]);
+
+  const totalAlbumCount = allCollectibleAlbumCards.length;
+  const rawOwnedCount = ownedAlbumCards.length;
+  const effectiveOwnedCount = simulate100Percent ? totalAlbumCount : rawOwnedCount;
+  const albumPercentage = totalAlbumCount > 0 ? Math.min(100, Math.round((effectiveOwnedCount / totalAlbumCount) * 100)) : 0;
+  const isAlbumComplete = effectiveOwnedCount >= totalAlbumCount;
+
+  const handleClaimCampaignGrandPack = () => {
+    if (claimedCampaign || !isAlbumComplete) return;
+
+    sound.playLevelUp();
+    setTimeout(() => sound.playWalkoutFanfare(), 300);
+
+    confetti({
+      particleCount: 280,
+      spread: 140,
+      origin: { y: 0.5 },
+      colors: ['#38bdf8', '#ec4899', '#facc15', '#818cf8', '#ffffff'],
+    });
+
+    onAddCardsToClub(CAMPAIGN_CARDS);
+    if (onAddCoins) onAddCoins(100000);
+
+    setClaimedCampaign(true);
+    safeSetItem('apex_fut_claimed_campaign_v1', 'true');
+    setShowCampaignModal(true);
+  };
 
   // Calculate owned card identities in the Club (stripping instance suffix)
   const clubCardIdsSet = useMemo(() => {
@@ -460,8 +619,44 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
         </div>
       </div>
 
-      {/* Top Tab Switcher: Signature Series vs Hall of FUT */}
+      {/* Top Tab Switcher: Halloween Scream vs Campaign 100% Master vs Signature Series vs Hall of FUT */}
       <div className="flex items-center gap-3 border-b border-slate-800 pb-3 flex-wrap">
+        <button
+          onClick={() => {
+            setActiveTab('halloween_scream');
+            sound.playClick();
+          }}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 border transition-all ${
+            activeTab === 'halloween_scream'
+              ? 'bg-gradient-to-r from-orange-500 via-amber-400 to-purple-600 text-slate-950 border-orange-300 shadow-[0_0_25px_rgba(249,115,22,0.7)] scale-102'
+              : 'bg-slate-900/80 text-orange-400 border-orange-500/40 hover:border-orange-300'
+          }`}
+        >
+          <span className="text-base">🍬</span>
+          <span>Halloween Scream (Dembélé 99)</span>
+          <span className="text-[10px] bg-slate-950/70 text-orange-300 px-2 py-0.5 rounded-full font-mono font-bold">
+            {ownedScreamCount}/31
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('campaign');
+            sound.playClick();
+          }}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 border transition-all ${
+            activeTab === 'campaign'
+              ? 'bg-gradient-to-r from-cyan-500 via-sky-400 to-fuchsia-500 text-slate-950 border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.6)] scale-102'
+              : 'bg-slate-900/80 text-cyan-300 border-cyan-500/30 hover:border-cyan-400'
+          }`}
+        >
+          <Trophy className="w-4 h-4 stroke-[2.5]" />
+          <span>Campaign 100% Master Reward</span>
+          <span className="text-[10px] bg-slate-950/70 text-cyan-300 px-2 py-0.5 rounded-full font-mono font-bold">
+            {albumPercentage}%
+          </span>
+        </button>
+
         <button
           onClick={() => {
             setActiveTab('signature');
@@ -492,9 +687,602 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
           }`}
         >
           <Trophy className="w-4 h-4" />
-          <span>Hall of FUT & Spanish Sets (Kane 99)</span>
+          <span>Hall of FUT &amp; Spanish Sets (Kane 99)</span>
         </button>
       </div>
+
+      {/* ================================================================= */}
+      {/* HALLOWEEN SCREAM 31-CARD MINI-GAME SET REWARD (DEMBELE 99 ST)    */}
+      {/* ================================================================= */}
+      {activeTab === 'halloween_scream' && (
+        <div className="space-y-8 animate-fade-in">
+          {/* Main Scream Hero Showcase Banner */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-orange-500/60 bg-gradient-to-br from-slate-950 via-[#180a22] to-slate-950 p-6 sm:p-8 shadow-[0_0_60px_rgba(249,115,22,0.35)]">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 left-20 w-80 h-80 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+              <div className="space-y-4 max-w-2xl">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/50 flex items-center gap-1.5">
+                    <Skull className="w-3.5 h-3.5 text-orange-400" />
+                    <span>Ultimate Halloween Scream Set</span>
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/50">
+                    🍬 Mini-Game Trick-or-Treat Exclusive
+                  </span>
+                  {claimedDembeleScream99 && (
+                    <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>99 Dembélé Claimed!</span>
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase">
+                  99 Dembélé <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-purple-400">Halloween Scream Reward</span> 🎃
+                </h2>
+
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  The 31 Halloween Scream players can <strong className="text-orange-400">only be brewed in the Witch&apos;s Cauldron</strong> during the Trick-or-Treat Mini-Game by collecting 5 secret candies from the 6 Haunted Houses. Complete all 31 unique Scream players to unlock the supreme <strong className="text-purple-300">99 OVR ST Ousmane Dembélé</strong> and <strong className="text-amber-300">250,000 Coins</strong>!
+                </p>
+
+                {/* Progress Indicators & Quick Stats */}
+                <div className="pt-2 flex items-center gap-6 text-xs text-slate-400">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Scream Collection</span>
+                    <strong className="text-white text-base font-black font-mono">
+                      {ownedScreamCount} / {CRAFTABLE_SCREAM_CARDS.length}
+                    </strong>
+                    <span className="ml-1 text-slate-500">Players</span>
+                  </div>
+                  <div className="h-8 w-px bg-slate-800" />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Progress</span>
+                    <strong className={`text-base font-black font-mono ${isScreamComplete ? 'text-emerald-400' : 'text-orange-400'}`}>
+                      {screamPercentage}%
+                    </strong>
+                  </div>
+                  <div className="h-8 w-px bg-slate-800" />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Grand Reward</span>
+                    <strong className="text-amber-400 text-base font-black">
+                      99 Dembélé + 250K 🪙
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Animated Progress Bar */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex justify-between text-[11px] font-bold text-slate-400">
+                    <span>Progress to Dembélé 99 OVR ST</span>
+                    <span className="font-mono text-orange-300">{screamPercentage}% Complete</span>
+                  </div>
+                  <div className="w-full bg-slate-900 border border-slate-800 h-3 rounded-full overflow-hidden p-0.5 shadow-inner">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        isScreamComplete
+                          ? 'bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 shadow-[0_0_15px_rgba(16,185,129,0.8)]'
+                          : 'bg-gradient-to-r from-orange-500 via-amber-400 to-purple-600 shadow-[0_0_15px_rgba(249,115,22,0.8)]'
+                      }`}
+                      style={{ width: `${screamPercentage}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons Row */}
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  {claimedDembeleScream99 ? (
+                    <div className="px-6 py-3.5 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-black text-xs uppercase tracking-wider flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <span>99 Dembélé Added to Club &amp; Squad!</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleClaimDembeleScreamReward}
+                      disabled={!isScreamComplete}
+                      className={`px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all ${
+                        isScreamComplete
+                          ? 'bg-gradient-to-r from-orange-500 via-amber-400 to-purple-600 hover:brightness-110 text-slate-950 shadow-[0_0_35px_rgba(249,115,22,0.8)] scale-105 active:scale-95 animate-pulse'
+                          : 'bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed'
+                      }`}
+                    >
+                      {isScreamComplete ? (
+                        <>
+                          <Sparkles className="w-4 h-4 stroke-[2.5]" />
+                          <span>Claim 99 Dembélé + 250,000 Coins!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4" />
+                          <span>Locked ({CRAFTABLE_SCREAM_CARDS.length - ownedScreamCount} more cards needed)</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {onNavigateToMiniGame && (
+                    <button
+                      onClick={() => {
+                        sound.playClick();
+                        onNavigateToMiniGame();
+                      }}
+                      className="px-5 py-3.5 rounded-2xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-300 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all hover:scale-105"
+                    >
+                      <Gamepad2 className="w-4 h-4 text-purple-400" />
+                      <span>Play Trick-or-Treat Mini-Game</span>
+                    </button>
+                  )}
+
+                  {/* Dev Simulation Shortcut */}
+                  <button
+                    onClick={handleSimulateAllScreamCards}
+                    className="px-4 py-2.5 rounded-xl bg-orange-950/60 hover:bg-orange-900/60 border border-orange-500/40 text-orange-300 font-mono text-[11px] font-bold flex items-center gap-1.5 transition-all"
+                    title="For testing: grants all 31 Halloween Scream players to instantly preview unlocking 99 Dembélé"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-400" />
+                    <span>⚡ Dev: Unlock All 31 Scream Cards</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Glowing Card Showcase Frame */}
+              <div className="relative flex flex-col items-center">
+                <div className="absolute -inset-4 bg-gradient-to-tr from-orange-500/30 via-purple-600/30 to-amber-400/30 rounded-3xl blur-2xl pointer-events-none animate-pulse" />
+                <div className="relative p-2 rounded-3xl bg-slate-950/90 border border-orange-500/50 shadow-2xl">
+                  <div className="relative transform hover:scale-105 transition-all duration-300">
+                    <CardItem card={DEMBELE_99_SCREAM_REWARD} size="lg" interactive={true} />
+                  </div>
+                </div>
+
+                <div className="mt-3 text-center space-y-1">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/20 border border-orange-400/40 text-orange-300 text-[10px] font-black uppercase">
+                    <Crown className="w-3 h-3 text-amber-400" />
+                    <span>99 OVR · ST · 5★ / 5★</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    Rapid+ · Quick Step+ · Trickster+ · Finesse Shot+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Scream Cards Collection Grid / Checklist */}
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-black text-white uppercase tracking-wide flex items-center gap-2">
+                  <Skull className="w-5 h-5 text-orange-400" />
+                  <span>Halloween Scream Album Checklist</span>
+                  <span className="text-xs font-mono text-orange-400 font-normal">
+                    ({ownedScreamCount} / {CRAFTABLE_SCREAM_CARDS.length} Collected)
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Knock on doors in the Trick-or-Treat mini-game to collect candies and brew players in the cauldron.
+                </p>
+              </div>
+
+              {/* Album Filter Buttons */}
+              <div className="flex items-center gap-2 bg-slate-900/80 p-1 rounded-2xl border border-slate-800">
+                <button
+                  onClick={() => setScreamAlbumFilter('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                    screamAlbumFilter === 'all'
+                      ? 'bg-orange-500 text-slate-950 font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  All ({CRAFTABLE_SCREAM_CARDS.length})
+                </button>
+                <button
+                  onClick={() => setScreamAlbumFilter('owned')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                    screamAlbumFilter === 'owned'
+                      ? 'bg-emerald-500 text-slate-950 font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Owned ({ownedScreamCount})
+                </button>
+                <button
+                  onClick={() => setScreamAlbumFilter('missing')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                    screamAlbumFilter === 'missing'
+                      ? 'bg-purple-600 text-white font-black'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Missing ({CRAFTABLE_SCREAM_CARDS.length - ownedScreamCount})
+                </button>
+              </div>
+            </div>
+
+            {/* Checklist Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {filteredScreamCards.map((card) => {
+                const isOwned = clubCards.some(
+                  (c) =>
+                    c.id === card.id ||
+                    c.id.replace(/_inst_.*$/, '') === card.id ||
+                    (c.name.toLowerCase() === card.name.toLowerCase() && c.rarity === 'halloween_scream')
+                );
+
+                return (
+                  <div
+                    key={card.id}
+                    className={`relative p-2.5 rounded-2xl border flex flex-col items-center justify-between transition-all duration-300 ${
+                      isOwned
+                        ? 'bg-gradient-to-b from-slate-900/90 to-orange-950/40 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.25)]'
+                        : 'bg-slate-950/70 border-slate-800/80 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <div className="w-full flex items-center justify-between mb-1.5 px-1">
+                      <span className="text-[10px] font-mono font-bold text-orange-400">
+                        {card.rating} OVR
+                      </span>
+                      {isOwned ? (
+                        <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-1 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                          <CheckCircle2 className="w-3 h-3" /> Owned
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-purple-300 flex items-center gap-1 bg-purple-950/80 px-2 py-0.5 rounded-full border border-purple-500/30">
+                          <Lock className="w-2.5 h-2.5" /> Cauldron
+                        </span>
+                      )}
+                    </div>
+
+                    <div className={`py-1 transform hover:scale-105 transition-transform ${isOwned ? '' : 'filter saturate-75 brightness-90'}`}>
+                      <CardItem card={card} size="sm" interactive={true} />
+                    </div>
+
+                    <div className="w-full text-center mt-2 pt-1 border-t border-slate-800/60">
+                      <div className="text-xs font-black text-white truncate">{card.name}</div>
+                      <div className="text-[10px] text-slate-400 truncate">
+                        {card.position} · {card.club}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================================================================= */}
+      {/* CAMPAIGN 100% GAME COMPLETION MASTER VIEW                         */}
+      {/* ================================================================= */}
+      {activeTab === 'campaign' && (
+        <div className="space-y-8 animate-fade-in">
+          {/* Main Campaign Hero Milestone Showcase */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-cyan-500/50 bg-gradient-to-b from-slate-950 via-[#0a1226] to-slate-950 p-6 sm:p-8 shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              <div className="space-y-3 max-w-2xl">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                    🏆 Ultimate Endgame Milestone
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40">
+                    100% Album Finish
+                  </span>
+                  {claimedCampaign && (
+                    <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Pack Claimed</span>
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+                  Campaign Masters Grand Reward ⚡
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  These 5 exclusive Campaign Cards are strictly available through this Set Reward! When you finish the entire game and assemble a <strong>100% card collection in your album</strong>, unlock the Grand Completion Pack containing all five players plus 100,000 Coins!
+                </p>
+
+                {/* Progress Indicators & Quick Stats */}
+                <div className="pt-2 flex items-center gap-6 text-xs text-slate-400">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Album Collection</span>
+                    <strong className="text-white text-base font-black font-mono">
+                      {effectiveOwnedCount} / {totalAlbumCount}
+                    </strong>
+                    <span className="ml-1 text-slate-500">Unique Cards</span>
+                  </div>
+                  <div className="h-8 w-px bg-slate-800" />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Completion Status</span>
+                    <strong className={`text-base font-black font-mono ${isAlbumComplete ? 'text-emerald-400' : 'text-cyan-400'}`}>
+                      {albumPercentage}%
+                    </strong>
+                  </div>
+                  <div className="h-8 w-px bg-slate-800" />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">Reward Package</span>
+                    <strong className="text-amber-400 text-base font-black">
+                      5 Cards + 100K 🪙
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action & Dev Testing Box */}
+              <div className="w-full lg:w-auto flex flex-col items-stretch lg:items-end gap-3 flex-shrink-0">
+                {claimedCampaign ? (
+                  <div className="px-6 py-4 rounded-2xl bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 font-black text-sm flex items-center justify-center gap-2 shadow-lg">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    <span>Grand Completion Pack Claimed</span>
+                  </div>
+                ) : isAlbumComplete ? (
+                  <button
+                    onClick={handleClaimCampaignGrandPack}
+                    className="px-8 py-4 rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-500 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center justify-center gap-3 shadow-[0_0_35px_rgba(6,182,212,0.8)] transition-all transform hover:scale-102 active:scale-95 animate-pulse"
+                  >
+                    <PackageOpen className="w-5 h-5" />
+                    <span>Claim Grand Completion Pack (5 Cards)</span>
+                  </button>
+                ) : (
+                  <div className="px-6 py-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs flex items-center justify-center gap-2">
+                    <Lock className="w-4 h-4 text-cyan-400" />
+                    <span>Locked: Need {Math.max(0, totalAlbumCount - effectiveOwnedCount)} More Cards</span>
+                  </div>
+                )}
+
+                {/* Dev Test Simulator Toggle */}
+                <div className="flex items-center justify-end gap-2 text-xs">
+                  <button
+                    onClick={() => {
+                      setSimulate100Percent((prev) => !prev);
+                      sound.playClick();
+                    }}
+                    className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all flex items-center gap-1.5 ${
+                      simulate100Percent
+                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/60'
+                        : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200'
+                    }`}
+                  >
+                    <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{simulate100Percent ? '⚡ Dev Test: 100% Simulated (Active)' : '⚡ Dev Test: Simulate 100%'}</span>
+                  </button>
+
+                  {claimedCampaign && (
+                    <button
+                      onClick={() => {
+                        setClaimedCampaign(false);
+                        localStorage.removeItem('apex_fut_claimed_campaign_v1');
+                        sound.playClick();
+                      }}
+                      className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-400 hover:text-white"
+                    >
+                      Reset Claim
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Interactive Progress Bar */}
+            <div className="mt-6 pt-6 border-t border-slate-800/80 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400 font-bold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Album Completion Progress</span>
+                </span>
+                <span className="font-mono font-black text-cyan-300">
+                  {effectiveOwnedCount} / {totalAlbumCount} Cards ({albumPercentage}%)
+                </span>
+              </div>
+              <div className="h-3 w-full bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-500 via-sky-400 to-fuchsia-500 transition-all duration-700 shadow-[0_0_15px_rgba(6,182,212,0.8)]"
+                  style={{ width: `${albumPercentage}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 5 Campaign Cards Showcase Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-xl font-black text-white flex items-center gap-2">
+                  <span>The 5 Exclusive Campaign Cards</span>
+                  <span className="text-xs font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                    Grand Pack Roster
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Every card features authentic attributes and ratings strictly calculated from position-weighted stats.
+                </p>
+              </div>
+
+              <div className="text-xs text-slate-400 flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                <span>Untradeable Set Exclusive</span>
+              </div>
+            </div>
+
+            {/* 5-Card Responsive Showcase */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {CAMPAIGN_CARDS.map((card) => {
+                const isOwned = clubCards.some(
+                  (c) => c.id === card.id || c.id.replace(/_inst_.*$/, '') === card.id
+                );
+
+                return (
+                  <div
+                    key={card.id}
+                    className="relative rounded-2xl bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 border border-cyan-500/30 hover:border-cyan-400 p-4 flex flex-col items-center justify-between gap-3 shadow-lg transition-all group"
+                  >
+                    {/* Badge header */}
+                    <div className="w-full flex items-center justify-between text-[10px] font-black uppercase tracking-wider">
+                      <span className="text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/40">
+                        {card.position} · {card.rating} OVR
+                      </span>
+                      {isOwned ? (
+                        <span className="text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>In Club</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-500 flex items-center gap-1">
+                          <Lock className="w-3 h-3" />
+                          <span>Set Reward</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Card Item */}
+                    <div className="py-2 transform group-hover:scale-105 transition-transform duration-300">
+                      <CardItem card={card} size="sm" interactive={true} />
+                    </div>
+
+                    {/* Card Info & Key Stats */}
+                    <div className="w-full text-center space-y-1 pt-2 border-t border-slate-800/80">
+                      <h4 className="text-sm font-black text-white group-hover:text-cyan-300 transition-colors">
+                        {card.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 truncate">
+                        {card.club} · {card.nationFlag}
+                      </p>
+
+                      {/* Stat summary chips */}
+                      <div className="grid grid-cols-3 gap-1 pt-1 text-[10px] font-mono">
+                        {card.position === 'GK' ? (
+                          <>
+                            <span className="bg-slate-950/80 px-1 py-0.5 rounded text-slate-300">DIV {card.stats.pac}</span>
+                            <span className="bg-slate-950/80 px-1 py-0.5 rounded text-slate-300">REF {card.stats.dri}</span>
+                            <span className="bg-slate-950/80 px-1 py-0.5 rounded text-slate-300">POS {card.stats.phy}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="bg-slate-950/80 px-1 py-0.5 rounded text-slate-300">PAC {card.stats.pac}</span>
+                            <span className="bg-slate-950/80 px-1 py-0.5 rounded text-slate-300">SHO {card.stats.sho}</span>
+                            <span className="bg-slate-950/80 px-1 py-0.5 rounded text-slate-300">PAS {card.stats.pas}</span>
+                          </>
+                        )}
+                      </div>
+
+                      {card.playStylePlus && (
+                        <div className="text-[10px] font-bold text-cyan-300 pt-1 flex items-center justify-center gap-1">
+                          <span>{card.playStylePlus.iconSymbol}</span>
+                          <span>{card.playStylePlus.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Album Collection Browser & Tracker */}
+          <div className="rounded-3xl bg-slate-900/60 border border-slate-800 p-6 space-y-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-cyan-400" />
+                  <span>Album Checklist ({effectiveOwnedCount} / {totalAlbumCount})</span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Track cards in your Club across all sets and leagues to reach 100% completion.
+                </p>
+              </div>
+
+              {/* Segmented Filter Control */}
+              <div className="flex items-center gap-1 p-1 bg-slate-950 rounded-xl border border-slate-800 text-xs font-bold">
+                <button
+                  onClick={() => setCampaignAlbumFilter('all')}
+                  className={`px-3 py-1.5 rounded-lg transition-colors ${
+                    campaignAlbumFilter === 'all'
+                      ? 'bg-cyan-500 text-slate-950'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  All ({totalAlbumCount})
+                </button>
+                <button
+                  onClick={() => setCampaignAlbumFilter('owned')}
+                  className={`px-3 py-1.5 rounded-lg transition-colors ${
+                    campaignAlbumFilter === 'owned'
+                      ? 'bg-cyan-500 text-slate-950'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Owned ({effectiveOwnedCount})
+                </button>
+                <button
+                  onClick={() => setCampaignAlbumFilter('missing')}
+                  className={`px-3 py-1.5 rounded-lg transition-colors ${
+                    campaignAlbumFilter === 'missing'
+                      ? 'bg-cyan-500 text-slate-950'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Missing ({Math.max(0, totalAlbumCount - effectiveOwnedCount)})
+                </button>
+              </div>
+            </div>
+
+            {/* Album Grid Preview */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-96 overflow-y-auto pr-1">
+              {allCollectibleAlbumCards
+                .filter((card) => {
+                  const isOwned = clubCards.some(
+                    (c) =>
+                      c.id === card.id ||
+                      c.id.replace(/_inst_.*$/, '') === card.id ||
+                      (c.name.toLowerCase() === card.name.toLowerCase() && c.rarity === card.rarity)
+                  ) || simulate100Percent;
+
+                  if (campaignAlbumFilter === 'owned') return isOwned;
+                  if (campaignAlbumFilter === 'missing') return !isOwned;
+                  return true;
+                })
+                .slice(0, 48)
+                .map((card) => {
+                  const isOwned = clubCards.some(
+                    (c) =>
+                      c.id === card.id ||
+                      c.id.replace(/_inst_.*$/, '') === card.id ||
+                      (c.name.toLowerCase() === card.name.toLowerCase() && c.rarity === card.rarity)
+                  ) || simulate100Percent;
+
+                  return (
+                    <div
+                      key={card.id}
+                      className={`p-2 rounded-xl border text-center transition-all ${
+                        isOwned
+                          ? 'bg-slate-950/90 border-cyan-500/40 text-white'
+                          : 'bg-slate-950/40 border-slate-800/80 text-slate-500 opacity-60'
+                      }`}
+                    >
+                      <div className="text-[10px] font-black uppercase text-cyan-400 truncate">
+                        {card.rating} {card.position}
+                      </div>
+                      <div className="text-xs font-bold truncate mt-0.5">{card.shortName || card.name}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{card.club}</div>
+                      <div className="mt-1 flex items-center justify-center">
+                        {isOwned ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Lock className="w-3.5 h-3.5 text-slate-600" />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+            {allCollectibleAlbumCards.length > 48 && (
+              <p className="text-[11px] text-slate-500 text-center">
+                Showing top active album entries. Collect cards through Packs, Objectives, and the Transfer Market!
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ================================================================= */}
       {/* SIGNATURE SERIES VIEW                                             */}
@@ -1695,6 +2483,67 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* Campaign 100% Grand Completion Pack Celebration Modal */}
+      {showCampaignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-xl animate-fade-in overflow-y-auto">
+          <div className="relative max-w-5xl w-full rounded-3xl border-2 border-cyan-400 bg-gradient-to-b from-slate-950 via-[#071329] to-slate-950 p-6 sm:p-8 text-center space-y-6 shadow-[0_0_80px_rgba(6,182,212,0.8)] my-8">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-400 via-sky-300 to-fuchsia-500 mx-auto flex items-center justify-center text-5xl shadow-[0_0_35px_rgba(6,182,212,0.8)] p-0.5">
+              <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
+                🏆
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-xs font-black uppercase tracking-widest text-cyan-300 bg-cyan-950/80 px-4 py-1.5 rounded-full border border-cyan-500/50 shadow-inner">
+                ⚡ 100% Collection Game Master Complete! ⚡
+              </span>
+              <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                Grand Completion Pack Claimed!
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl mx-auto">
+                Incredible achievement! You have completed 100% of the game collection album. All <strong>5 exclusive Campaign Stars</strong> have been added together into your active Club roster, plus 100,000 bonus coins!
+              </p>
+
+              <div className="inline-flex items-center gap-2 px-5 py-2 rounded-2xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-sm font-black shadow-lg">
+                <Coins className="w-5 h-5 text-amber-400" />
+                <span>+100,000 Bonus Coins Deposited!</span>
+              </div>
+            </div>
+
+            {/* 5-Card Walkout Fan Showcase */}
+            <div className="py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {CAMPAIGN_CARDS.map((card) => (
+                  <div
+                    key={card.id}
+                    className="flex flex-col items-center bg-slate-900/80 rounded-2xl p-3 border border-cyan-500/40 shadow-[0_0_20px_rgba(6,182,212,0.25)] transform hover:scale-105 transition-transform"
+                  >
+                    <div className="py-2">
+                      <CardItem card={card} size="sm" interactive={true} />
+                    </div>
+                    <div className="w-full text-center mt-2 border-t border-slate-800 pt-2">
+                      <div className="text-xs font-black text-white">{card.name}</div>
+                      <div className="text-[10px] text-cyan-400 font-bold">{card.rating} OVR · {card.position}</div>
+                      <div className="text-[10px] text-slate-400">{card.club}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={() => {
+                sound.playClick();
+                setShowCampaignModal(false);
+              }}
+              className="w-full max-w-md mx-auto py-4 rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-500 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-wider shadow-[0_0_30px_rgba(6,182,212,0.6)] active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+              <span>Confirm & View Cards in Club</span>
+            </button>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ import { SoccerCard, PackDefinition, PackDuoChecklist, PackDuoOpponent, PackDuoC
 import { DUO_SHOP_PACKS, DuoShopItem } from '../data/rewardPacks';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
+import { isRaffleCard } from '../data/raffleCards';
 import confetti from 'canvas-confetti';
 import { safeSetItem } from '../utils/safeStorage';
 import {
@@ -253,8 +254,10 @@ export const PackDuoGame: React.FC<PackDuoGameProps> = ({
     const actualCount = Math.min(countToRip, packsRemaining);
     sound.playPackRip();
 
-    // Pull random cards from allCardsPool
-    const pool = allCardsPool.length > 0 ? allCardsPool : [];
+    // Pull random cards from allCardsPool (strictly excluding raffle cards & set rewards)
+    const pool = (allCardsPool.length > 0 ? allCardsPool : []).filter(
+      (c) => !isRaffleCard(c) && !c.isSetRewardOnly
+    );
     const newPulls: SoccerCard[] = [];
     for (let i = 0; i < actualCount * 4; i++) {
       const card = pool[Math.floor(Math.random() * pool.length)];

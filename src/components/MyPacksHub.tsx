@@ -4,6 +4,7 @@ import { StoredRewardPack, SoccerCard, PackDefinition } from '../types/card';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
 import { safeSetItem } from '../utils/safeStorage';
+import { isRaffleCard } from '../data/raffleCards';
 import {
   PackageOpen,
   Sparkles,
@@ -154,11 +155,14 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
     }
   };
 
-  // Generate cards from pool based on pack odds & criteria
+  // Generate cards from pool based on pack odds & criteria (strictly excluding Daily Raffle cards)
   const generateCardsFromPack = (pack: PackDefinition): SoccerCard[] => {
     const cards: SoccerCard[] = [];
 
-    const fallbackCard: SoccerCard = allCardsPool[0] || {
+    // Strictly exclude any Daily Raffle cards (which can ONLY be won from the Daily Raffle Hub) and set-reward cards
+    const cleanPool = allCardsPool.filter((c) => !isRaffleCard(c) && !c.isSetRewardOnly);
+
+    const fallbackCard: SoccerCard = cleanPool[0] || {
       id: 'default_summer_mbappe',
       name: 'Kylian Mbappé',
       shortName: 'Mbappé',
@@ -177,17 +181,17 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
 
     let candidatePool: SoccerCard[] = [];
     if (pack.programFilter === 'Summer Transfers' || pack.theme === 'summer_pack') {
-      const summerPool = allCardsPool.filter(
+      const summerPool = cleanPool.filter(
         (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
       );
-      candidatePool = summerPool.length > 0 ? summerPool : allCardsPool;
+      candidatePool = summerPool.length > 0 ? summerPool : cleanPool;
     } else if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
-      const skPool = allCardsPool.filter(
+      const skPool = cleanPool.filter(
         (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
       );
-      candidatePool = skPool.length > 0 ? skPool : allCardsPool;
+      candidatePool = skPool.length > 0 ? skPool : cleanPool;
     } else if (pack.programFilter?.startsWith('International Moments') || ['intl_moments', 'argentina', 'brazil', 'belgium'].includes(pack.theme)) {
-      let intlPool = allCardsPool.filter(
+      let intlPool = cleanPool.filter(
         (c) => c.program === 'International Moments' || c.rarity === 'international_moments'
       );
       if (pack.programFilter === 'International Moments:Argentina' || pack.theme === 'argentina') {
@@ -197,21 +201,24 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
       } else if (pack.programFilter === 'International Moments:Belgium' || pack.theme === 'belgium') {
         intlPool = intlPool.filter((c) => c.nation === 'Belgium');
       }
-      candidatePool = intlPool.length > 0 ? intlPool : allCardsPool;
+      candidatePool = intlPool.length > 0 ? intlPool : cleanPool;
     } else if (pack.programFilter === 'Hall of Fame' || pack.theme === 'hof_gold') {
-      candidatePool = allCardsPool.filter(
+      candidatePool = cleanPool.filter(
         (c) => c.program === 'Hall of Fame' || c.rarity === 'hall_of_fame' || c.program === 'Program One' || c.rarity === 'program_one'
       );
     } else if (pack.programFilter === 'Futmas') {
-      candidatePool = allCardsPool.filter(
+      candidatePool = cleanPool.filter(
         (c) => c.program === 'Futmas' || c.rarity === 'futmas'
       );
     } else {
-      candidatePool = [...allCardsPool];
+      candidatePool = [...cleanPool];
     }
 
+    // Double check to ensure no raffle or reward cards slip through
+    candidatePool = candidatePool.filter((c) => !isRaffleCard(c) && !c.isSetRewardOnly);
+
     if (candidatePool.length === 0) {
-      candidatePool = allCardsPool.length > 0 ? [...allCardsPool] : [fallbackCard];
+      candidatePool = cleanPool.length > 0 ? [...cleanPool] : [fallbackCard];
     }
 
     const minRatingCandidates = candidatePool.filter((c) => c.rating >= pack.minRating);
@@ -340,13 +347,15 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
     }
     sound.playCoinClink();
 
-    // 3. Generate 12 to 15 cards
+    // 3. Generate 12 to 15 cards (strictly excluding Daily Raffle cards and set-reward cards)
     const cardCount = Math.floor(Math.random() * 4) + 12; // 12, 13, 14, or 15 cards
-    const candidatePool = allCardsPool.length > 0 ? allCardsPool : [];
+    const candidatePool = (allCardsPool.length > 0 ? allCardsPool : []).filter(
+      (c) => !isRaffleCard(c) && !c.isSetRewardOnly
+    );
     const generated: SoccerCard[] = [];
 
     // Guarantee at least 1 high-rated walkout player (86+)
-    const highTierCandidates = candidatePool.filter((c) => c.rating >= 86 && !c.isSetRewardOnly);
+    const highTierCandidates = candidatePool.filter((c) => c.rating >= 86);
     const topPool = highTierCandidates.length > 0 ? highTierCandidates : candidatePool;
     const walkoutCandidate = topPool[Math.floor(Math.random() * topPool.length)];
 
@@ -357,8 +366,8 @@ export const MyPacksHub: React.FC<MyPacksHubProps> = ({
       });
     }
 
-    // Fill remaining cards (11 to 14) from general pool excluding exclusive set rewards
-    const generalPool = candidatePool.filter((c) => !c.isSetRewardOnly);
+    // Fill remaining cards (11 to 14) from general pool
+    const generalPool = candidatePool;
     for (let i = 1; i < cardCount; i++) {
       const picked = generalPool[Math.floor(Math.random() * generalPool.length)];
       if (picked) {

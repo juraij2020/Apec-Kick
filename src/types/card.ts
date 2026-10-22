@@ -5,6 +5,9 @@ export type Position =
   | 'LW' | 'RW' | 'CF' | 'ST';
 
 export type CardRarity = 
+  | 'halloween_scream'
+  | 'campaign'
+  | 'centurions'
   | 'street_kings'
   | 'international_moments'
   | 'hall_of_fame'
@@ -31,6 +34,9 @@ export type CardRarity =
   | 'throwback';
 
 export type CardStyle =
+  | 'halloween_scream'
+  | 'campaign_futuristic'
+  | 'centurions'
   | 'street_kings_urban'
   | 'intl_moments_gold'
   | 'hof_gold_obsidian'
@@ -56,6 +62,8 @@ export type CardStyle =
   | 'throwback';
 
 export type PackTheme = 
+  | 'halloween_scream'
+  | 'centurions'
   | 'street_kings'
   | 'intl_moments'
   | 'argentina'
@@ -140,11 +148,13 @@ export interface SoccerCard {
   momentDescription?: string; // Lore / trivia about the moment
   hofInductionYear?: number;
   hofLegacyQuote?: string;
+  centurionMilestone?: string; // e.g. "100+ Champions League Goals", "100+ Caps", "100+ Assists"
   instagramHandle?: string;
   instagramUrl?: string;
   isCustom?: boolean;
   creatorTag?: string;
   isSetRewardOnly?: boolean; // Strictly exclusive to Set Rewards completion (cannot be packed or bought on market)
+  isRaffleExclusive?: boolean; // Strictly exclusive to Daily Raffle Hub lottery (cannot be packed or bought on market)
   stats: CardStats;
   weakFoot?: number;
   skillMoves?: number;
@@ -262,7 +272,7 @@ export interface StoredRewardPack {
   packDefinition: PackDefinition;
   earnedAt: number;
   sourceTitle: string;
-  sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle';
+  sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle' | 'draft';
 }
 
 export interface RewardLadderTier {

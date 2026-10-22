@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { PackDefinition, SoccerCard, PackTheme } from '../types/card';
 import { CardItem } from './CardItem';
 import { PACKS } from '../data/packs';
+import { isRaffleCard } from '../data/raffleCards';
 import { sound } from '../utils/audio';
 import {
   Sparkles,
@@ -68,7 +69,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
   const [stage, setStage] = useState<OpeningStage>('idle');
   const [pulledCards, setPulledCards] = useState<SoccerCard[]>([]);
   const [walkoutCard, setWalkoutCard] = useState<SoccerCard | null>(null);
-  const [activeFilter, setActiveFilter] = useState<'All' | 'Signature Series' | 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
+  const [activeFilter, setActiveFilter] = useState<'All' | 'Centurions' | 'Signature Series' | 'Summer Transfers' | 'Street Kings' | 'International Moments' | 'Hall of Fame' | 'Futmas' | 'Program One' | 'Base Cards' | 'Custom Packs'>('All');
   const [insufficientPack, setInsufficientPack] = useState<PackDefinition | null>(null);
 
   // Pack Creation Modal State
@@ -115,20 +116,23 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
     }, 250);
   };
 
-  // Generate cards from pool based on pack odds & program filter
+  // Generate cards from pool based on pack odds & program filter (strictly excluding Daily Raffle cards)
   const generatePackCards = (pack: PackDefinition): SoccerCard[] => {
     const cards: SoccerCard[] = [];
+
+    // Strictly exclude any Daily Raffle cards (which can ONLY be won from the Daily Raffle Hub) and set-reward cards
+    const cleanPool = allCardsPool.filter((c) => !isRaffleCard(c) && !c.isSetRewardOnly);
 
     // Filter candidate pool by program if specified
     let candidatePool: SoccerCard[] = [];
     if (pack.programFilter === 'Summer Hunt Unlimited' || pack.isUnlimited) {
-      const summerPool = allCardsPool.filter(
+      const summerPool = cleanPool.filter(
         (c) => c.program === 'Summer Transfers' || c.rarity === 'summer_transfers' || c.cardStyle === 'summer_basic'
       );
-      const basePool = allCardsPool.filter(
+      const basePool = cleanPool.filter(
         (c) => c.program !== 'Summer Transfers' && c.rarity !== 'summer_transfers' && c.cardStyle !== 'summer_basic'
       );
-      const safeBasePool = basePool.length > 0 ? basePool : allCardsPool;
+      const safeBasePool = basePool.length > 0 ? basePool : cleanPool;
 
       for (let i = 0; i < pack.cardCount; i++) {
         // Ultra-rare jackpot odds (~1.5% chance per card slot) for Summer Basic cards
@@ -150,17 +154,17 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
       cards.sort((a, b) => b.rating - a.rating);
       return cards;
     } else if (pack.programFilter === 'Summer Transfers' || pack.theme === 'summer_pack') {
-      const summerPool = allCardsPool.filter(
+      const summerPool = cleanPool.filter(
         (c) => c.program === 'Summer Transfers' || c.program === 'Summer Premium' || c.rarity === 'summer_transfers' || c.rarity === 'summer_premium' || c.cardStyle === 'summer_basic' || c.cardStyle === 'summer_premium'
       );
-      candidatePool = summerPool.length > 0 ? summerPool : allCardsPool;
+      candidatePool = summerPool.length > 0 ? summerPool : cleanPool;
     } else if (pack.programFilter === 'Street Kings' || pack.theme === 'street_kings') {
-      const skPool = allCardsPool.filter(
+      const skPool = cleanPool.filter(
         (c) => c.program === 'Street Kings' || c.rarity === 'street_kings'
       );
-      candidatePool = skPool.length > 0 ? skPool : allCardsPool;
+      candidatePool = skPool.length > 0 ? skPool : cleanPool;
     } else if (pack.programFilter?.startsWith('International Moments') || ['intl_moments', 'argentina', 'brazil', 'belgium'].includes(pack.theme)) {
-      let intlPool = allCardsPool.filter(
+      let intlPool = cleanPool.filter(
         (c) => c.program === 'International Moments' || c.rarity === 'international_moments'
       );
       if (pack.programFilter === 'International Moments:Argentina' || pack.theme === 'argentina') {
@@ -170,39 +174,43 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
       } else if (pack.programFilter === 'International Moments:Belgium' || pack.theme === 'belgium') {
         intlPool = intlPool.filter((c) => c.nation === 'Belgium');
       }
+    } else if (pack.programFilter === 'Centurions' || pack.theme === 'centurions') {
+      candidatePool = cleanPool.filter(
+        (c) => c.program === 'Centurions' || c.rarity === 'centurions' || c.cardStyle === 'centurions'
+      );
     } else if (pack.programFilter === 'Signature Series') {
-      candidatePool = allCardsPool.filter(
-        (c) => (c.program === 'Signature Series' || c.rarity === 'signature_autograph' || c.cardStyle === 'signature_autograph') && !c.isSetRewardOnly
+      candidatePool = cleanPool.filter(
+        (c) => c.program === 'Signature Series' || c.rarity === 'signature_autograph' || c.cardStyle === 'signature_autograph'
       );
     } else if (pack.programFilter === 'Hall of FUT' || pack.theme === 'hall_of_fut') {
-      candidatePool = allCardsPool.filter(
-        (c) => (c.program === 'Hall of FUT' || c.rarity === 'hall_of_fut_base' || c.rarity === 'hall_of_fut_upgrade') && !c.isSetRewardOnly
+      candidatePool = cleanPool.filter(
+        (c) => c.program === 'Hall of FUT' || c.rarity === 'hall_of_fut_base' || c.rarity === 'hall_of_fut_upgrade'
       );
     } else if (pack.programFilter === 'Hall of Fame' || pack.theme === 'hof_gold') {
-      candidatePool = allCardsPool.filter(
+      candidatePool = cleanPool.filter(
         (c) => c.program === 'Hall of Fame' || c.rarity === 'hall_of_fame' || c.program === 'Program One' || c.rarity === 'program_one'
       );
     } else if (pack.programFilter === 'Futmas') {
-      candidatePool = allCardsPool.filter(
+      candidatePool = cleanPool.filter(
         (c) => c.program === 'Futmas' || c.rarity === 'futmas'
       );
     } else if (pack.programFilter === 'Program One') {
-      candidatePool = allCardsPool.filter(
+      candidatePool = cleanPool.filter(
         (c) => c.program === 'Program One' || c.rarity === 'program_one' || c.program === 'Hall of Fame'
       );
     } else if (pack.programFilter === 'Base Cards') {
-      candidatePool = allCardsPool.filter(
+      candidatePool = cleanPool.filter(
         (c) => c.program === 'Base Cards' || c.rarity === 'base' || !c.isCustom
       );
     } else {
-      candidatePool = [...allCardsPool];
+      candidatePool = [...cleanPool];
     }
 
-    // Strictly ensure set-reward-only cards (like Harry Kane 99) can never be pulled from packs
-    candidatePool = candidatePool.filter((c) => !c.isSetRewardOnly);
+    // Double check that no raffle or reward-only card slipped through
+    candidatePool = candidatePool.filter((c) => !isRaffleCard(c) && !c.isSetRewardOnly);
 
     // Fallback card if pool is empty or rating threshold too restrictive
-    const fallbackCard: SoccerCard = allCardsPool[0] || {
+    const fallbackCard: SoccerCard = cleanPool[0] || {
       id: 'default_summer_mbappe',
       name: 'Kylian Mbappé',
       shortName: 'Mbappé',
@@ -220,7 +228,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
     };
 
     if (candidatePool.length === 0) {
-      candidatePool = allCardsPool.length > 0 ? [...allCardsPool] : [fallbackCard];
+      candidatePool = cleanPool.length > 0 ? [...cleanPool] : [fallbackCard];
     }
 
     // Min rating filtered candidates
@@ -232,7 +240,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
       // Summer Transfers Vault jackpot roll for 97-99 Summer Premium cards
       if (pack.id === 'pack-summer-transfers-vault') {
-        const premiumPool = allCardsPool.filter(
+        const premiumPool = cleanPool.filter(
           (c) => c.program === 'Summer Premium' || c.rarity === 'summer_premium' || (c.rating >= 97 && (c.program === 'Summer Transfers' || c.cardStyle === 'summer_premium'))
         );
         const regularSummerPool = validPool.filter((c) => c.rating < 97);
@@ -391,6 +399,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
 
   // Filter packs according to selected category
   const filteredPacks = allAvailablePacks.filter((p) => {
+    if (activeFilter === 'Centurions') {
+      return p.programFilter === 'Centurions' || p.theme === 'centurions';
+    }
     if (activeFilter === 'Signature Series') {
       return p.programFilter === 'Signature Series' || p.id === 'pack-signature-series';
     }
@@ -467,6 +478,65 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
               >
                 <Sparkles className="w-4 h-4 text-emerald-400" />
                 <span>Card Studio</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Centurions Promo Showcase Banner */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-red-600/80 bg-gradient-to-r from-slate-950 via-[#2a080c] to-[#1a0408] p-6 shadow-[0_0_35px_rgba(220,38,38,0.3)] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-amber-500/60 text-amber-300 text-xs font-black uppercase tracking-wider">
+                <span>🛡️</span>
+                <span>Centurions Promo Event Live</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase">
+                Centurions 100 <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-red-400">&amp; Stat-Based Ratings</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+                Every Centurion card rating is strictly derived from <strong>position-weighted player stats</strong>! Commemorating football's century milestones (100+ Champions League goals, international caps, assists &amp; appearances). Feat. <strong>Cristiano Ronaldo (91 ST)</strong>, <strong>Kevin De Bruyne (90 CAM)</strong>, <strong>Sergio Ramos (90 CB)</strong>, <strong>Luka Modrić (89 CM)</strong> &amp; <strong>Manuel Neuer (90 GK)</strong>.
+              </p>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
+                <span className="text-[11px] font-mono bg-red-950/80 text-amber-300 border border-amber-500/50 px-2 py-0.5 rounded font-bold">
+                  💯 100 Century Club
+                </span>
+                <span className="text-[11px] font-mono bg-amber-950/60 text-yellow-300 border border-yellow-500/40 px-2 py-0.5 rounded">
+                  ⚖️ Position-Weighted Rating Engine
+                </span>
+                <span className="text-[11px] font-mono bg-slate-900 text-red-300 border border-red-500/40 px-2 py-0.5 rounded">
+                  🍷 Crimson &amp; Gold Shields
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5">
+              <button
+                onClick={() => {
+                  const centurionPack = allAvailablePacks.find((p) => p.id === 'pack-centurions-elite') || PACKS.find((p) => p.id === 'pack-centurions-elite');
+                  if (centurionPack) {
+                    if (coins < centurionPack.cost) {
+                      setInsufficientPack(centurionPack);
+                    } else {
+                      handleOpenPack(centurionPack);
+                    }
+                  }
+                }}
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 hover:from-red-500 hover:to-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap cursor-pointer"
+              >
+                <span>🛡️ Open Centurions Elite</span>
+                <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded font-mono font-bold">30k 🪙</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const centurionPack = allAvailablePacks.find((p) => p.id === 'pack-centurions-elite') || PACKS.find((p) => p.id === 'pack-centurions-elite');
+                  if (centurionPack) handleOpenPack(centurionPack, true);
+                }}
+                className="px-3.5 py-2.5 rounded-xl bg-red-950/80 border border-amber-500/50 hover:bg-red-900 text-amber-300 font-bold text-[11px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                title="Free promotional trial rip"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <span>Free Promo Rip</span>
               </button>
             </div>
           </div>
@@ -590,9 +660,68 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
             </div>
           </div>
 
+          {/* Centurions Promo Showcase Banner */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-red-500/80 bg-gradient-to-r from-[#2a050c] via-slate-950 to-[#1c0407] p-6 shadow-[0_0_35px_rgba(220,38,38,0.35)] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-amber-400/50 text-amber-300 text-xs font-black uppercase tracking-wider">
+                <span>🛡️</span>
+                <span>Centurions Promo Event Live</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight uppercase">
+                Centurions 100 Club • <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-rose-400">Stat-Derived Ratings</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
+                Every Centurion's overall rating is strictly computed using position-weighted attribute formulas! Featuring century milestone legends: <strong>Cristiano Ronaldo (91 ST - 140 UCL Goals)</strong>, <strong>Kevin De Bruyne (90 CAM - 100+ EPL Assists)</strong>, <strong>Sergio Ramos (90 CB - 180 Caps &amp; 100+ Goals)</strong>, <strong>Luka Modrić (89 CM - 175 Caps)</strong> &amp; <strong>Manuel Neuer (90 GK)</strong>.
+              </p>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
+                <span className="text-[11px] font-mono bg-red-950/80 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded font-bold">
+                  💯 100 Club Milestones
+                </span>
+                <span className="text-[11px] font-mono bg-slate-900 text-yellow-300 border border-yellow-500/40 px-2 py-0.5 rounded">
+                  ⚖️ Position-Weighted OVR Engine
+                </span>
+                <span className="text-[11px] font-mono bg-slate-900 text-rose-300 border border-rose-500/40 px-2 py-0.5 rounded">
+                  🛡️ Guaranteed Centurion Packs
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-2.5">
+              <button
+                onClick={() => {
+                  const centurionPack = allAvailablePacks.find((p) => p.id === 'pack-centurions-elite') || PACKS.find((p) => p.id === 'pack-centurions-elite');
+                  if (centurionPack) {
+                    if (coins < centurionPack.cost) {
+                      setInsufficientPack(centurionPack);
+                    } else {
+                      handleOpenPack(centurionPack);
+                    }
+                  }
+                }}
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-yellow-400 hover:from-red-500 hover:to-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 whitespace-nowrap"
+              >
+                <span>🛡️ Open Centurions 100 Pack</span>
+                <span className="text-[10px] bg-slate-950/20 px-2 py-0.5 rounded font-mono font-bold">30k 🪙</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const centurionPack = allAvailablePacks.find((p) => p.id === 'pack-centurions-elite') || PACKS.find((p) => p.id === 'pack-centurions-elite');
+                  if (centurionPack) handleOpenPack(centurionPack, true);
+                }}
+                className="px-3.5 py-2.5 rounded-xl bg-red-950/80 border border-amber-400/50 hover:bg-red-900 text-amber-300 font-bold text-[11px] uppercase tracking-wider transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
+                title="Free promotional trial rip"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <span>Free Promo Rip</span>
+              </button>
+            </div>
+          </div>
+
           {/* Filter Categories */}
           <div className="flex flex-wrap items-center gap-2">
-            {(['All', 'Signature Series', 'Summer Transfers', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
+            {(['All', 'Centurions', 'Signature Series', 'Summer Transfers', 'Street Kings', 'International Moments', 'Hall of Fame', 'Futmas', 'Program One', 'Base Cards', 'Custom Packs'] as const).map((cat) => (
               <button
                 key={cat}
                 onClick={() => {
@@ -605,6 +734,7 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                     : 'bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800'
                 }`}
               >
+                {cat === 'Centurions' && <span className="text-amber-400">🛡️</span>}
                 {cat === 'Signature Series' && <span>✍️</span>}
                 {cat === 'Summer Transfers' && <span>☀️</span>}
                 {cat === 'Street Kings' && <span className="text-cyan-400">⚡</span>}
@@ -631,7 +761,9 @@ export const PackOpening: React.FC<PackOpeningProps> = ({
                 <div
                   key={pack.id}
                   className={`group relative rounded-3xl p-5 border transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xl ${
-                    pack.programFilter === 'Signature Series' || pack.id === 'pack-signature-series'
+                    pack.theme === 'centurions' || pack.programFilter === 'Centurions'
+                      ? 'bg-gradient-to-b from-[#2d060f] via-slate-900 to-[#120205] border-amber-400/90 hover:border-yellow-300 shadow-[0_0_25px_rgba(220,38,38,0.35)]'
+                      : pack.programFilter === 'Signature Series' || pack.id === 'pack-signature-series'
                       ? 'bg-gradient-to-b from-[#021f14] via-slate-900 to-[#1c1404] border-amber-400/90 hover:border-yellow-300 shadow-[0_0_25px_rgba(245,158,11,0.3)]'
                       : pack.theme === 'summer_pack'
                       ? 'bg-gradient-to-b from-cyan-950/70 via-slate-900 to-amber-950/30 border-cyan-400/80 hover:border-amber-400 shadow-cyan-950/40'

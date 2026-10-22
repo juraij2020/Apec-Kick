@@ -174,6 +174,26 @@ export const CardItem: React.FC<CardItemProps> = ({
           ) : null
         )}
 
+        {/* Centurion Milestone Badge */}
+        {size !== 'sm' && card.centurionMilestone && chemistry === undefined && (
+          <div className="absolute top-2 right-2 z-20 group/cm">
+            <div className="flex items-center gap-1 bg-gradient-to-r from-red-950/95 to-amber-950/95 border border-amber-500/80 shadow-[0_0_8px_rgba(234,179,8,0.35)] px-1.5 py-0.5 rounded-full cursor-help transition-transform hover:scale-105">
+              <span className="text-xs">💯</span>
+              <span className="text-[8px] font-black uppercase tracking-wider text-amber-300">
+                100 Club
+              </span>
+            </div>
+            <div className="absolute right-0 top-full mt-1 w-48 p-2 bg-zinc-950/95 border border-amber-500/60 rounded-lg shadow-2xl opacity-0 pointer-events-none group-hover/cm:opacity-100 transition-opacity z-50 text-right backdrop-blur-md">
+              <div className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                Century Milestone
+              </div>
+              <p className="text-[10px] text-zinc-200 mt-0.5 leading-snug">
+                {card.centurionMilestone}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Chemistry diamonds for Squad Builder */}
         {chemistry !== undefined && (
           <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/75 backdrop-blur-sm px-1.5 py-1 rounded shadow-md z-20">

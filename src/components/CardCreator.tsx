@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SoccerCard, Position, CardStyle, CardRarity } from '../types/card';
 import { CardItem } from './CardItem';
 import { generateUserCardSvg } from '../data/defaultCards';
 import { sound } from '../utils/audio';
-import { Sparkles, Upload, Wand2, Plus, Check, RefreshCw, Trash2, Edit3 } from 'lucide-react';
+import { Sparkles, Upload, Wand2, Plus, Check, RefreshCw, Trash2, Edit3, Lock, Unlock, Award } from 'lucide-react';
+import { calculateCardRating, getRatingCalculationDetails } from '../utils/cardRatingCalculator';
 
 interface CardCreatorProps {
   userCreatedCards: SoccerCard[];
@@ -45,6 +46,8 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
   const [shortName, setShortName] = useState('Prodigy');
   const [position, setPosition] = useState<Position>('ST');
   const [rating, setRating] = useState(91);
+  const [autoLockRating, setAutoLockRating] = useState(true);
+  const [centurionMilestone, setCenturionMilestone] = useState('100+ Career Goals');
   const [nation, setNation] = useState('France');
   const [nationFlag, setNationFlag] = useState('🇫🇷');
   const [club, setClub] = useState('Apex FC');
@@ -63,51 +66,56 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  // Auto calculate suggested rating from stats
-  const calculateAutoRating = () => {
-    let calculated = 0;
-    if (position === 'ST' || position === 'CF') {
-      calculated = Math.round(pac * 0.25 + sho * 0.4 + dri * 0.2 + phy * 0.15);
-    } else if (['LW', 'RW', 'LM', 'RM'].includes(position)) {
-      calculated = Math.round(pac * 0.35 + dri * 0.3 + sho * 0.2 + pas * 0.15);
-    } else if (['CAM', 'CM'].includes(position)) {
-      calculated = Math.round(pas * 0.35 + dri * 0.3 + sho * 0.15 + pac * 0.1 + def * 0.1);
-    } else if (position === 'CDM') {
-      calculated = Math.round(def * 0.35 + phy * 0.3 + pas * 0.2 + pac * 0.15);
-    } else if (['CB', 'LB', 'RB'].includes(position)) {
-      calculated = Math.round(def * 0.45 + phy * 0.3 + pac * 0.15 + pas * 0.1);
-    } else {
-      calculated = Math.round((pac + sho + pas + dri + def + phy) / 6);
+  // Real-time position-weighted calculation details
+  const calcDetails = getRatingCalculationDetails({ pac, sho, pas, dri, def, phy }, position);
+
+  // Automatically recalculate and lock overall rating based on stats and position weights
+  useEffect(() => {
+    if (autoLockRating) {
+      const calculated = calculateCardRating({ pac, sho, pas, dri, def, phy }, position);
+      setRating(calculated);
     }
-    setRating(Math.max(50, Math.min(99, calculated)));
+  }, [pac, sho, pas, dri, def, phy, position, autoLockRating]);
+
+  // Manual auto calculate trigger
+  const calculateAutoRating = () => {
+    const calculated = calculateCardRating({ pac, sho, pas, dri, def, phy }, position);
+    setRating(calculated);
+    sound.playClick();
   };
 
   // Presets
-  const applyPreset = (type: 'striker' | 'playmaker' | 'defender' | 'speedster' | 'godmode') => {
+  const applyPreset = (type: 'striker' | 'playmaker' | 'defender' | 'speedster' | 'godmode' | 'centurion') => {
     sound.playClick();
-    if (type === 'striker') {
+    if (type === 'centurion') {
+      setPosition('ST');
+      setPac(88); setSho(94); setPas(82); setDri(90); setDef(38); setPhy(86);
+      setCardStyle('centurions');
+      setCenturionMilestone('100+ Career Goals & Century Club');
+      setRating(calculateCardRating({ pac: 88, sho: 94, pas: 82, dri: 90, def: 38, phy: 86 }, 'ST'));
+    } else if (type === 'striker') {
       setPosition('ST');
       setPac(92); setSho(94); setPas(82); setDri(89); setDef(42); setPhy(86);
-      setRating(92);
       setCardStyle('custom_neon');
+      setRating(calculateCardRating({ pac: 92, sho: 94, pas: 82, dri: 89, def: 42, phy: 86 }, 'ST'));
     } else if (type === 'playmaker') {
       setPosition('CAM');
       setPac(86); setSho(88); setPas(96); setDri(94); setDef(65); setPhy(76);
-      setRating(93);
       setCardStyle('emerald_legend');
+      setRating(calculateCardRating({ pac: 86, sho: 88, pas: 96, dri: 94, def: 65, phy: 76 }, 'CAM'));
     } else if (type === 'defender') {
       setPosition('CB');
       setPac(86); setSho(45); setPas(80); setDri(78); setDef(95); setPhy(94);
-      setRating(91);
       setCardStyle('totw_black');
+      setRating(calculateCardRating({ pac: 86, sho: 45, pas: 80, dri: 78, def: 95, phy: 94 }, 'CB'));
     } else if (type === 'speedster') {
       setPosition('LW');
       setPac(99); setSho(87); setPas(84); setDri(95); setDef(38); setPhy(74);
-      setRating(92);
       setCardStyle('tots_electric_blue');
+      setRating(calculateCardRating({ pac: 99, sho: 87, pas: 84, dri: 95, def: 38, phy: 74 }, 'LW'));
     } else if (type === 'godmode') {
-      setRating(99);
       setPac(99); setSho(99); setPas(99); setDri(99); setDef(95); setPhy(98);
+      setRating(99);
       setCardStyle('icon_white_gold');
     }
   };
@@ -129,27 +137,30 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
 
   const handleSave = () => {
     const cardId = editingCardId || `user-custom-${Date.now()}`;
+    const finalRating = autoLockRating ? calculateCardRating({ pac, sho, pas, dri, def, phy }, position) : rating;
     const newCard: SoccerCard = {
       id: cardId,
       name: name.trim() || 'Custom Hero',
       shortName: shortName.trim() || name.trim() || 'Custom',
-      rating,
+      rating: finalRating,
       position,
       nation,
       nationFlag,
       club,
       league,
-      rarity: 'custom',
+      rarity: cardStyle === 'centurions' ? 'centurions' : 'custom',
+      program: cardStyle === 'centurions' ? 'Centurions' : 'Custom Hero',
+      centurionMilestone: cardStyle === 'centurions' ? centurionMilestone : undefined,
       cardStyle,
       photoUrl,
-      fullCardImage: generateUserCardSvg(name, rating, position, { pac, sho, pas, dri, def, phy }, nationFlag, club, photoUrl || '⚽', cardStyle),
+      fullCardImage: generateUserCardSvg(name, finalRating, position, { pac, sho, pas, dri, def, phy }, nationFlag, club, photoUrl || '⚽', cardStyle),
       isCustom: true,
       creatorTag: customTag || 'My Creation',
       stats: { pac, sho, pas, dri, def, phy },
       weakFoot: 5,
       skillMoves: 5,
       workRate: 'H/M',
-      price: Math.round(rating * 120),
+      price: Math.round(finalRating * 120),
     };
 
     onSaveCard(newCard);
@@ -170,6 +181,9 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
     setClub(card.club);
     setLeague(card.league);
     setCardStyle(card.cardStyle);
+    if (card.centurionMilestone) {
+      setCenturionMilestone(card.centurionMilestone);
+    }
     setPhotoUrl(card.photoUrl || '');
     setCustomTag(card.creatorTag || 'My Creation');
     setPac(card.stats.pac);
@@ -186,9 +200,11 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
     setEditingCardId(null);
     setName('New Soccer Star');
     setShortName('Star');
-    setRating(88);
     setPosition('ST');
     setPac(90); setSho(88); setPas(82); setDri(89); setDef(45); setPhy(80);
+    const calculated = calculateCardRating({ pac: 90, sho: 88, pas: 82, dri: 89, def: 45, phy: 80 }, 'ST');
+    setRating(calculated);
+    setCardStyle('custom_neon');
     sound.playClick();
   };
 
@@ -203,7 +219,9 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
     nationFlag,
     club,
     league,
-    rarity: 'custom',
+    rarity: cardStyle === 'centurions' ? 'centurions' : 'custom',
+    program: cardStyle === 'centurions' ? 'Centurions' : 'Custom Hero',
+    centurionMilestone: cardStyle === 'centurions' ? centurionMilestone : undefined,
     cardStyle,
     photoUrl,
     isCustom: true,
@@ -256,6 +274,13 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
               Quick Stat Presets
             </label>
             <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => applyPreset('centurion')}
+                className="px-3 py-1.5 text-xs font-medium bg-red-950/70 hover:bg-red-900/80 text-amber-300 rounded-lg border border-amber-500/60 transition-colors flex items-center gap-1 shadow-sm"
+              >
+                🛡️ Centurion 100
+              </button>
               <button
                 type="button"
                 onClick={() => applyPreset('striker')}
@@ -357,26 +382,55 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-semibold text-slate-300">
-                  Overall Rating (OVR): <span className="text-emerald-400 font-bold">{rating}</span>
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <span>Overall Rating (OVR):</span>
+                  <span className="text-amber-400 font-black text-sm">{rating}</span>
                 </label>
                 <button
                   type="button"
-                  onClick={calculateAutoRating}
-                  className="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
-                  title="Auto-calculate rating based on stats"
+                  onClick={() => setAutoLockRating(!autoLockRating)}
+                  className={`text-[11px] px-2 py-0.5 rounded flex items-center gap-1 border transition-colors ${
+                    autoLockRating 
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' 
+                      : 'bg-slate-800 text-slate-400 border-slate-700'
+                  }`}
+                  title="Toggle auto-calculation lock"
                 >
-                  <Wand2 className="w-3 h-3" /> Auto
+                  {autoLockRating ? <Lock className="w-3 h-3 text-amber-400" /> : <Unlock className="w-3 h-3" />}
+                  <span>{autoLockRating ? 'Locked to Stats' : 'Manual Rating'}</span>
                 </button>
               </div>
-              <input
-                type="range"
-                min="60"
-                max="99"
-                value={rating}
-                onChange={(e) => setRating(parseInt(e.target.value))}
-                className="w-full accent-emerald-500 cursor-pointer"
-              />
+
+              {/* Stat-weighted rating explanation box */}
+              <div className="bg-slate-950/90 border border-amber-500/30 rounded-lg p-2 space-y-1">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-amber-400 font-semibold flex items-center gap-1">
+                    <Award className="w-3.5 h-3.5" />
+                    {position} Weight Engine
+                  </span>
+                  <button
+                    type="button"
+                    onClick={calculateAutoRating}
+                    className="text-[10px] text-amber-300 hover:text-amber-200 underline"
+                  >
+                    Recalculate
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  {calcDetails.formulaSummary}
+                </p>
+              </div>
+
+              {!autoLockRating && (
+                <input
+                  type="range"
+                  min="50"
+                  max="99"
+                  value={rating}
+                  onChange={(e) => setRating(parseInt(e.target.value))}
+                  className="w-full accent-amber-500 cursor-pointer mt-2"
+                />
+              )}
             </div>
           </div>
 
@@ -446,6 +500,7 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
+                { id: 'centurions', label: '🛡️ Centurions 100', border: 'border-amber-400' },
                 { id: 'hof_gold_obsidian', label: '👑 Hall of Fame', border: 'border-yellow-400' },
                 { id: 'futmas_crimson', label: '❄️ Futmas Crimson', border: 'border-rose-400' },
                 { id: 'custom_neon', label: 'Custom Neon', border: 'border-emerald-400' },
@@ -470,6 +525,26 @@ export const CardCreator: React.FC<CardCreatorProps> = ({
                 </button>
               ))}
             </div>
+
+            {/* If Centurions skin is active, show the milestone input */}
+            {cardStyle === 'centurions' && (
+              <div className="mt-3 bg-red-950/40 border border-amber-500/40 rounded-xl p-3 space-y-1.5">
+                <label className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-amber-400" />
+                  Centurions Milestone (100 Club Record)
+                </label>
+                <input
+                  type="text"
+                  value={centurionMilestone}
+                  onChange={(e) => setCenturionMilestone(e.target.value)}
+                  placeholder="e.g. 100+ Goals, 100+ International Caps, 100+ Assists"
+                  className="w-full px-3 py-1.5 bg-slate-950 border border-amber-500/50 rounded-lg text-xs text-white placeholder-slate-500"
+                />
+                <p className="text-[10px] text-slate-400">
+                  Featured on the card to commemorate the player's 100+ century achievement.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Photo / Avatar Selection */}

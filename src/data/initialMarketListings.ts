@@ -5,6 +5,8 @@ import { STREET_KINGS_CARDS } from './streetKings';
 import { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS } from './summerCards';
 import { THROWBACK_CARDS } from './throwbackCards';
 import { HALL_OF_FUT_COLLECTIBLE_CARDS } from './hallOfFutCards';
+import { CENTURIONS_CARDS } from './centurionsCards';
+import { isRaffleCard } from './raffleCards';
 
 const SELLER_NAMES = [
   'TransferGuru_99',
@@ -143,10 +145,11 @@ export function createListingForCard(
  */
 export function generateInitialListings(customPool?: SoccerCard[]): TransferListing[] {
   // Use provided pool or gather all available card collections
-  const pool =
+  const rawPool =
     customPool && customPool.length > 0
       ? customPool
       : [
+          ...CENTURIONS_CARDS,
           ...SUMMER_PREMIUM_CARDS,
           ...SUMMER_BASIC_CARDS,
           ...THROWBACK_CARDS,
@@ -156,10 +159,19 @@ export function generateInitialListings(customPool?: SoccerCard[]): TransferList
           ...HALL_OF_FAME_CARDS,
           ...FUTMAS_CARDS,
           ...BASE_SOCCER_CARDS,
-        ].filter((c) => !c.isSetRewardOnly);
+        ];
+
+  // Strictly exclude set reward cards and Daily Raffle cards (which are exclusive to Daily Raffle Hub)
+  const pool = rawPool.filter((c) => !c.isSetRewardOnly && !isRaffleCard(c));
 
   // Specific high-profile marquee players guaranteed to be listed first
   const marqueeIds = [
+    // Centurions Century Club Stars
+    'centurion_cr7',
+    'centurion_kdb',
+    'centurion_ramos',
+    'centurion_modric',
+    'centurion_neuer',
     // Throwback Flashback Apex Icons
     'throwback-messi-98',
     'throwback-ronaldo-98',
@@ -275,7 +287,11 @@ export function generateMarketBatch(
 ): TransferListing[] {
   if (!pool || pool.length === 0) return [];
 
+  // Strictly filter out raffle cards and set rewards
+  const cleanPool = pool.filter((c) => !c.isSetRewardOnly && !isRaffleCard(c));
+  const poolToUse = cleanPool.length > 0 ? cleanPool : pool;
+
   // Pick random cards from pool
-  const sample = [...pool].sort(() => 0.5 - Math.random()).slice(0, count);
+  const sample = [...poolToUse].sort(() => 0.5 - Math.random()).slice(0, count);
   return sample.map((card, idx) => createListingForCard(card, idx + Math.floor(Math.random() * 100)));
 }

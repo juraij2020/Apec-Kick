@@ -2959,9 +2959,19 @@ export {
   HALL_OF_FUT_SET_DEFINITION,
 } from './hallOfFutCards';
 import { HALL_OF_FUT_COLLECTIBLE_CARDS } from './hallOfFutCards';
+export { CENTURIONS_CARDS } from './centurionsCards';
+import { CENTURIONS_CARDS } from './centurionsCards';
+export { CAMPAIGN_CARDS } from './campaignCards';
+import { CAMPAIGN_CARDS } from './campaignCards';
+export {
+  HALLOWEEN_SCREAM_CARDS,
+  CRAFTABLE_SCREAM_CARDS,
+  DEMBELE_99_SCREAM_REWARD,
+} from './halloweenScreamCards';
 
-// ALL INITIAL CARDS: Street Kings, International Moments, Hall of Fame, Futmas, Summer Transfers & Hall of FUT
+// ALL INITIAL CARDS: Centurions, Street Kings, International Moments, Hall of Fame, Futmas, Summer Transfers & Hall of FUT
 export const INITIAL_CUSTOM_CARDS: SoccerCard[] = [
+  ...CENTURIONS_CARDS,
   ...STREET_KINGS_CARDS,
   ...INTERNATIONAL_MOMENTS_CARDS,
   ...HALL_OF_FAME_CARDS,

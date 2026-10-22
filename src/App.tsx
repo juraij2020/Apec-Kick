@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { SoccerCard, SBCChallenge, PackDefinition } from './types/card';
-import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS, HANEEN_MUSTAFA_CARD, HALL_OF_FAME_CARDS, FUTMAS_CARDS } from './data/defaultCards';
+import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS, HANEEN_MUSTAFA_CARD, HALL_OF_FAME_CARDS, FUTMAS_CARDS, CENTURIONS_CARDS } from './data/defaultCards';
 import { STREET_KINGS_CARDS } from './data/streetKings';
 import { SUMMER_BASIC_CARDS, SUMMER_PREMIUM_CARDS } from './data/summerCards';
 import { THROWBACK_CARDS } from './data/throwbackCards';
@@ -20,7 +20,7 @@ import { SPANISH_HOF_COLLECTIBLE_CARDS } from './data/hallOfFutSpanishCards';
 import { ALL_SIGNATURE_CARDS } from './data/signatureCards';
 import { ALL_GERMANY_CARDS } from './data/nationsGermany';
 import { ALL_FOLLOWER_CARDS } from './data/followerCards';
-import { MONTHLY_RAFFLE_PLAYERS } from './data/raffleCards';
+import { MONTHLY_RAFFLE_PLAYERS, isRaffleCard } from './data/raffleCards';
 
 import { PackOpening } from './components/PackOpening';
 import { CardCreator } from './components/CardCreator';
@@ -39,6 +39,7 @@ import { SetRewardsHub } from './components/SetRewardsHub';
 import { EvolutionHub } from './components/EvolutionHub';
 import { GoogleAuthButton } from './components/GoogleAuthButton';
 import { RaffleHub } from './components/RaffleHub';
+import { DraftHub } from './components/draft/DraftHub';
 import {
   scheduleCloudSync,
   CloudGamePayload,
@@ -75,7 +76,7 @@ import {
 } from 'lucide-react';
 import { safeSetItem, safeGetItem, sanitizeCardsListForStorage } from './utils/safeStorage';
 
-type NavTab = 'intl' | 'hof' | 'evolution' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives' | 'set_rewards' | 'raffle';
+type NavTab = 'intl' | 'hof' | 'evolution' | 'market' | 'minigames' | 'packs' | 'creator' | 'squad' | 'sbcs' | 'clash' | 'mypacks' | 'club' | 'futmas' | 'objectives' | 'set_rewards' | 'raffle' | 'draft' | 'tournament';
 
 const STORAGE_KEYS = {
   COINS: 'apex_fut_coins_v2',
@@ -444,6 +445,7 @@ export default function App() {
   const allCardsPool = useMemo(() => {
     const cardMap = new Map<string, SoccerCard>();
     BASE_SOCCER_CARDS.forEach((c) => cardMap.set(c.id, c));
+    CENTURIONS_CARDS.forEach((c) => cardMap.set(c.id, c));
     INITIAL_CUSTOM_CARDS.forEach((c) => cardMap.set(c.id, c));
     STREET_KINGS_CARDS.forEach((c) => cardMap.set(c.id, c));
     SUMMER_BASIC_CARDS.forEach((c) => cardMap.set(c.id, c));
@@ -461,6 +463,12 @@ export default function App() {
     userCreatedCards.forEach((c) => cardMap.set(c.id, c));
     return Array.from(cardMap.values());
   }, [userCreatedCards]);
+
+  // Dedicated card pool for pack openings, market & match rewards (strictly excludes Daily Raffle cards & set-rewards)
+  // Daily Raffle cards can ONLY be obtained from the Daily Raffle Hub!
+  const packCardsPool = useMemo(() => {
+    return allCardsPool.filter((c) => !isRaffleCard(c) && !c.isSetRewardOnly);
+  }, [allCardsPool]);
 
   // Map of club cards for chemistry & squads
   const clubCardMap = new Map<string, SoccerCard>();
@@ -633,10 +641,10 @@ export default function App() {
     if (bonusPackName) {
       // Find matching pack or drop a bonus card
       const pack = PACKS.find((p) => p.name === bonusPackName) || PACKS[0];
-      // Generate 2 bonus cards for club
+      // Generate 2 bonus cards for club (strictly excluding raffle cards)
       const bonusCards: SoccerCard[] = [
-        allCardsPool[Math.floor(Math.random() * allCardsPool.length)],
-        allCardsPool[Math.floor(Math.random() * allCardsPool.length)],
+        packCardsPool[Math.floor(Math.random() * packCardsPool.length)] || allCardsPool[0],
+        packCardsPool[Math.floor(Math.random() * packCardsPool.length)] || allCardsPool[0],
       ].map((c, i) => ({
         ...c,
         id: `${c.id}_match_reward_${Date.now()}_${i}`,
@@ -746,6 +754,38 @@ export default function App() {
                 <span>Objectives</span>
                 <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded-full uppercase">
                   Daily
+                </span>
+              </button>
+
+              {/* Draft Table */}
+              <button
+                onClick={() => { setCurrentTab('draft'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${
+                  currentTab === 'draft'
+                    ? 'bg-amber-500/25 text-amber-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.35)] ring-1 ring-amber-400'
+                    : 'bg-gradient-to-r from-amber-500/10 to-yellow-500/10 text-amber-300 border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/20'
+                }`}
+              >
+                <Layers className="w-4 h-4 text-amber-400" />
+                <span>Draft Table</span>
+                <span className="text-[9px] bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-black px-1.5 py-0.2 rounded font-mono">
+                  NEW
+                </span>
+              </button>
+
+              {/* Tournament Mode */}
+              <button
+                onClick={() => { setCurrentTab('tournament'); sound.playClick(); }}
+                className={`flex items-center gap-1.5 flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all border cursor-pointer ${
+                  currentTab === 'tournament'
+                    ? 'bg-yellow-500/25 text-yellow-200 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.35)] ring-1 ring-yellow-400'
+                    : 'bg-gradient-to-r from-yellow-500/10 to-amber-500/10 text-yellow-300 border-yellow-500/40 hover:border-yellow-400 hover:bg-yellow-500/20'
+                }`}
+              >
+                <Trophy className="w-4 h-4 text-yellow-400 animate-pulse" />
+                <span>Tournament</span>
+                <span className="text-[9px] bg-yellow-400 text-slate-950 font-black px-1.5 py-0.2 rounded-full font-mono uppercase">
+                  16 Teams
                 </span>
               </button>
 
@@ -1063,6 +1103,32 @@ export default function App() {
               <span>Objectives</span>
             </button>
 
+            {/* Draft Table */}
+            <button
+              onClick={() => { setCurrentTab('draft'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1.5 flex-shrink-0 border cursor-pointer ${
+                currentTab === 'draft' 
+                  ? 'bg-amber-500/25 text-amber-200 border-amber-400 font-bold shadow-[0_0_10px_rgba(245,158,11,0.3)] ring-1 ring-amber-400' 
+                  : 'bg-slate-900/60 border-amber-500/40 text-amber-300 font-bold'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-amber-400" />
+              <span>Draft Table</span>
+            </button>
+
+            {/* Tournament */}
+            <button
+              onClick={() => { setCurrentTab('tournament'); sound.playClick(); }}
+              className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1.5 flex-shrink-0 border cursor-pointer ${
+                currentTab === 'tournament' 
+                  ? 'bg-yellow-500/25 text-yellow-200 border-yellow-400 font-bold shadow-[0_0_10px_rgba(234,179,8,0.3)] ring-1 ring-yellow-400' 
+                  : 'bg-slate-900/60 border-yellow-500/40 text-yellow-300 font-bold'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+              <span>Tournament</span>
+            </button>
+
             <button
               onClick={() => { setCurrentTab('set_rewards'); sound.playClick(); }}
               className={`whitespace-nowrap px-2.5 py-1 rounded-lg flex items-center gap-1.5 flex-shrink-0 border ${
@@ -1341,7 +1407,7 @@ export default function App() {
             onAddCoins={handleAddCoins}
             onAddCardsToClub={handleAddCardsToClub}
             onRemoveCardFromClub={handleRemoveCardFromClub}
-            allCardsPool={allCardsPool}
+            allCardsPool={packCardsPool}
             onNavigateToMiniGames={() => {
               setCurrentTab('minigames');
               sound.playClick();
@@ -1368,6 +1434,10 @@ export default function App() {
             }}
             onNavigateToMarket={() => {
               setCurrentTab('market');
+              sound.playClick();
+            }}
+            onNavigateToMiniGame={() => {
+              setCurrentTab('minigames');
               sound.playClick();
             }}
           />
@@ -1403,11 +1473,25 @@ export default function App() {
           />
         )}
 
+        {(currentTab === 'draft' || currentTab === 'tournament') && (
+          <DraftHub
+            coins={coins}
+            setCoins={setCoins}
+            packCardsPool={packCardsPool}
+            initialView={currentTab === 'tournament' ? 'tournament' : 'builder'}
+            onAddUnopenedPack={handleAddUnopenedPack}
+            onNavigateToTab={(tab) => {
+              setCurrentTab(tab as NavTab);
+              sound.playClick();
+            }}
+          />
+        )}
+
         {currentTab === 'minigames' && (
           <MiniGamesHub
             coins={coins}
             clubCards={clubCards}
-            allCardsPool={allCardsPool}
+            allCardsPool={packCardsPool}
             onAddCoins={handleAddCoins}
             onAddCardsToClub={handleAddCardsToClub}
             onAddUnopenedPack={handleAddUnopenedPack}
@@ -1430,7 +1514,7 @@ export default function App() {
         {currentTab === 'mypacks' && (
           <MyPacksHub
             unopenedPacks={unopenedPacks}
-            allCardsPool={allCardsPool}
+            allCardsPool={packCardsPool}
             clubCards={clubCards}
             onAddCoins={handleAddCoins}
             onOpenRewardPack={handleOpenRewardPack}
@@ -1450,7 +1534,7 @@ export default function App() {
         {currentTab === 'packs' && (
           <PackOpening
             coins={coins}
-            allCardsPool={allCardsPool}
+            allCardsPool={packCardsPool}
             userCreatedCards={userCreatedCards}
             customPacks={customPacks}
             onCreatePack={handleCreatePack}

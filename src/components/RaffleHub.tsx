@@ -23,7 +23,7 @@ interface RaffleHubProps {
   onAddUnopenedPack: (
     pack: PackDefinition,
     sourceTitle: string,
-    sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle'
+    sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle' | 'draft'
   ) => void;
   onNavigateToTab?: (tab: string) => void;
 }

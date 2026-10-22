@@ -258,6 +258,19 @@ class SoundSystem {
       osc.stop(now + 0.26);
     } catch {}
   }
+
+  // Aliases for hit, goal, and fanfare
+  playHit() {
+    this.playClick();
+  }
+
+  playGoal() {
+    this.playGoalCheer();
+  }
+
+  playFanfare() {
+    this.playWalkoutFanfare();
+  }
 }
 
 export const sound = new SoundSystem();

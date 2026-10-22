@@ -4,6 +4,7 @@ import { CardItem } from './CardItem';
 import { PackDuoGame } from './PackDuoGame';
 import { CursedBoardGame } from './CursedBoardGame';
 import { FollowerGame } from './FollowerGame';
+import { HalloweenScreamHub } from './HalloweenScreamHub';
 import { sound } from '../utils/audio';
 import { HL_REWARD_LADDER, getGuessWhoTierReward } from '../data/rewardPacks';
 import {
@@ -43,14 +44,15 @@ interface MiniGamesHubProps {
   allCardsPool: SoccerCard[];
   onAddCoins: (amount: number) => void;
   onAddCardsToClub: (cards: SoccerCard[]) => void;
-  onAddUnopenedPack: (pack: PackDefinition, sourceTitle: string, sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle') => void;
+  onAddUnopenedPack: (pack: PackDefinition, sourceTitle: string, sourceType: 'high_low' | 'guess_who' | 'daily_objective' | 'bonus' | 'sbc' | 'pack_duo' | 'raffle' | 'draft') => void;
   onNavigateToMyPacks?: () => void;
   onNavigateToSetRewards?: () => void;
   onNavigateToRaffle?: () => void;
+  onNavigateToDraft?: () => void;
   onMiniGamePlayed?: () => void;
 }
 
-type MiniGameMode = 'cursed_board' | 'follower' | 'high_low' | 'guess_who' | 'pack_duo';
+type MiniGameMode = 'halloween_scream' | 'cursed_board' | 'follower' | 'high_low' | 'guess_who' | 'pack_duo';
 type HighLowStat = 'rating' | 'pac' | 'sho' | 'pas' | 'dri';
 
 export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
@@ -65,7 +67,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
   onNavigateToRaffle,
   onMiniGamePlayed,
 }) => {
-  const [activeGame, setActiveGame] = useState<MiniGameMode>('cursed_board');
+  const [activeGame, setActiveGame] = useState<MiniGameMode>('halloween_scream');
 
   // Pool of high quality cards (filtering out any malformed data)
   const playablePool = useMemo(() => {
@@ -361,6 +363,24 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
 
         {/* Mode Switcher */}
         <div className="relative z-10 flex flex-wrap items-center gap-3 pt-6 mt-6 border-t border-slate-800/80">
+          <button
+            onClick={() => {
+              setActiveGame('halloween_scream');
+              sound.playClick();
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              activeGame === 'halloween_scream'
+                ? 'bg-gradient-to-r from-orange-500 via-amber-400 to-purple-600 text-slate-950 font-black shadow-[0_0_25px_rgba(249,115,22,0.8)] scale-105 animate-pulse'
+                : 'bg-slate-950 text-orange-400 hover:text-orange-200 border border-orange-500/50 shadow-[0_0_12px_rgba(249,115,22,0.25)]'
+            }`}
+          >
+            <span className="text-base">🍬</span>
+            <span>🎃 Halloween Scream (6 Houses &amp; Cauldron)</span>
+            <span className="text-[10px] bg-orange-950/80 text-orange-300 border border-orange-500/40 px-2 py-0.5 rounded-full font-mono font-bold">
+              32 Cards
+            </span>
+          </button>
+
           <button
             onClick={() => {
               setActiveGame('cursed_board');
@@ -1127,7 +1147,19 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* GAME 0: CURSED HORROR SNAKES & LADDERS (GERMANY NATIONS EDITION) */}
+      {/* GAME 0: ULTIMATE HALLOWEEN SCREAM (6 HOUSES, CANDY BASKET & CAULDRON RECIPES) */}
+      {/* ========================================================================= */}
+      {activeGame === 'halloween_scream' && (
+        <HalloweenScreamHub
+          clubCards={clubCards}
+          onAddCardsToClub={onAddCardsToClub}
+          onAddCoins={onAddCoins}
+          onNavigateToSetRewards={onNavigateToSetRewards}
+        />
+      )}
+
+      {/* ========================================================================= */}
+      {/* GAME 0.2: CURSED HORROR SNAKES & LADDERS (GERMANY NATIONS EDITION) */}
       {/* ========================================================================= */}
       {activeGame === 'cursed_board' && (
         <CursedBoardGame

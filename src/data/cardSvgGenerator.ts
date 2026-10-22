@@ -98,6 +98,8 @@ export function generateUserCardSvg(
   const l5 = isGK ? 'SPD' : 'DEF';
   const l6 = isGK ? 'POS' : 'PHY';
 
+  const isCampaign = cardStyle === 'campaign_futuristic';
+  const isCenturions = cardStyle === 'centurions' || (cardStyle as string) === 'centurions_crimson';
   const isThrowback = cardStyle === 'throwback';
   const isSummerPremium = cardStyle === 'summer_premium';
   const isObjectiveExclusive = cardStyle === 'objective_obsidian_gold' || (cardStyle as string) === 'objective_exclusive';
@@ -113,7 +115,20 @@ export function generateUserCardSvg(
   const isSignature = cardStyle === 'signature_autograph';
   const isGermany = cardStyle === 'nations_germany';
 
-  const borderStops = isGermany
+  const borderStops = isCampaign
+    ? `<stop offset="0%" stop-color="#38bdf8"/>
+       <stop offset="25%" stop-color="#818cf8"/>
+       <stop offset="50%" stop-color="#ec4899"/>
+       <stop offset="75%" stop-color="#f59e0b"/>
+       <stop offset="100%" stop-color="#06b6d4"/>`
+    : isCenturions
+    ? `<stop offset="0%" stop-color="#fef08a"/>
+       <stop offset="20%" stop-color="#f59e0b"/>
+       <stop offset="45%" stop-color="#b91c1c"/>
+       <stop offset="70%" stop-color="#dc2626"/>
+       <stop offset="85%" stop-color="#f59e0b"/>
+       <stop offset="100%" stop-color="#fef08a"/>`
+    : isGermany
     ? `<stop offset="0%" stop-color="#fef08a"/>
        <stop offset="25%" stop-color="#ca8a04"/>
        <stop offset="50%" stop-color="#18181b"/>
@@ -207,7 +222,18 @@ export function generateUserCardSvg(
        <stop offset="75%" stop-color="#a16207"/>
        <stop offset="100%" stop-color="#eab308"/>`;
 
-  const shieldStops = isGermany
+  const shieldStops = isCampaign
+    ? `<stop offset="0%" stop-color="#050814"/>
+       <stop offset="30%" stop-color="#0b1329"/>
+       <stop offset="65%" stop-color="#0f172a"/>
+       <stop offset="100%" stop-color="#02040a"/>`
+    : isCenturions
+    ? `<stop offset="0%" stop-color="#2a080c"/>
+       <stop offset="25%" stop-color="#450a0a"/>
+       <stop offset="55%" stop-color="#1f030a"/>
+       <stop offset="85%" stop-color="#2a080c"/>
+       <stop offset="100%" stop-color="#0a0104"/>`
+    : isGermany
     ? `<stop offset="0%" stop-color="#09090b"/>
        <stop offset="28%" stop-color="#18181b"/>
        <stop offset="48%" stop-color="#881337"/>
@@ -314,7 +340,7 @@ export function generateUserCardSvg(
     : `<stop offset="0%" stop-color="#eab308" stop-opacity="0.8"/>
        <stop offset="100%" stop-color="#a16207" stop-opacity="0.1"/>`;
 
-  const starSymbol = isGermany ? '🇩🇪' : isSignature ? '✍️' : isSummerPremium ? '👑' : isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
+  const starSymbol = isCenturions ? '💯' : isGermany ? '🇩🇪' : isSignature ? '✍️' : isSummerPremium ? '👑' : isSummerBasic ? '☀️' : isStreetKings ? '⚡' : isFutmas ? '❄' : isHOF ? '👑' : '★';
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 900" width="100%" height="100%">
     <defs>
@@ -441,7 +467,13 @@ export function generateUserCardSvg(
     </g>
     `}
 
-    ${isGermany ? `
+    ${isCampaign ? `
+    <!-- Campaign Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#38bdf8" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">🏆 CAMPAIGN MASTER • 100% REWARD 🏆</text>
+    ` : isCenturions ? `
+    <!-- Centurions Upper Notch Banner -->
+    <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#fef08a" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">🛡️ CENTURIONS • 100 CLUB 🛡️</text>
+    ` : isGermany ? `
     <!-- Germany Nations Upper Notch Banner -->
     <text x="322" y="146" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="12" fill="#fef08a" letter-spacing="3" text-anchor="middle" filter="url(#goldGlow)">🇩🇪 DIE MANNSCHAFT 🇩🇪</text>
     ` : isThrowback ? `
@@ -486,8 +518,8 @@ export function generateUserCardSvg(
     </g>
     ` : `
     <!-- Top Left Rating & Position Stack -->
-    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isSignature || isSummerPremium || isHallOfFutUpgrade ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isSignature || isHOF || isSummerPremium || isHallOfFutUpgrade ? 'url(#goldGlow)' : 'none'}">${rating}</text>
-    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isSignature || isHOF || isHallOfFutUpgrade ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
+    <text x="135" y="275" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="${isCampaign ? '#38bdf8' : isCenturions || isSignature || isSummerPremium || isHallOfFutUpgrade ? '#fef08a' : '#ffffff'}" text-anchor="middle" filter="${isCampaign || isCenturions || isSignature || isHOF || isSummerPremium || isHallOfFutUpgrade ? 'url(#goldGlow)' : 'none'}">${rating}</text>
+    <text x="135" y="325" font-family="system-ui, -apple-system, sans-serif" font-weight="800" font-size="34" fill="${isCampaign ? '#f472b6' : isCenturions || isSignature || isHOF || isHallOfFutUpgrade ? '#fef08a' : isSummerPremium ? '#38bdf8' : '#ffffff'}" text-anchor="middle">${pos}</text>
     `}
 
     <!-- Center Player Face Silhouette / Avatar placeholder -->

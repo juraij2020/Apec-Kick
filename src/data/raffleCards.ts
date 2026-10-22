@@ -236,9 +236,11 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/M',
       price: 1500000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.quick_step,
       momentTitle: 'October Daily Raffle 99 Grand Champion',
-      momentDescription: 'Exclusive 99 OVR 1st place daily prize for October. Earned through daily raffle lottery draws.',
+      momentDescription: 'Exclusive 99 OVR 1st place daily prize for October. Earned strictly through daily raffle lottery draws.',
       fullCardImage: generateRaffleCardSvg('Buksa', 99, 'ST', { pac: 99, sho: 99, pas: 95, dri: 99, def: 65, phy: 99 }, '🇵🇱', 'FCM', 'October', '⚡'),
     },
   },
@@ -267,6 +269,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/H',
       price: 1600000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.bruiser,
       momentTitle: 'November Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for November. Uncompromising aerial powerhouse and match-winner.',
@@ -298,6 +302,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/H',
       price: 1800000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.relentless,
       momentTitle: 'December Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for December. Golden midfield tactician and European champion.',
@@ -329,6 +335,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/M',
       price: 1500000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.finesse_shot,
       momentTitle: 'January Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for January. Rising Italian sensation with sniper finishing.',
@@ -360,6 +368,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/H',
       price: 2000000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.finesse_shot,
       momentTitle: 'February Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for February. World-class playmaker and prolific goalscorer.',
@@ -391,6 +401,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/H',
       price: 1850000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.anticipate,
       momentTitle: 'March Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for March. Unstoppable midfield dynamo.',
@@ -422,6 +434,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'M/H',
       price: 1750000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.bruiser,
       momentTitle: 'April Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for April. Iron wall of Highbury.',
@@ -453,6 +467,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/H',
       price: 2100000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.rapid,
       momentTitle: 'May Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for May. World-class Argentine predator.',
@@ -484,6 +500,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/M',
       price: 1650000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.whipped_pass,
       momentTitle: 'June Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for June. Electric South American wonderkid.',
@@ -515,6 +533,8 @@ export const MONTHLY_RAFFLE_PLAYERS: MonthlyRaffleConfig[] = [
       workRate: 'H/H',
       price: 1700000,
       isCustom: true,
+      isSetRewardOnly: true,
+      isRaffleExclusive: true,
       playStylePlus: PLAYSTYLE_PRESETS.quick_step,
       momentTitle: 'July Daily Raffle 99 Grand Champion',
       momentDescription: 'Exclusive 99 OVR 1st place daily prize for July. Flamboyant Colombian engine.',
@@ -570,4 +590,21 @@ export function getRafflePlayerForMonth(monthKeyOrIndex?: string | number): Mont
   // Default to October Buksa
   return MONTHLY_RAFFLE_PLAYERS[0];
 }
+
+/**
+ * Checks if a card is an exclusive Daily Raffle card.
+ * Daily Raffle cards are ONLY obtainable via 1st place Daily Raffle Hub draws
+ * and must NEVER be pulled from packs, store drops, or random rewards.
+ */
+export function isRaffleCard(card?: SoccerCard | null): boolean {
+  if (!card) return false;
+  return (
+    card.rarity === 'raffle' ||
+    card.program === 'Daily Raffle' ||
+    card.cardStyle === 'raffle_amber' ||
+    Boolean(card.id && card.id.startsWith('raffle-')) ||
+    Boolean(card.isRaffleExclusive)
+  );
+}
+
 

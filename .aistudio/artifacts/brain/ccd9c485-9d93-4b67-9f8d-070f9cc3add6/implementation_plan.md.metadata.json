@@ -1,6 +1,6 @@
 {
-  "summary":  "Plan to update all Raffle Cards to 99 OVR and strictly display only the current month's single player in the Daily Raffle tab, keeping all future months strictly hidden until their month arrives.",
-  "updatedAt":  "2026-10-11T10:08:00.912176882Z",
+  "summary":  "Revised implementation plan incorporating the rule that incorrect 5-treat combinations award base cards, while correct combinations award the corresponding Ultimate Halloween Scream player cards.",
+  "updatedAt":  "2026-10-22T13:27:07.165016086Z",
   "requestFeedback":  true,
   "userFacing":  true
 }
