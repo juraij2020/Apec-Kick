@@ -1,38 +1,55 @@
-# Implementation Plan: Rating-Scaled Jigsaw Pixel Puzzle
+# Implementation Plan: Market Evolution Cards & 118 Stam Master Reward
 
-Upgrade the Pixel Puzzle mini-game so each player card's puzzle scales its piece count directly to the player's OVR rating (e.g., 100 pieces for Pedri 100 OVR up to 105 pieces for 105 OVR cards), featuring direct on-board piece swapping and a slightly blurred reference preview.
-
----
-
-## 1. Grid Dimensions & Rating-Scaled Configurations
-Map each card's exact OVR rating to a piece count and grid dimension that preserves card slicing geometry:
-- **100 OVR (Pedri)**: 100 Pieces → `10 columns × 10 rows`
-- **102 OVR (Nico Paz, Pau Cubarsí, Cole Palmer)**: 102 Pieces → `6 columns × 17 rows`
-- **104 OVR (Pedro Porro, João Pedro)**: 104 Pieces → `8 columns × 13 rows`
-- **105 OVR (Jordan Pickford, Pedro Gonçalves, Pedro Neto)**: 105 Pieces → `7 columns × 15 rows`
+Implement the Market Evolution Cards system where 5 base cards are purchased exclusively from the Transfer Market and upgraded through multi-stage objectives in the Evolution Hub, unlocking the gated 103 → 118 Stam Master Evolution and Grand Set Reward.
 
 ---
 
-## 2. Interactive Jigsaw Gameplay Mechanics
-- **Direct Board Piece Swapping**:
-  - The puzzle board displays the complete grid initialized in a randomized state.
-  - Clicking Piece A marks it selected with an active neon outline and coordinate tag.
-  - Clicking Piece B instantly swaps Piece A and Piece B with an audio click.
-  - Pieces that match their target coordinate display a subtle alignment indicator.
-  - Live progress counter: `Pieces in place: X / [100-105]`.
-- **Blurred Reference Preview**:
-  - A side blueprint preview of the target card with a soft intentional blur (`filter blur-[2px]`) as requested, with a quick toggle between blurred and unblurred preview.
-- **Fast Testing & Verification**:
-  - Retain "⚡ Auto Solve Current" and "⚡ Solve All 9 Puzzles" buttons so 100+ piece puzzles can be quickly completed during testing and development.
-- **Completion Fanfare & Rewards**:
-  - Solving all pieces triggers walkout fanfare, confetti, card award directly to Club, and progression toward the 108 LW Yeremy Pino Set Reward.
+## 1. Card Rosters & Visual Assets (`src/data/marketEvolutionCards.ts`)
+Define 5 base cards (purchasable on Market) and their highest evolved forms (earned via Evolution):
+
+1. **Enzo Francescoli (CAM)**
+   - **Base**: 95 CAM · Uruguay · Liga Profesional (`/assets/aistudio/Francescoli_82618683.png`)
+   - **Max Evolution**: 117 CAM (`/assets/aistudio/Francescoli__1__0848cfbe.png`)
+2. **Antonio Di Natale (ST)**
+   - **Base**: 100 ST · Italy · Serie A (`/assets/aistudio/Di_Natale_6118a7db.png`)
+   - **Max Evolution**: 109 ST (`/assets/aistudio/Di_Natale__1__3ad7c80d.png`)
+3. **Rafael Márquez (CB)**
+   - **Base**: 101 CB · Mexico · La Liga (`/assets/aistudio/M_rquez_d021b3a1.png`)
+   - **Max Evolution**: 115 CB (`/assets/aistudio/M_rquez__1__b29373d6.png`)
+4. **Ricardo Carvalho (CB)**
+   - **Base**: 94 CB · Portugal · Liga Portugal (`/assets/aistudio/Ricardo_Carvalho_080af17b.png`)
+   - **Max Evolution**: 115 CB (`/assets/aistudio/Ricardo_Carvalho__1__62f6d7bd.png`)
+5. **Jaap Stam (CM)**
+   - **Base**: 103 CM · Netherlands · Premier League (`/assets/aistudio/Stam_ae7aeb60.png`)
+   - **Master Evolution / Set Reward**: 118 CM (`/assets/aistudio/Stam__1__3551a8ee.png`)
 
 ---
 
-## 3. Files to Update
-1. `src/components/PixelPuzzleHub.tsx`:
-   - Add dynamic grid configuration calculator based on card rating (`cols`, `rows`, `pieceCount`).
-   - Implement dynamic background slicing `backgroundSize: ${cols * 100}% ${rows * 100}%` and position calculation.
-   - Update the preview box to render the blurred reference graphic.
-   - Update header/labels to reflect jigsaw piece counts (e.g. "100-Piece Jigsaw" vs "105-Piece Jigsaw").
-2. Verification via `lint_applet` and `compile_applet`.
+## 2. Transfer Market Integration
+- Pre-populate all 5 base cards (Francescoli 95, Di Natale 100, Márquez 101, Carvalho 94, Stam 103) into initial market listings with reasonable pricing (e.g. 50,000–95,000 coins).
+- Add a dedicated **"Market Evolution"** filter tab in `TransferMarket.tsx` so users can immediately view, bid on, and buy these base cards.
+
+---
+
+## 3. Evolution Hub Gameplay (`src/components/EvolutionHub.tsx`)
+- Add a top-level mode switcher: **Market Evolution Legends** vs **Saka Academy**.
+- For each base card owned in the Club:
+  - Display current stage, target card preview, and multi-stage objectives (e.g., Level 1: Play 3 matches, Level 2: Score goals / clean sheets, Level 3: Win matches).
+  - Track live progress through match simulator / daily gameplay, plus quick "Play Match / Simulate" and "⚡ Instant Complete" dev assist buttons.
+  - Upgrading converts the base card into its final max-rated card in the Club, with celebratory walkout fanfare.
+- **118 Stam Gated Unlock**:
+  - In Evolution, Stam 103's pathway remains locked as a preview until all 4 base cards (Francescoli, Di Natale, Márquez, Carvalho) have reached their final evolved rating.
+  - Once the 4 are complete, Stam's Master Evolution unlocks, allowing the player to evolve 103 Stam to **118 Stam CM**.
+
+---
+
+## 4. Set Rewards Hub Integration (`src/components/SetRewardsHub.tsx`)
+- Add a dedicated **Market Evolution (118 Stam)** tab.
+- Displays the 4-card evolution tracker, with 118 Stam shown as a preview.
+- When all 4 cards are evolved and Stam reaches 118, players claim the Grand Set Reward (+ 500,000 bonus coins).
+
+---
+
+## 5. Verification Plan
+- Verify clean compilation via `lint_applet` and `compile_applet`.
+- Verify market purchasing, evolution objective progression, and Set Rewards claim flow.

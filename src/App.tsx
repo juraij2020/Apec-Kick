@@ -22,6 +22,7 @@ import { ALL_GERMANY_CARDS } from './data/nationsGermany';
 import { ALL_FOLLOWER_CARDS } from './data/followerCards';
 import { MONTHLY_RAFFLE_PLAYERS, isRaffleCard } from './data/raffleCards';
 import { ALL_PIXEL_CARDS } from './data/pixelCards';
+import { ALL_MARKET_EVO_CARDS } from './data/marketEvolutionCards';
 
 import { PackOpening } from './components/PackOpening';
 import { CardCreator } from './components/CardCreator';
@@ -461,6 +462,7 @@ export default function App() {
     ALL_FOLLOWER_CARDS.forEach((c) => cardMap.set(c.id, c));
     MONTHLY_RAFFLE_PLAYERS.forEach((m) => cardMap.set(m.card.id, m.card));
     ALL_PIXEL_CARDS.forEach((c) => cardMap.set(c.id, c));
+    ALL_MARKET_EVO_CARDS.forEach((c) => cardMap.set(c.id, c));
     FUTMAS_CARDS.forEach((c) => cardMap.set(c.id, c));
     userCreatedCards.forEach((c) => cardMap.set(c.id, c));
     return Array.from(cardMap.values());
@@ -1442,6 +1444,10 @@ export default function App() {
               setCurrentTab('minigames');
               sound.playClick();
             }}
+            onNavigateToEvolution={() => {
+              setCurrentTab('evolution');
+              sound.playClick();
+            }}
           />
         )}
 
@@ -1454,6 +1460,8 @@ export default function App() {
             currentStats={sakaStats}
             onUpdateStatsAndStage={handleUpdateSakaStatsAndStage}
             clubCards={clubCards}
+            onAddCardsToClub={handleAddCardsToClub}
+            onAddCoins={handleAddCoins}
             onNavigateToTab={(tab) => {
               setCurrentTab(tab);
               sound.playClick();

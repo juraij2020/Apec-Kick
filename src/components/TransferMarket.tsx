@@ -245,8 +245,15 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
           if (!['FWD', 'MID', 'DEF', 'GK'].includes(filter.position) && card.position !== filter.position) return false;
         }
 
-        // Program (Summer Transfers, Summer Premium, Street Kings, Intl, HOF, Futmas, Base, Icon)
+        // Program (Summer Transfers, Summer Premium, Street Kings, Intl, HOF, Futmas, Base, Icon, Market Evolution)
         if (filter.program !== 'ALL') {
+          if (
+            filter.program === 'market_evolution' &&
+            card.program !== 'Market Evolution' &&
+            card.rarity !== 'market_evolution'
+          ) {
+            return false;
+          }
           if (
             filter.program === 'summer_premium' &&
             card.program !== 'Summer Premium' &&
@@ -834,6 +841,7 @@ export const TransferMarket: React.FC<TransferMarketProps> = ({
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
               {[
                 { id: 'ALL', label: 'All Players' },
+                { id: 'market_evolution', label: '🧬 Market Evolution (5 Icons)' },
                 { id: 'hall_of_fut', label: '🏆 Hall of FUT' },
                 { id: 'throwback', label: '⏳ Throwback Flashback' },
                 { id: 'summer_premium', label: '👑 97-99 Summer Premium' },

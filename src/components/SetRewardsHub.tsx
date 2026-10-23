@@ -32,6 +32,17 @@ import {
   PIXEL_PUZZLE_CARDS,
   YEREMY_PINO_108_SET_REWARD,
 } from '../data/pixelCards';
+import {
+  MARKET_EVOLUTION_PAIRS,
+  EVO_STAM_MAX_118,
+  EVO_STAM_BASE_103,
+  EVO_FRANCESCOLI_MAX_117,
+  EVO_DI_NATALE_MAX_109,
+  EVO_MARQUEZ_MAX_115,
+  EVO_CARVALHO_MAX_115,
+  MARKET_EVO_BASE_CARDS,
+  MARKET_EVO_MAX_CARDS,
+} from '../data/marketEvolutionCards';
 import { INITIAL_CUSTOM_CARDS, BASE_SOCCER_CARDS } from '../data/defaultCards';
 import { CardItem } from './CardItem';
 import { sound } from '../utils/audio';
@@ -64,6 +75,7 @@ import {
   Flame,
   Skull,
   Gamepad2,
+  Dna,
 } from 'lucide-react';
 
 interface SetRewardsHubProps {
@@ -73,6 +85,7 @@ interface SetRewardsHubProps {
   onNavigateToStore?: (filter?: string) => void;
   onNavigateToMarket?: () => void;
   onNavigateToMiniGame?: () => void;
+  onNavigateToEvolution?: () => void;
 }
 
 export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
@@ -82,6 +95,7 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
   onNavigateToStore,
   onNavigateToMarket,
   onNavigateToMiniGame,
+  onNavigateToEvolution,
 }) => {
   // Expandable active set state - default to first Spanish tier or Hall of FUT
   const [expandedSetId, setExpandedSetId] = useState<string | null>(AVAILABLE_CARD_SETS[1]?.id || AVAILABLE_CARD_SETS[0]?.id || null);
@@ -106,8 +120,121 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
     }
   });
 
-  // Top level category tab: 'pixel' (Mini-game pixel puzzle set reward), 'halloween_scream', 'campaign', 'signature', or 'hall_of_fut'
-  const [activeTab, setActiveTab] = useState<'pixel' | 'halloween_scream' | 'campaign' | 'signature' | 'hall_of_fut'>('pixel');
+  // Top level category tab: 'market_evo' (118 Stam Market Evolution Set), 'pixel', 'halloween_scream', 'campaign', 'signature', or 'hall_of_fut'
+  const [activeTab, setActiveTab] = useState<'market_evo' | 'pixel' | 'halloween_scream' | 'campaign' | 'signature' | 'hall_of_fut'>('market_evo');
+
+  // Claimed 118 Stam Market Evolution Set Reward
+  const [claimedStam118, setClaimedStam118] = useState<boolean>(() => {
+    return localStorage.getItem('apex_fut_claimed_stam_118_reward') === 'true';
+  });
+
+  const [simulateMarketEvoAll, setSimulateMarketEvoAll] = useState<boolean>(false);
+
+  // Check which of the 4 prerequisite cards have completed their highest evolution in clubCards
+  const isFrancescoliMaxOwned = useMemo(() => {
+    return clubCards.some(
+      (c) =>
+        c.id === EVO_FRANCESCOLI_MAX_117.id ||
+        (c.name.toLowerCase().includes('francescoli') && c.rating >= 117)
+    ) || simulateMarketEvoAll;
+  }, [clubCards, simulateMarketEvoAll]);
+
+  const isDiNataleMaxOwned = useMemo(() => {
+    return clubCards.some(
+      (c) =>
+        c.id === EVO_DI_NATALE_MAX_109.id ||
+        (c.name.toLowerCase().includes('di natale') && c.rating >= 109)
+    ) || simulateMarketEvoAll;
+  }, [clubCards, simulateMarketEvoAll]);
+
+  const isMarquezMaxOwned = useMemo(() => {
+    return clubCards.some(
+      (c) =>
+        c.id === EVO_MARQUEZ_MAX_115.id ||
+        (c.name.toLowerCase().includes('márquez') && c.rating >= 115) ||
+        (c.name.toLowerCase().includes('marquez') && c.rating >= 115)
+    ) || simulateMarketEvoAll;
+  }, [clubCards, simulateMarketEvoAll]);
+
+  const isCarvalhoMaxOwned = useMemo(() => {
+    return clubCards.some(
+      (c) =>
+        c.id === EVO_CARVALHO_MAX_115.id ||
+        (c.name.toLowerCase().includes('carvalho') && c.rating >= 115)
+    ) || simulateMarketEvoAll;
+  }, [clubCards, simulateMarketEvoAll]);
+
+  const completedPrereqCount = useMemo(() => {
+    let count = 0;
+    if (isFrancescoliMaxOwned) count++;
+    if (isDiNataleMaxOwned) count++;
+    if (isMarquezMaxOwned) count++;
+    if (isCarvalhoMaxOwned) count++;
+    return count;
+  }, [isFrancescoliMaxOwned, isDiNataleMaxOwned, isMarquezMaxOwned, isCarvalhoMaxOwned]);
+
+  const areAllPrereqsComplete = completedPrereqCount === 4;
+
+  const isStam103BaseOwned = useMemo(() => {
+    return clubCards.some(
+      (c) =>
+        c.id === EVO_STAM_BASE_103.id ||
+        (c.name.toLowerCase().includes('stam') && c.rating >= 103)
+    ) || simulateMarketEvoAll;
+  }, [clubCards, simulateMarketEvoAll]);
+
+  const isStam118MaxEvolved = useMemo(() => {
+    return clubCards.some(
+      (c) =>
+        c.id === EVO_STAM_MAX_118.id ||
+        (c.name.toLowerCase().includes('stam') && c.rating >= 118)
+    ) || simulateMarketEvoAll;
+  }, [clubCards, simulateMarketEvoAll]);
+
+  const handleClaimStam118Reward = () => {
+    if (claimedStam118) return;
+    if (!areAllPrereqsComplete || !isStam118MaxEvolved) {
+      if (onNavigateToEvolution) {
+        onNavigateToEvolution();
+      }
+      return;
+    }
+
+    sound.playLevelUp();
+    setTimeout(() => sound.playWalkoutFanfare(), 300);
+
+    confetti({
+      particleCount: 300,
+      spread: 140,
+      origin: { y: 0.55 },
+      colors: ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#ffffff'],
+    });
+
+    onAddCardsToClub([EVO_STAM_MAX_118]);
+    if (onAddCoins) onAddCoins(500000);
+
+    setClaimedStam118(true);
+    safeSetItem('apex_fut_claimed_stam_118_reward', 'true');
+
+    setCelebrationModal({
+      card: EVO_STAM_MAX_118,
+      bonusCoins: 500000,
+      title: '👑 118 Jaap Stam Supreme Market Evolution Reward Claimed!',
+    });
+  };
+
+  const handleFastTrackMarketEvoDemo = () => {
+    sound.playLevelUp();
+    confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+    onAddCardsToClub([
+      EVO_FRANCESCOLI_MAX_117,
+      EVO_DI_NATALE_MAX_109,
+      EVO_MARQUEZ_MAX_115,
+      EVO_CARVALHO_MAX_115,
+      EVO_STAM_MAX_118,
+    ]);
+    setSimulateMarketEvoAll(true);
+  };
 
   // Claimed 108 Yeremy Pino Pixel Set Reward
   const [claimedYeremyPino108, setClaimedYeremyPino108] = useState<boolean>(() => {
@@ -694,8 +821,26 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
         </div>
       </div>
 
-      {/* Top Tab Switcher: Pixel Cards vs Halloween Scream vs Campaign 100% Master vs Signature Series vs Hall of FUT */}
+      {/* Top Tab Switcher: Market Evolution vs Pixel Cards vs Halloween Scream vs Campaign 100% Master vs Signature Series vs Hall of FUT */}
       <div className="flex items-center gap-3 border-b border-slate-800 pb-3 flex-wrap">
+        <button
+          onClick={() => {
+            setActiveTab('market_evo');
+            sound.playClick();
+          }}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 border transition-all ${
+            activeTab === 'market_evo'
+              ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 text-slate-950 border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.7)] scale-102'
+              : 'bg-slate-900/80 text-amber-400 border-amber-500/40 hover:border-amber-300'
+          }`}
+        >
+          <span className="text-base">🧬</span>
+          <span>Market Evolution (Stam 118)</span>
+          <span className="text-[10px] bg-slate-950/70 text-amber-300 px-2 py-0.5 rounded-full font-mono font-bold">
+            {completedPrereqCount}/4
+          </span>
+        </button>
+
         <button
           onClick={() => {
             setActiveTab('pixel');
@@ -783,6 +928,357 @@ export const SetRewardsHub: React.FC<SetRewardsHubProps> = ({
           <span>Hall of FUT &amp; Spanish Sets (Kane 99)</span>
         </button>
       </div>
+
+      {/* ================================================================= */}
+      {/* MARKET EVOLUTION LEGENDS SET REWARD (JAAP STAM 118 CM)             */}
+      {/* ================================================================= */}
+      {activeTab === 'market_evo' && (
+        <div className="space-y-8 animate-fade-in">
+          {/* Main Showcase Hero Banner */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-amber-500/60 bg-gradient-to-br from-slate-950 via-[#211202] to-slate-950 p-6 sm:p-8 shadow-[0_0_60px_rgba(245,158,11,0.35)]">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 left-20 w-80 h-80 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+              <div className="space-y-4 max-w-2xl">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/50 flex items-center gap-1.5 font-mono shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                    <Dna className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Market Evolution Grand Set</span>
+                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/50 font-mono">
+                    🧬 4 Prerequisite Evolutions
+                  </span>
+                  {claimedStam118 && (
+                    <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1 font-mono">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>118 Stam Claimed!</span>
+                    </span>
+                  )}
+                </div>
+
+                <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase">
+                  118 Jaap Stam <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-300 to-red-400">Supreme Set Reward</span> 👑
+                </h2>
+
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  All 5 base Icon cards (including <strong className="text-amber-400">103 CM Stam</strong>) are purchased on the Transfer Market. Complete the multi-stage Evolution objectives in the Evolution Hub for all 4 base cards. The <strong className="text-amber-300">118 Stam is shown as a preview</strong> until the 4 cards reach their final rating — then evolve Stam to 118 CM to claim your Set Reward and <strong className="text-amber-300">+500,000 Bonus Coins</strong>!
+                </p>
+
+                {/* Progress bar */}
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between text-xs font-bold font-mono">
+                    <span className="text-slate-300 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-amber-400" />
+                      <span>Prerequisites Evolved:</span>
+                    </span>
+                    <span className={areAllPrereqsComplete ? 'text-emerald-400' : 'text-amber-400'}>
+                      {completedPrereqCount} / 4 Complete ({Math.round((completedPrereqCount / 4) * 100)}%)
+                    </span>
+                  </div>
+                  <div className="w-full h-3 bg-slate-900 rounded-full overflow-hidden border border-slate-800 p-0.5">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        areAllPrereqsComplete
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_15px_rgba(16,185,129,0.7)]'
+                          : 'bg-gradient-to-r from-amber-500 to-orange-500'
+                      }`}
+                      style={{ width: `${(completedPrereqCount / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Status Badges */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                  <div className={`p-2.5 rounded-xl border text-center transition-all ${
+                    isFrancescoliMaxOwned ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-300' : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                  }`}>
+                    <div className="text-[10px] font-mono uppercase font-bold">Francescoli</div>
+                    <div className="text-xs font-black">{isFrancescoliMaxOwned ? '✓ 117 Max' : '95 → 117'}</div>
+                  </div>
+                  <div className={`p-2.5 rounded-xl border text-center transition-all ${
+                    isDiNataleMaxOwned ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-300' : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                  }`}>
+                    <div className="text-[10px] font-mono uppercase font-bold">Di Natale</div>
+                    <div className="text-xs font-black">{isDiNataleMaxOwned ? '✓ 109 Max' : '100 → 109'}</div>
+                  </div>
+                  <div className={`p-2.5 rounded-xl border text-center transition-all ${
+                    isMarquezMaxOwned ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-300' : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                  }`}>
+                    <div className="text-[10px] font-mono uppercase font-bold">Márquez</div>
+                    <div className="text-xs font-black">{isMarquezMaxOwned ? '✓ 115 Max' : '101 → 115'}</div>
+                  </div>
+                  <div className={`p-2.5 rounded-xl border text-center transition-all ${
+                    isCarvalhoMaxOwned ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-300' : 'bg-slate-900/60 border-slate-800 text-slate-400'
+                  }`}>
+                    <div className="text-[10px] font-mono uppercase font-bold">Carvalho</div>
+                    <div className="text-xs font-black">{isCarvalhoMaxOwned ? '✓ 115 Max' : '94 → 115'}</div>
+                  </div>
+                </div>
+
+                {/* Primary Action Buttons */}
+                <div className="flex items-center gap-3 pt-3 flex-wrap">
+                  {claimedStam118 ? (
+                    <div className="px-6 py-3.5 rounded-2xl bg-emerald-500/20 border-2 border-emerald-400 text-emerald-300 font-black text-sm uppercase tracking-wider flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      <span>Set Reward Completed &amp; Claimed!</span>
+                    </div>
+                  ) : areAllPrereqsComplete && isStam118MaxEvolved ? (
+                    <button
+                      onClick={handleClaimStam118Reward}
+                      className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 hover:brightness-110 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center gap-2 shadow-[0_0_35px_rgba(245,158,11,0.8)] transition-all active:scale-95 animate-pulse"
+                    >
+                      <Crown className="w-5 h-5" />
+                      <span>Claim 118 Stam + 500,000 Coins!</span>
+                    </button>
+                  ) : areAllPrereqsComplete ? (
+                    <button
+                      onClick={() => {
+                        if (onNavigateToEvolution) onNavigateToEvolution();
+                        sound.playClick();
+                      }}
+                      className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.6)] transition-all active:scale-95"
+                    >
+                      <Dna className="w-5 h-5" />
+                      <span>Evolve 103 Stam in Evolution Hub</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        if (onNavigateToEvolution) onNavigateToEvolution();
+                        sound.playClick();
+                      }}
+                      className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-sm uppercase tracking-wider flex items-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-all active:scale-95"
+                    >
+                      <Dna className="w-5 h-5" />
+                      <span>Go to Evolution Hub ({completedPrereqCount}/4 Done)</span>
+                    </button>
+                  )}
+
+                  {onNavigateToMarket && (
+                    <button
+                      onClick={() => {
+                        onNavigateToMarket();
+                        sound.playClick();
+                      }}
+                      className="px-5 py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95"
+                    >
+                      <ShoppingBag className="w-4 h-4 text-amber-400" />
+                      <span>Buy Base Cards on Market</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleFastTrackMarketEvoDemo}
+                    className="px-3.5 py-3 rounded-2xl bg-purple-950/60 hover:bg-purple-900/80 border border-purple-500/40 text-purple-300 font-mono text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+                    title="Dev Test: Instantly add all 4 max cards + 118 Stam to test set claiming"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Dev Fast-Track Test</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 118 Jaap Stam Card Showcase with Preview / Claim Badges */}
+              <div className="flex flex-col items-center flex-shrink-0 relative">
+                <div className="relative group">
+                  <div className={`p-1.5 rounded-3xl transition-all duration-500 ${
+                    areAllPrereqsComplete && isStam118MaxEvolved
+                      ? 'bg-gradient-to-tr from-amber-400 via-yellow-300 to-orange-500 shadow-[0_0_50px_rgba(245,158,11,0.9)] animate-pulse'
+                      : 'bg-gradient-to-tr from-slate-700 via-amber-900 to-slate-800 shadow-xl'
+                  }`}>
+                    <div className="rounded-[22px] overflow-hidden bg-slate-950 relative">
+                      <CardItem card={EVO_STAM_MAX_118} size="lg" interactive={true} />
+
+                      {/* Locked Preview Watermark Badge when not all 4 prerequisites are done */}
+                      {!areAllPrereqsComplete && (
+                        <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 text-center space-y-2 pointer-events-none">
+                          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border-2 border-amber-400 flex items-center justify-center text-amber-300 shadow-lg">
+                            <Lock className="w-6 h-6 animate-pulse" />
+                          </div>
+                          <span className="text-xs font-black uppercase tracking-wider text-amber-300 bg-slate-950/90 px-3 py-1 rounded-full border border-amber-500/50 shadow-md">
+                            Locked Preview
+                          </span>
+                          <p className="text-[11px] text-slate-300 max-w-[200px] leading-tight">
+                            Complete all 4 base evolutions to unlock 103 → 118 Stam Evolution!
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Ready for Evolution in Hub badge */}
+                      {areAllPrereqsComplete && !isStam118MaxEvolved && (
+                        <div className="absolute bottom-2 inset-x-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-2 rounded-xl text-center shadow-lg pointer-events-none">
+                          <span className="text-[10px] font-black uppercase tracking-wider block">
+                            Unlocked in Evolution Hub!
+                          </span>
+                          <span className="text-[9px] text-emerald-100">
+                            Evolve 103 Stam to 118 to claim
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-center mt-3">
+                    <span className="text-xs font-mono font-black text-amber-400 uppercase tracking-widest block">
+                      Jaap Stam • 118 CM Master
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      + 500,000 Bonus Coins
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* The 4 Prerequisite Evolutions Grid */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg sm:text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-amber-400" />
+                  <span>The 4 Prerequisite Legend Evolutions</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Each card is purchasable at base rating on the Transfer Market and evolved through match objectives.
+                </p>
+              </div>
+
+              {onNavigateToEvolution && (
+                <button
+                  onClick={() => {
+                    onNavigateToEvolution();
+                    sound.playClick();
+                  }}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5 transition-all"
+                >
+                  <span>Evolution Hub</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {MARKET_EVOLUTION_PAIRS.filter((p) => !p.isGrandReward).map((pair) => {
+                const isMax = clubCards.some(
+                  (c) =>
+                    c.id === pair.maxCard.id ||
+                    (c.name.toLowerCase() === pair.maxCard.name.toLowerCase() && c.rating >= pair.maxCard.rating)
+                ) || simulateMarketEvoAll;
+
+                const isBase = clubCards.some(
+                  (c) =>
+                    c.id === pair.baseCard.id ||
+                    (c.name.toLowerCase() === pair.baseCard.name.toLowerCase() && c.rating >= pair.baseCard.rating)
+                );
+
+                return (
+                  <div
+                    key={pair.id}
+                    className={`p-5 rounded-2xl border transition-all ${
+                      isMax
+                        ? 'bg-gradient-to-r from-emerald-950/40 via-slate-950 to-emerald-950/20 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                        : isBase
+                        ? 'bg-gradient-to-r from-amber-950/30 via-slate-950 to-slate-950 border-amber-500/40'
+                        : 'bg-slate-950/80 border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Left side info */}
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-black text-white">{pair.name}</span>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-slate-300">
+                            {pair.baseCard.position} • {pair.baseCard.nation}
+                          </span>
+                          {isMax ? (
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>Max Evolved</span>
+                            </span>
+                          ) : isBase ? (
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300">
+                              Base Owned (Evolve in Hub)
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                              Not in Club
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-xs text-slate-300 flex items-center gap-2">
+                          <span className="font-mono text-slate-400">
+                            Base: <strong className="text-white">{pair.baseCard.rating} {pair.baseCard.position}</strong>
+                          </span>
+                          <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+                          <span className="font-mono text-amber-300">
+                            Final: <strong className="text-amber-400">{pair.maxCard.rating} {pair.maxCard.position}</strong>
+                          </span>
+                          <span className="text-[10px] font-black text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                            +{pair.maxCard.rating - pair.baseCard.rating} OVR
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] text-slate-400 line-clamp-2">
+                          3 Evolutionary stages: complete matches, goals, wins, and clean sheets in the Evolution Hub to upgrade to {pair.maxCard.rating} OVR.
+                        </p>
+
+                        <div className="pt-1 flex items-center gap-2 flex-wrap">
+                          {isMax ? (
+                            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                              <Check className="w-4 h-4" /> Ready for Stam Unlock
+                            </span>
+                          ) : isBase ? (
+                            <button
+                              onClick={() => {
+                                if (onNavigateToEvolution) onNavigateToEvolution();
+                                sound.playClick();
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95"
+                            >
+                              <Dna className="w-3.5 h-3.5" />
+                              <span>Evolve Now</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                if (onNavigateToMarket) onNavigateToMarket();
+                                sound.playClick();
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-amber-500/40 text-amber-300 font-bold text-xs uppercase tracking-wider flex items-center gap-1 transition-all active:scale-95"
+                            >
+                              <ShoppingBag className="w-3.5 h-3.5" />
+                              <span>Buy on Market ({pair.baseCard.price?.toLocaleString()} C)</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right side thumbnails comparison */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="w-16 sm:w-20 transform hover:scale-105 transition-transform">
+                          <CardItem card={pair.baseCard} size="sm" interactive={false} />
+                          <span className="text-[9px] font-mono text-center block text-slate-400 mt-1">
+                            Base {pair.baseCard.rating}
+                          </span>
+                        </div>
+                        <div className="w-16 sm:w-20 transform hover:scale-105 transition-transform">
+                          <CardItem card={pair.maxCard} size="sm" interactive={false} />
+                          <span className="text-[9px] font-mono text-center block text-amber-400 font-bold mt-1">
+                            Apex {pair.maxCard.rating}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ================================================================= */}
       {/* PIXEL CARDS 9-PUZZLE MINI-GAME SET REWARD (YEREMY PINO 108 LW)   */}

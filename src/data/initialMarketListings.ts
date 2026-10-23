@@ -7,6 +7,7 @@ import { THROWBACK_CARDS } from './throwbackCards';
 import { HALL_OF_FUT_COLLECTIBLE_CARDS } from './hallOfFutCards';
 import { CENTURIONS_CARDS } from './centurionsCards';
 import { isRaffleCard } from './raffleCards';
+import { MARKET_EVO_BASE_CARDS } from './marketEvolutionCards';
 
 const SELLER_NAMES = [
   'TransferGuru_99',
@@ -243,6 +244,14 @@ export function generateInitialListings(customPool?: SoccerCard[]): TransferList
     if (found && !addedIds.has(found.id)) {
       selectedCards.push(found);
       addedIds.add(found.id);
+    }
+  });
+
+  // Always list all 5 Market Evolution Base Cards
+  MARKET_EVO_BASE_CARDS.forEach((c) => {
+    if (!addedIds.has(c.id)) {
+      selectedCards.push(c);
+      addedIds.add(c.id);
     }
   });
 

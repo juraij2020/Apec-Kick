@@ -5,6 +5,7 @@ export type Position =
   | 'LW' | 'RW' | 'CF' | 'ST';
 
 export type CardRarity = 
+  | 'market_evolution'
   | 'pixel'
   | 'halloween_scream'
   | 'campaign'
@@ -35,6 +36,7 @@ export type CardRarity =
   | 'throwback';
 
 export type CardStyle =
+  | 'market_evolution'
   | 'pixel_retro'
   | 'halloween_scream'
   | 'campaign_futuristic'

@@ -6,6 +6,7 @@ import {
   buildEvolvedSakaCard,
 } from '../data/evolutionSaka';
 import { CardItem } from './CardItem';
+import { MarketEvolutionHub } from './MarketEvolutionHub';
 import { sound } from '../utils/audio';
 import confetti from 'canvas-confetti';
 import {
@@ -24,6 +25,8 @@ import {
   Award,
   ChevronRight,
   Flame,
+  Crown,
+  Layers,
 } from 'lucide-react';
 
 interface EvolutionHubProps {
@@ -34,6 +37,8 @@ interface EvolutionHubProps {
   currentStats: CardStats;
   onUpdateStatsAndStage: (newStats: CardStats, newStageIndex: number) => void;
   clubCards: SoccerCard[];
+  onAddCardsToClub?: (cards: SoccerCard[]) => void;
+  onAddCoins?: (amount: number) => void;
   onNavigateToTab: (tab: any) => void;
 }
 
@@ -53,8 +58,12 @@ export const EvolutionHub: React.FC<EvolutionHubProps> = ({
   currentStageIndex,
   currentStats,
   onUpdateStatsAndStage,
+  clubCards,
+  onAddCardsToClub,
+  onAddCoins,
   onNavigateToTab,
 }) => {
+  const [activeEvoTab, setActiveEvoTab] = useState<'market_evo' | 'saka'>('market_evo');
   const [justUpgradedStat, setJustUpgradedStat] = useState<string | null>(null);
   const [evolutionModal, setEvolutionModal] = useState<EvolutionStage | null>(null);
 
@@ -182,42 +191,87 @@ export const EvolutionHub: React.FC<EvolutionHubProps> = ({
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
-      {/* Top Banner: Evolutions DNA Station */}
-      <div className="relative rounded-3xl overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-r from-slate-950 via-[#03241b] to-slate-950 p-6 shadow-[0_0_40px_rgba(16,185,129,0.25)] flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-emerald-300 p-0.5 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.6)] flex-shrink-0 animate-pulse">
-            <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-emerald-400">
-              <Dna className="w-8 h-8" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide uppercase">
-                Card Evolutions 🧬
-              </h1>
-              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full">
-                Saka 75 ➔ 98 Apex Active
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-              Spend Evolution Points to train stats. When all 6 attributes match the target, your card <strong>automatically evolves to the next OVR tier</strong>!
-            </p>
-          </div>
-        </div>
+      {/* Top Tab Switcher: Market Evolution Legends vs Saka Academy */}
+      <div className="flex items-center gap-3 border-b border-slate-800 pb-3 flex-wrap">
+        <button
+          onClick={() => {
+            setActiveEvoTab('market_evo');
+            sound.playClick();
+          }}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 border transition-all ${
+            activeEvoTab === 'market_evo'
+              ? 'bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-500 text-slate-950 border-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.7)] scale-102'
+              : 'bg-slate-900/80 text-cyan-400 border-cyan-500/40 hover:border-cyan-300'
+          }`}
+        >
+          <Dna className="w-4 h-4 stroke-[2.5]" />
+          <span>Market Evolution Legends (5 Icons &amp; 118 Stam)</span>
+          <span className="text-[10px] bg-slate-950/70 text-cyan-300 px-2 py-0.5 rounded-full font-mono font-bold">
+            NEW
+          </span>
+        </button>
 
-        {/* Live Evo Points Wallet */}
-        <div className="flex items-center gap-4 bg-slate-950/90 border-2 border-emerald-500/50 p-4 rounded-2xl shadow-inner">
-          <div className="text-right">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
-              Evolution Points
-            </span>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-400 font-mono flex items-center gap-1.5 justify-end">
-              <Sparkles className="w-5 h-5 text-yellow-400" />
-              <span>{evoPoints.toLocaleString()}</span>
+        <button
+          onClick={() => {
+            setActiveEvoTab('saka');
+            sound.playClick();
+          }}
+          className={`px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 border transition-all ${
+            activeEvoTab === 'saka'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 border-emerald-300 shadow-[0_0_25px_rgba(16,185,129,0.7)] scale-102'
+              : 'bg-slate-900/80 text-emerald-400 border-emerald-500/30 hover:border-emerald-300'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Bukayo Saka Academy (Evo Points)</span>
+        </button>
+      </div>
+
+      {activeEvoTab === 'market_evo' ? (
+        <MarketEvolutionHub
+          clubCards={clubCards}
+          onAddCardsToClub={onAddCardsToClub}
+          onAddCoins={onAddCoins}
+          onNavigateToTab={onNavigateToTab}
+        />
+      ) : (
+        <>
+          {/* Top Banner: Evolutions DNA Station */}
+          <div className="relative rounded-3xl overflow-hidden border-2 border-emerald-500/50 bg-gradient-to-r from-slate-950 via-[#03241b] to-slate-950 p-6 shadow-[0_0_40px_rgba(16,185,129,0.25)] flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-emerald-300 p-0.5 flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.6)] flex-shrink-0 animate-pulse">
+                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-emerald-400">
+                  <Dna className="w-8 h-8" />
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide uppercase">
+                    Card Evolutions 🧬
+                  </h1>
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full">
+                    Saka 75 ➔ 98 Apex Active
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+                  Spend Evolution Points to train stats. When all 6 attributes match the target, your card <strong>automatically evolves to the next OVR tier</strong>!
+                </p>
+              </div>
+            </div>
+
+            {/* Live Evo Points Wallet */}
+            <div className="flex items-center gap-4 bg-slate-950/90 border-2 border-emerald-500/50 p-4 rounded-2xl shadow-inner">
+              <div className="text-right">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                  Evolution Points
+                </span>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-400 font-mono flex items-center gap-1.5 justify-end">
+                  <Sparkles className="w-5 h-5 text-yellow-400" />
+                  <span>{evoPoints.toLocaleString()}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
       {/* ================================================================= */}
       {/* ACTIVE CARD TRAINING ARENA                                        */}
@@ -567,6 +621,8 @@ export const EvolutionHub: React.FC<EvolutionHubProps> = ({
             </button>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );
